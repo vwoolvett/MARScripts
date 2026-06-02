@@ -540,7 +540,7 @@ def plot_NET_Tsky(calibdict, mode='median'):
         color = 'blue'
     elif mode=='mode':
         net_mode = 'Mode'
-        net_func = sp.mode  # simple mode function for integers
+        net_func = sp.stats.mode  # simple mode function for integers
         color = 'red'
     else:
         net_mode = 'Mean'
