@@ -255,7 +255,7 @@ def dict_SingleCalib(sweep_scan, wire_scan, fe='LFA'):
         table['x0'].append(x0)
         table['y0'].append(y0)
 
-    # convert lists → numpy arrays (important!)
+    # convert lists into numpy arrays (important!)
     for key in table:
         table[key] = np.array(table[key])
 
