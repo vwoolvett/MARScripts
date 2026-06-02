@@ -535,8 +535,6 @@ def modeofNETarr(NETarr, binwidth=1):
     @type binwidth:       float
     '''
     arr_nonan = NETarr[~np.isnan(NETarr)]
-    print(type(arr_nonan))
-    print(len(arr_nonan))
     if len(arr_nonan)<100:  # if there are less than 100 non-NaN values, not even 100 KIDs were working
         print('THIS WAS TRIGGERED')
         return np.nan
@@ -564,7 +562,7 @@ def plot_NET_Tsky(calibdict, mode='median', modebinwidth=0.2):
         net_func = np.nanmedian
         color = 'blue'
     elif mode=='mode':
-        net_mode = 'Mode'
+        net_mode = 'Mode (%.1f mK*sqrt(s) bins)'%modebinwidth
         net_func = modeofNETarr
         color = 'red'
     else:
@@ -580,9 +578,9 @@ def plot_NET_Tsky(calibdict, mode='median', modebinwidth=0.2):
         mask = (calibdict['wire_scan']==wirescan)
         dict_scan = {key: calibdict[key][mask] for key in calibdict}
         if mode=='mode':
-            net_metric = net_func(np.array(dict_scan['NET']), binwidth=modebinwidth)
+            net_metric = net_func(dict_scan['NET'], binwidth=modebinwidth)
         else:
-            net_metric = net_func(np.array(dict_scan['NET']))
+            net_metric = net_func(dict_scan['NET'])
         net_metric_list.append(net_metric)
         tsky_scan_list.append(dict_scan['T_sky'][0])  # all points in scan have same T_sky
 
