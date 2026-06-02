@@ -536,7 +536,6 @@ def modeofNETarr(NETarr, binwidth=1):
     '''
     arr_nonan = NETarr[~np.isnan(NETarr)]
     if len(arr_nonan)<100:  # if there are less than 100 non-NaN values, not even 100 KIDs were working
-        print('THIS WAS TRIGGERED')
         return np.nan
     bins = np.arange(np.nanmin(arr_nonan), np.nanmax(arr_nonan) + binwidth, binwidth)
     hist, edges = np.histogram(arr_nonan, bins=bins)
