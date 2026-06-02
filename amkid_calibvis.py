@@ -535,11 +535,12 @@ def modeofNETarr(NETarr, binwidth=1):
     @type binwidth:       float
     '''
     arr_nonan = NETarr[~np.isnan(NETarr)]
+    print(arr_nonan)
     if len(arr_nonan)<100:  # if there are less than 100 non-NaN values, not even 100 KIDs were working
+        print('THIS WAS TRIGGERED')
         return np.nan
     bins = np.arange(np.nanmin(arr_nonan), np.nanmax(arr_nonan) + binwidth, binwidth)
     hist, edges = np.histogram(arr_nonan, bins=bins)
-    print(arr_nonan)
     print(hist)
     max_bin_idx = np.nanargmax(hist)
     mode = (edges[max_bin_idx] + edges[max_bin_idx + 1]) / 2
