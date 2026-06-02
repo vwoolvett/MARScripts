@@ -586,7 +586,7 @@ def plot_NET_Tsky(calibdict, mode='median', modebinwidth=0.2):
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.scatter(tsky_scan_list, net_metric_list, marker='o', s=50, color=color)
     ax.set_xlabel('T_sky (K)')
-    ax.set_ylabel('%s NET (mK*sqrt(s))' % net_mode)
+    ax.set_ylabel('NET (mK*sqrt(s))')
     ax.set_ylim(0, 20)
     ax.set_title('%s NET vs T_sky' % net_mode)
     ax.grid()
