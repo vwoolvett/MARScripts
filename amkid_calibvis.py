@@ -555,12 +555,13 @@ def plot_NET_Tsky(calibdict, mode='median'):
         net_metric_list.append(net_metric)
         tsky_scan_list.append(dict_scan['T_sky'][0])  # all points in scan have same T_sky
 
-    plt.figure(figsize=(10, 6))
-    plt.plot(tsky_scan_list, net_metric_list, marker='o')
-    plt.xlabel('T_sky (K)')
-    plt.ylabel('%s NET (mK*sqrt(s))' % net_mode)
-    plt.title('%s NET vs T_sky' % net_mode)
-    plt.grid()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.scatter(tsky_scan_list, net_metric_list)
+    ax.set_xlabel('T_sky (K)')
+    ax.set_ylabel('%s NET (mK*sqrt(s))' % net_mode)
+    ax.set_ylim(0, 20)
+    ax.set_title('%s NET vs T_sky' % net_mode)
+    ax.grid()
 
     
 
