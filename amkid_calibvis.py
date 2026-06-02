@@ -565,7 +565,7 @@ def plot_NET_Tsky(calibdict, mode='median', modebinwidth=0.2):
         color = 'blue'
     elif mode=='mode':
         net_mode = 'Mode'
-        net_func = modeofarr
+        net_func = modeofNETarr
         color = 'red'
     else:
         net_mode = 'Mean'
