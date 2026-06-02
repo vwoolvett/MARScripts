@@ -539,6 +539,7 @@ def modeofarr(arr, binwidth=1):
         return np.nan
     bins = np.arange(np.nanmin(arr_nonan), np.nanmax(arr_nonan) + binwidth, binwidth)
     hist, edges = np.histogram(arr_nonan, bins=bins)
+    print(hist)
     max_bin_idx = np.nanargmax(hist)
     mode = (edges[max_bin_idx] + edges[max_bin_idx + 1]) / 2
     return mode
