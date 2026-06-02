@@ -1,5 +1,8 @@
 def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
     '''
+
+    VERSION 3.5 - 02.06.2026
+
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone 
     and outputs a mask for data.Data of whether a timestamp should be used for each tone.
     Timestamps within a spiked window are all flagged for a given tone, even if not all
