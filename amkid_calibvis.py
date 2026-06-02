@@ -554,7 +554,10 @@ def plot_NET_Tsky(calibdict, mode='median'):
     for wirescan in wirescan_list:
         mask = (calibdict['wire_scan']==wirescan)
         dict_scan = {key: calibdict[key][mask] for key in calibdict}
-        net_metric = net_func(dict_scan['NET'])
+        if mode=='mode':
+            net_metric = net_func(dict_scan['NET'])[0][0]  # mode returns a ModeResult object, we take the mode value
+        else:
+            net_metric = net_func(dict_scan['NET'])
         net_metric_list.append(net_metric)
         tsky_scan_list.append(dict_scan['T_sky'][0])  # all points in scan have same T_sky
 
