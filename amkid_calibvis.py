@@ -525,12 +525,31 @@ def plot_CalibKids(calibdict, xaxis='T_sky', yaxis='freq_max', color_by='NET', s
 
 
 
-def plot_NET_Tsky(calibdict, mode='median'):
+def modeofarr(arr, binwidth=1):
+    '''
+    Returns the mode of an array by binning it with a given binwidth and returning the center of the most populated bin.
+    This is a simple way to get the mode of an array of integers, or to get a robust mode of an array of floats that may have outliers.
+    @param arr:           input array
+    @type arr:            array-like
+    @param binwidth:      width of the bins to use for finding the mode. Default 1.
+    @type binwidth:       float
+    '''
+    bins = np.arange(np.min(arr), np.max(arr) + binwidth, binwidth)
+    hist, edges = np.histogram(arr, bins=bins)
+    max_bin_idx = np.argmax(hist)
+    mode = (edges[max_bin_idx] + edges[max_bin_idx + 1]) / 2
+    return mode
+
+
+
+def plot_NET_Tsky(calibdict, mode='median', modebinwidth=0.2):
     '''
     Plots the median, mode, or mean NET of the array as a function of T_sky based on the data in calibdict.
     @param calibdict:       Calibration dictionary, built or loaded from function calDict.
     @param mode:            The mode of the NET to plot ('median', 'mode', or 'mean').
     @type mode:             str
+    @param modebinwidth:    If mode='mode', the bin width to use for finding the mode of the NET values at each T_sky. Default 0.2 mK*sqrt(s).
+    @type modebinwidth:     float
     '''
     assert mode in ['median', 'mode', 'mean'], 'Argument "mode" must be "median", "mode", or "mean"'
 
@@ -540,7 +559,7 @@ def plot_NET_Tsky(calibdict, mode='median'):
         color = 'blue'
     elif mode=='mode':
         net_mode = 'Mode'
-        net_func = sp.stats.mode  # simple mode function for integers
+        net_func = modeofarr
         color = 'red'
     else:
         net_mode = 'Mean'
@@ -555,7 +574,7 @@ def plot_NET_Tsky(calibdict, mode='median'):
         mask = (calibdict['wire_scan']==wirescan)
         dict_scan = {key: calibdict[key][mask] for key in calibdict}
         if mode=='mode':
-            net_metric = net_func(dict_scan['NET'])[0][0]  # mode returns a ModeResult object, we take the mode value
+            net_metric = net_func(dict_scan['NET'], binwidth=modebinwidth)
         else:
             net_metric = net_func(dict_scan['NET'])
         net_metric_list.append(net_metric)
