@@ -525,17 +525,17 @@ def plot_CalibKids(calibdict, xaxis='T_sky', yaxis='freq_max', color_by='NET', s
 
 
 
-def modeofarr(arr, binwidth=1):
+def modeofNETarr(NETarr, binwidth=1):
     '''
     Returns the mode of an array by binning it with a given binwidth and returning the center of the most populated bin.
     This is a simple way to get the mode of an array of integers, or to get a robust mode of an array of floats that may have outliers.
-    @param arr:           input array
-    @type arr:            array-like
+    @param NETarr:        input array
+    @type NETarr:         array-like
     @param binwidth:      width of the bins to use for finding the mode. Default 1.
     @type binwidth:       float
     '''
-    arr_nonan = arr[~np.isnan(arr)]
-    if len(arr_nonan)==0:
+    arr_nonan = NETarr[~np.isnan(NETarr)]
+    if len(arr_nonan)<100:  # if there are less than 100 non-NaN values, not even 100 KIDs were working
         return np.nan
     bins = np.arange(np.nanmin(arr_nonan), np.nanmax(arr_nonan) + binwidth, binwidth)
     hist, edges = np.histogram(arr_nonan, bins=bins)
