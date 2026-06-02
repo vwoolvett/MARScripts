@@ -536,6 +536,7 @@ def modeofNETarr(NETarr, binwidth=1):
     '''
     arr_nonan = NETarr[~np.isnan(NETarr)]
     print(arr_nonan)
+    print(len(arr_nonan))
     if len(arr_nonan)<100:  # if there are less than 100 non-NaN values, not even 100 KIDs were working
         print('THIS WAS TRIGGERED')
         return np.nan
