@@ -537,12 +537,15 @@ def plot_NET_Tsky(calibdict, mode='median'):
     if mode=='median':
         net_mode = 'Median'
         net_func = np.nanmedian
+        color = 'blue'
     elif mode=='mode':
         net_mode = 'Mode'
-        net_func = lambda x: np.bincount(x.astype(int)).argmax()  # simple mode function for integers
+        net_func = sp.mode  # simple mode function for integers
+        color = 'red'
     else:
         net_mode = 'Mean'
         net_func = np.nanmean
+        color = 'green'
 
     wirescan_list = np.sort(np.unique(calibdict['wire_scan']))
     tsky_scan_list = []
@@ -556,7 +559,7 @@ def plot_NET_Tsky(calibdict, mode='median'):
         tsky_scan_list.append(dict_scan['T_sky'][0])  # all points in scan have same T_sky
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(tsky_scan_list, net_metric_list)
+    ax.scatter(tsky_scan_list, net_metric_list, marker='o', s=50, color=color)
     ax.set_xlabel('T_sky (K)')
     ax.set_ylabel('%s NET (mK*sqrt(s))' % net_mode)
     ax.set_ylim(0, 20)
