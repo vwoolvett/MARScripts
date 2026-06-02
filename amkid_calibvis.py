@@ -525,6 +525,45 @@ def plot_CalibKids(calibdict, xaxis='T_sky', yaxis='freq_max', color_by='NET', s
 
 
 
+def plot_NET_Tsky(calibdict, mode='median'):
+    '''
+    Plots the median, mode, or mean NET of the array as a function of T_sky based on the data in calibdict.
+    @param calibdict:       Calibration dictionary, built or loaded from function calDict.
+    @param mode:            The mode of the NET to plot ('median', 'mode', or 'mean').
+    @type mode:             str
+    '''
+    assert mode in ['median', 'mode', 'mean'], 'Argument "mode" must be "median", "mode", or "mean"'
+
+    if mode=='median':
+        net_mode = 'Median'
+        net_func = np.nanmedian
+    elif mode=='mode':
+        net_mode = 'Mode'
+        net_func = lambda x: np.bincount(x.astype(int)).argmax()  # simple mode function for integers
+    else:
+        net_mode = 'Mean'
+        net_func = np.nanmean
+
+    wirescan_list = np.sort(np.unique(calibdict['wire_scan']))
+    tsky_scan_list = []
+    net_metric_list = []
+
+    for wirescan in wirescan_list:
+        mask = (calibdict['wire_scan']==wirescan)
+        dict_scan = {key: calibdict[key][mask] for key in calibdict}
+        net_metric = net_func(dict_scan['NET'])
+        net_metric_list.append(net_metric)
+        tsky_scan_list.append(dict_scan['T_sky'][0])  # all points in scan have same T_sky
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(tsky_scan_list, net_metric_list, marker='o')
+    plt.xlabel('T_sky (K)')
+    plt.ylabel('%s NET (mK*sqrt(s))' % net_mode)
+    plt.title('%s NET vs T_sky' % net_mode)
+    plt.grid()
+
+    
+
 '''Function for skydip fit from year-long calibrations'''
 def skydip(calibdict, max_NET=1e9, max_dF2K=10, weight_by='df_max', punish='bigger', outliers='discard', decrosstalk=True, diameter=10., sig=1., full_output=False, inspect=False):
     '''
