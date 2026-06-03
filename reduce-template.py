@@ -120,7 +120,8 @@ for iter in range(1,3):
                 f.close()
             
         else:
-            info('Reduction found (file: %s)'%(scanname))
+            info('Reduction found at:')
+            print(scanname)
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
             

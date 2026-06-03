@@ -42,11 +42,11 @@ for i,scan in enumerate(scans):
 
     globlist = glob(scanname)
     if len(globlist) == 0:
-        warn('File not found, check input params. Skipping...')
+        warn('File not found, check script params. Skipping...')
         continue
     m=restoreFile(scanname)
     m.smoothBy(8./3600.)
-    info('Displaying scan %s...'%(scan, scanname))
+    info('File found, displaying scan %s...'%(scan))
     m.display(aspect=1,limitsZ=[-0.2,0.5])    
     raw_input()
     
