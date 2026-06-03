@@ -18,7 +18,7 @@ doPlot  = True                  # Whether to display maps at each iteration
 # ----- Reduction parameters -----
 writeSummary = True             # Whether to write a summary file for each scan with 
                                 # noise and area information.
-niters       = 2                # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 1                # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 3.               # Sigma clipping level for masking high noise pixels in
                                 # the final coadded map.
 flagJumps    = False            # Whether to flag jumps/spikes in the data, recommended
