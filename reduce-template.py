@@ -13,13 +13,14 @@ sizex   = 3.8                   # Size of map in x direction in DEG
 sizey   = 2.9                   # Size of map in y direction in DEG
 padding = 0                     # Padding around the map in DEG for grid, default is 
                                 # about the width of the array.
-doPlot  = True                  # Whether to display maps at each iteration
+doPlot  = True                  # Whether to display maps at each scan. If False, only final
+                                # coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
 writeSummary = True             # Whether to write a summary file for each scan with 
                                 # noise and area information.
 niters       = 1                # Number of iterations to run, 1 to 3 (recommended 2)
-clip         = 3.               # Sigma clipping level for masking high noise pixels in
+clip         = 5.               # Sigma clipping level for masking high noise pixels in
                                 # the final coadded map.
 flagJumps    = False            # Whether to flag jumps/spikes in the data, recommended
                                 # to set to True for weak sources in LFA.
@@ -195,7 +196,7 @@ for iter in range(1, niters+1):
     mediannoise = np.nanmedian(rmsMap.Data)
     
     if clip > 0:
-        mask=np.where(rmsMap.Data > 5*mediannoise)
+        mask=np.where(rmsMap.Data > clip * mediannoise)
         ms.Data[mask] = np.NaN
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
