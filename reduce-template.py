@@ -63,22 +63,35 @@ if flagJumps:
 xsize = [center[0] - sizex/2 - padding, center[0] + sizex/2 + padding]
 ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
 
-print(myname)
-print(system)
-print(xsize)
-print(ysize)
-
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
+
+
+print(
+'''
+=====================
+Reduction parameters:
+=====================
+Source:             %s
+Frontend:           %s
+Coordinate system:  %s
+Map center:         %s, %s deg
+Map size (x,y):     %s, %s deg
+Padding:            %s deg
+Iterations:         %i
+Sigmaclip level:    %s
+Flag jumps:         %s
+
+'''%(source, fe, system, center[0], center[1],
+     sizex, sizey, padding, niters, clip, flagJumps))
 
 # Set noPlot
 if not doPlot:
     noPlot = True
 else:
     noPlot = False
-
 
 # Create directory for reduced files if it doesn't exist
 if os.path.exists("ReducedFiles") == False:
@@ -113,8 +126,7 @@ for iter in range(1, niters+1):
 
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        #info('Processing scan %s (iteration %i)...'%(scan, iter))
-        globlist=glob(scanname)
+        globlist = glob(scanname)
 
         m = None
         if len(globlist) ==  0:
@@ -124,19 +136,19 @@ for iter in range(1, niters+1):
             #    flagMJD(above=1430,below=1600,flag=2)
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
             data.Map.dumpMap(scanname)
-            m=restoreFile(scanname)
+            m = restoreFile(scanname)
             m.smoothBy(8./3600.)
             if writeSummary:
                 rmsMap = copy.deepcopy(m)
                 rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
-                minnoise=np.nanmin(rmsMap.Data)
-                mask=np.where(rmsMap.Data > 5*minnoise)
+                minnoise = np.nanmin(rmsMap.Data)
+                mask = np.where(rmsMap.Data > 5*minnoise)
                 rmsMap.Data[mask] = np.NaN
-                pixelsize=np.abs(rmsMap.WCS['CDELT2'])
+                pixelsize = np.abs(rmsMap.WCS['CDELT2'])
                 nrpix = np.sum(~np.isnan(rmsMap.Data))
                 area = nrpix*pixelsize**2
-                noise=np.nanmedian(rmsMap.Data)
-                outname="%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
+                noise = np.nanmedian(rmsMap.Data)
+                outname = "%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
                 f=open(outname,'r')
                 lines=f.readlines()
                 f.close()
@@ -151,7 +163,6 @@ for iter in range(1, niters+1):
             
         else:
             info('Reduction for scan %i (iteration %i) found'%(scan, iter))
-            #print('         %s'%scanname)
             m = restoreFile(scanname)
             m.smoothBy(8./3600.)
 
