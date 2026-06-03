@@ -5,10 +5,10 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source  = 'Name'                # As in APECS/ObsLogs
+source  = 'OG259'                # As in APECS/ObsLogs
 fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
-system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL'
-center  = [0.0, 0.0]            # Center of map in CHOSEN absolute coordinates in deg
+system  = 'GAL'                  # Coordinate system for map, either 'EQ' or 'GAL'
+center  = [259.3, -1.4]            # Center of map in CHOSEN absolute coordinates in deg
 xsize   = 1.5                   # Size of map in x direction in DEG
 ysize   = 1.5                   # Size of map in y direction in DEG
 padding = 0.25                  # Padding around the map in DEG for grid, default is 
@@ -16,7 +16,7 @@ padding = 0.25                  # Padding around the map in DEG for grid, defaul
 doPlot  = False                 # Whether to display maps at each iteration
 
 # ----- Reduction parameters -----
-writeSummary = True             # Whether to write a summary file for each scan with 
+writeSummary = False             # Whether to write a summary file for each scan with 
                                 # noise and area information.
 niters       = 2                # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 3.               # Sigma clipping level for masking high noise pixels in
@@ -25,10 +25,10 @@ flagJumps    = False            # Whether to flag jumps/spikes in the data, reco
                                 # to set to True for weak sources in LFA.
 
 # ----- Scans ------
-scans    = []                   # 'Auto' or list of scans to reduce
+scans    = [27974]#,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]                   # 'Auto' or list of scans to reduce
                                 # NOTE: If using 'Auto', make sure to set the correct
                                 # source name and frontend above
-badscans = []                   # Manually exclude bad scans if needed
+badscans = []#[27979,28213,28217,28498]                   # Manually exclude bad scans if needed
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -88,12 +88,12 @@ for iter in range(1,3):
 
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        info('Processing scan %s (file: %s)...'%(scan, scanname))
+        info('Processing scan %s...'%(scan))
         globlist=glob(scanname)
 
         m = None
         if len(globlist) ==  0:
-            info('Reducing scan %s (file: %s)...'%(scan, scanname))
+            info('Reducing scan %s'%(scan))
             redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
             data.Map.dumpMap(scanname)
@@ -120,7 +120,7 @@ for iter in range(1,3):
                 f.close()
             
         else:
-            info('Reduction for scan %s found (file: %s)...'%(scan, scanname))
+            info('Reduction found (file: %s)...'%(scanname))
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
             
