@@ -15,10 +15,10 @@ padding = 0.25                  # padding around the map in DEG for grid, defaul
 doPlot  = False                 # whether to display maps at each iteration, set to False for faster reduction
 
 # ----- Reduction parameters -----
-flagJumps    = True             # whether to flag jumps/spikes in the data, recommended to set to True for LFA
 writeSummary = True             # whether to write a summary file for each scan with noise and area information
 niters       = 2                # number of iterations to run, 1 to 3 (recommended 2)
 clip         = 3.               # sigma clipping level for masking high noise pixels in the final coadded map
+flagJumps    = False            # whether to flag jumps/spikes in the data, recommended to set to True for LFA
 
 # ----- Scans ------
 scans = []
@@ -28,8 +28,6 @@ badscans = []
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
-
 
 
 

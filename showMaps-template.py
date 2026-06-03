@@ -8,8 +8,8 @@ import copy as copy
 source    = 'Name'                # as in APECS/ObsLogs
 fe        = 'LFA'                 # frontend, either 'LFA' or 'HFA'
 system    = 'EQ'                  # coordinate system of reduced maps, either 'EQ' or 'GAL' is usual
-flagJumps = False                 # whether the maps were deJumped with 'flagJumps = True' at reduction
 iter      = 2                     # which iteration of the reduction to show
+flagJumps = False                 # whether the maps were deJumped with 'flagJumps = True' at reduction
 
 # ----- Scans ------
 scans = []
@@ -17,6 +17,14 @@ scans = []
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
+
+
+
+
+
+
+
+
 
 
 # ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
