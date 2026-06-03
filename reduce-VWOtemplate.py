@@ -16,7 +16,7 @@ padding = 0.25                  # Padding around the map in DEG for grid, defaul
 doPlot  = False                 # Whether to display maps at each iteration
 
 # ----- Reduction parameters -----
-writeSummary = False             # Whether to write a summary file for each scan with 
+writeSummary = True             # Whether to write a summary file for each scan with 
                                 # noise and area information.
 niters       = 2                # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 3.               # Sigma clipping level for masking high noise pixels in
@@ -66,6 +66,9 @@ else:
 # Create directory for reduced files if it doesn't exist
 if os.path.exists("ReducedFiles") == False:
     os.makedirs("ReducedFiles")
+
+if niters < 1 or niters > 3:
+    raise ValueError("niters must be 1, 2, or 3.")
 
 # Beginning of reduction loop
 for iter in range(1, niters+1):
@@ -132,45 +135,60 @@ for iter in range(1, niters+1):
             ms = mapsumfast([ms,m])
         elif not ms:
             ms = copy.deepcopy(m)
-    
 
-    
-        rmsMap = copy.deepcopy(ms)
-        snrMap = copy.deepcopy(ms)
-        
-        snrMap.Data *= np.sqrt(snrMap.Weight)
-        a = snrMap.computeRms()
-        scale=snrMap.RmsBeam
-        snrMap.Data /= np.array(scale,'f')
-
-        rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
-        rmsMap.Data *= np.array(scale,'f')
-    
         if doPlot:
+            # SNR map creation
+            snrMap = copy.deepcopy(ms)  # Signal
+            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+
+            # rescaling SNR map by beam size
+            #tmp=copy.deepcopy(snrMap)
+            #a = tmp.computeRms()
+            a = snrMap.computeRms()
+            scale = snrMap.RmsBeam
+            snrMap.Data /= np.array(scale,'f')
+
+            # plotting
             snrMap.display(aspect=1,limitsZ=[-4,12])
 
-    minnoise=np.nanmedian(rmsMap.Data)
-    meannoise=np.nanmedian(rmsMap.Data)
+    # Iteration complete, now create final coadded maps and display final SNR map with optional clipping of high noise pixels
+    snrMap = copy.deepcopy(ms)  # Signal
+    snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+
+    # rescaling SNR map by beam size
+    #tmp=copy.deepcopy(snrMap)
+    #a = tmp.computeRms()
+    a = snrMap.computeRms()
+    scale = snrMap.RmsBeam
+    snrMap.Data /= np.array(scale,'f')
+
+    # creating rms map
+    rmsMap = copy.deepcopy(ms)  # Signal
+    rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
+
+    # Rescaling rms map by beam size
+    rmsMap.Data *= np.array(scale,'f')
+
+    # clipping high noise pixels if clip > 0
+    minnoise = np.nanmin(rmsMap.Data)
+    meannoise = np.nanmean(rmsMap.Data)
+    mediannoise = np.nanmedian(rmsMap.Data)
     
     if clip > 0:
-        mask=np.where(rmsMap.Data > 5*minnoise)
+        mask=np.where(rmsMap.Data > 5*mediannoise)
         ms.Data[mask] = np.NaN
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
 
     snrMap.display(aspect=0,limitsZ=[-4,12])
-    rmsMap.display(aspect=0,limitsZ=[0,2*meannoise],doContour=1,levels=[meannoise],overplot=1)
+    rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
 
     outname=str(myname)+"-coadded-flux-iter"+str(iter)+".data"
     ms.dumpMap(outname)
-
 
     print("###################iteration %i ##########################"%(iter))
     print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
     print("#####################################################")
 
-
-
     outname=str(myname)+"-coadded-iter"+str(iter)+".fits"
     writeFits2(ms,outfile=outname,overwrite=1)
-
