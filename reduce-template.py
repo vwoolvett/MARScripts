@@ -11,7 +11,7 @@ system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL
 center  = [127, 40.95]          # Center of map in CHOSEN absolute coordinates in deg
 sizex   = 3.8                   # Size of map in x direction in DEG
 sizey   = 2.9                   # Size of map in y direction in DEG
-padding = 0.25                  # Padding around the map in DEG for grid, default is 
+padding = 0                     # Padding around the map in DEG for grid, default is 
                                 # about the width of the array.
 doPlot  = True                  # Whether to display maps at each iteration
 
@@ -78,8 +78,6 @@ if not doPlot:
 else:
     noPlot = False
 
-if writeSummary and os.path.exists("SummaryFiles") == False:
-    os.makedirs("SummaryFiles")
 
 # Create directory for reduced files if it doesn't exist
 if os.path.exists("ReducedFiles") == False:
@@ -129,7 +127,7 @@ for iter in range(1, niters+1):
                 nrpix = np.sum(~np.isnan(rmsMap.Data))
                 area = nrpix*pixelsize**2
                 noise=np.nanmedian(rmsMap.Data)
-                outname = "SummaryFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+"_summary.txt"
+                outname="%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
                 f=open(outname,'r')
                 lines=f.readlines()
                 f.close()
