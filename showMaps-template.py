@@ -37,15 +37,16 @@ if flagJumps:
 
 for i,scan in enumerate(scans):
     scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-    info('Retrieving scan %s (file: %s)...'%(scan, scanname))
+    info('Retrieving reduction for scan %s ...'%(scan))
+    print('File: %s'%scanname)
 
     globlist = glob(scanname)
     if len(globlist) == 0:
-        warn('File %s not found, skipping...'%scanname)
+        warn('File not found, check input params. Skipping...')
         continue
     m=restoreFile(scanname)
     m.smoothBy(8./3600.)
-    info('Displaying scan %s (file: %s)...'%(scan, scanname))
+    info('Displaying scan %s...'%(scan, scanname))
     m.display(aspect=1,limitsZ=[-0.2,0.5])    
     raw_input()
     

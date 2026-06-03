@@ -93,7 +93,7 @@ for iter in range(1,3):
 
         m = None
         if len(globlist) ==  0:
-            info('Reducing scan %s'%(scan))
+            info('Reducing scan %s...'%(scan))
             redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
             data.Map.dumpMap(scanname)
@@ -120,7 +120,7 @@ for iter in range(1,3):
                 f.close()
             
         else:
-            info('Reduction found (file: %s)...'%(scanname))
+            info('Reduction found (file: %s)'%(scanname))
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
             
