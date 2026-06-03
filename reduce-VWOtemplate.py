@@ -58,6 +58,8 @@ myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
+print(myname)
+
 # map bounds in absolute EQ or GAL coordinates in deg
 xsize = [center[0] - xsize/2 - padding, center[0] + xsize/2 + padding]
 ysize = [center[1] - ysize/2 - padding, center[1] + ysize/2 + padding]
@@ -136,8 +138,12 @@ for iter in range(1, niters+1):
         else:
             info('Reduction found at:')
             print('         %s'%scanname)
-            m=restoreFile(scanname)
+            m = restoreFile(scanname)
             m.smoothBy(8./3600.)
+
+        
+        if np.all(np.isnan(m.Data)):
+                warn('Map data is all NaNs!')
         
 
         if ms and m:
@@ -164,11 +170,10 @@ for iter in range(1, niters+1):
     snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
     # rescaling SNR map by beam size
-    #tmp=copy.deepcopy(snrMap)
-    #a = tmp.computeRms()
-    # FOR FULL ITERATION
-    a = snrMap.computeRms()
-    scale = snrMap.RmsBeam
+    tmp=copy.deepcopy(snrMap)
+    tmp.iterativeSigmaClip(below=-4,above=4)        
+    a = tmp.computeRms()
+    scale = tmp.RmsBeam
     snrMap.Data /= np.array(scale,'f')
 
     # creating rms map
