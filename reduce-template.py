@@ -43,7 +43,7 @@ badscans = []
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
-    myname += "-despiked"
+    myname += "-flagJumps"
 
 # map bounds in absolute EQ or GAL coordinates in deg
 xsize = [center[0] - xsize/2 - padding, center[0] + xsize/2 + padding]
