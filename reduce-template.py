@@ -73,7 +73,7 @@ if center[0] > 180:
     center[0] -= 360
 
 # map bounds in absolute EQ or GAL coordinates in deg
-xsize = [center[0] - sizex/2 - padding, center[0] + sizex/2 + padding]
+xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]
 ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
 
 # Remove bad scans from the list of scans to be reduced
@@ -92,13 +92,14 @@ Frontend:           %s
 Coordinate system:  %s
 Map center:         %s, %s deg
 Map size (x,y):     %s, %s deg
+Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Padding:            %s deg
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
 
-'''%(source, fe, system, center[0], center[1],
-     sizex, sizey, padding, niters, clip, flagJumps))
+'''%(source, fe, system, center[0], center[1], sizex, sizey, 
+     xsize[0], xsize[1], ysize[0], ysize[1], padding, niters, clip, flagJumps))
 
 # Set noPlot
 if not doPlot:
