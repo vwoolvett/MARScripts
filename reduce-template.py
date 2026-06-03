@@ -27,7 +27,7 @@ flagJumps    = False            # Whether to flag jumps/spikes in the data, reco
 # ----- Scans ------
 # 'Auto' or list of scans to reduce. If using 'Auto', make sure to set the correct
 # source name and frontend above
-scans    = [27974]                  
+scans = [27974]                  
 
 # Manually exclude bad scans if needed            
 badscans = []                   
@@ -83,8 +83,13 @@ else:
 if os.path.exists("ReducedFiles") == False:
     os.makedirs("ReducedFiles")
 
+# Create directory for reduced files if it doesn't exist
+if writeSummary and os.path.exists("ReductionSummaries") == False:
+    os.makedirs("ReductionSummaries")
+
 # Beginning of reduction loop
 for iter in range(1, niters+1):
+    print("################### Starting iteration %i ##########################"%(iter))
     if iter == 1:
         mymodel=None
         subtract = False
@@ -104,12 +109,12 @@ for iter in range(1, niters+1):
 
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        info('Processing scan %s...'%(scan))
+        info('Processing scan %s (iteration %i)...'%(scan, iter))
         globlist=glob(scanname)
 
         m = None
         if len(globlist) ==  0:
-            info('Reducing scan %s...'%(scan))
+            info('Reducing scan %s (iteration %i)...'%(scan, iter))
             redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
             #if scan == 22919: #flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
             #    flagMJD(above=1430,below=1600,flag=2)
@@ -136,15 +141,18 @@ for iter in range(1, niters+1):
                 f=open(outname,'w')
                 f.write(myline)
                 f.close()
+
+                # VWO: move to summary folder to clean up dir.
+                os.rename(outname, "ReductionSummaries/"+outname)
             
         else:
-            info('Reduction found at:')
+            info('Reduction found. Restoring from:')
             print('         %s'%scanname)
             m = restoreFile(scanname)
             m.smoothBy(8./3600.)
 
         if np.all(np.isnan(m.Data)):
-                warn('Map data is all NaNs!')
+            warn('Map data is all NaNs!')
 
         if ms and m:
             ms = mapsumfast([ms,m])
@@ -169,7 +177,7 @@ for iter in range(1, niters+1):
     snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
     # rescaling SNR map by beam size
-    snrMap.iterativeSigmaClip(below=-4,above=4)        
+    # snrMap.iterativeSigmaClip(below=-4,above=4)        
     a = snrMap.computeRms()
     scale = snrMap.RmsBeam
     snrMap.Data /= np.array(scale,'f')
@@ -195,12 +203,12 @@ for iter in range(1, niters+1):
     snrMap.display(aspect=0,limitsZ=[-4,12])
     rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
 
-    outname=str(myname)+"-coadded-flux-iter"+str(iter)+".data"
+    outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
     ms.dumpMap(outname)
 
-    print("###################iteration %i ##########################"%(iter))
+    print("################### Iteration %i ##########################"%(iter))
     print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
-    print("#####################################################")
+    print("###########################################################")
 
-    outname=str(myname)+"-coadded-iter"+str(iter)+".fits"
-    writeFits2(ms,outfile=outname,overwrite=1)
+    outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
+    writeFits2(ms, outfile=outname, overwrite=1)
