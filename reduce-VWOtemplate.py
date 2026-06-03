@@ -7,10 +7,10 @@ import copy as copy
 # --- Source and map parameters ---
 source  = 'OG259'               # As in APECS/ObsLogs
 fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'                 # Coordinate system for map, either 'EQ' or 'GAL'
-center  = [259.3, -1.4]         # Center of map in CHOSEN absolute coordinates in deg
-xsize   = 1.5                   # Size of map in x direction in DEG
-ysize   = 1.5                   # Size of map in y direction in DEG
+system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL'
+center  = [127, 40.95]          # Center of map in CHOSEN absolute coordinates in deg
+xsize   = 3.8                   # Size of map in x direction in DEG
+ysize   = 2.9                   # Size of map in y direction in DEG
 padding = 0.25                  # Padding around the map in DEG for grid, default is 
                                 # about the width of the array.
 doPlot  = True                  # Whether to display maps at each iteration
