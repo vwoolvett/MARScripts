@@ -8,7 +8,7 @@ import copy as copy
 source  = 'OG259'               # As in APECS/ObsLogs
 fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
 system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL'
-center  = [127, 40.95]          # Center of map in CHOSEN absolute coordinates in deg
+center  = [127, -40.95]         # Center of map in CHOSEN absolute coordinates in deg
 sizex   = 3.8                   # Size of map in x direction in DEG
 sizey   = 2.9                   # Size of map in y direction in DEG
 padding = 0                     # Padding around the map in DEG for grid, default is 
