@@ -9,8 +9,8 @@ source  = 'OG259'               # As in APECS/ObsLogs
 fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
 system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL'
 center  = [127, 40.95]          # Center of map in CHOSEN absolute coordinates in deg
-xsize   = 3.8                   # Size of map in x direction in DEG
-ysize   = 2.9                   # Size of map in y direction in DEG
+sizex   = 3.8                   # Size of map in x direction in DEG
+sizey   = 2.9                   # Size of map in y direction in DEG
 padding = 0.25                  # Padding around the map in DEG for grid, default is 
                                 # about the width of the array.
 doPlot  = True                  # Whether to display maps at each iteration
@@ -58,11 +58,14 @@ myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
-print(myname)
-
 # map bounds in absolute EQ or GAL coordinates in deg
-xsize = [center[0] - xsize/2 - padding, center[0] + xsize/2 + padding]
-ysize = [center[1] - ysize/2 - padding, center[1] + ysize/2 + padding]
+xsize = [center[0] - sizex/2 - padding, center[0] + sizex/2 + padding]
+ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
+
+print(myname)
+print(system)
+print(xsize)
+print(ysize)
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:
@@ -75,11 +78,12 @@ if not doPlot:
 else:
     noPlot = False
 
+if writeSummary and os.path.exists("SummaryFiles") == False:
+    os.makedirs("SummaryFiles")
+
 # Create directory for reduced files if it doesn't exist
 if os.path.exists("ReducedFiles") == False:
     os.makedirs("ReducedFiles")
-
-
 
 # Beginning of reduction loop
 for iter in range(1, niters+1):
@@ -125,7 +129,7 @@ for iter in range(1, niters+1):
                 nrpix = np.sum(~np.isnan(rmsMap.Data))
                 area = nrpix*pixelsize**2
                 noise=np.nanmedian(rmsMap.Data)
-                outname="%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
+                outname = "SummaryFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+"_summary.txt"
                 f=open(outname,'r')
                 lines=f.readlines()
                 f.close()
@@ -141,10 +145,8 @@ for iter in range(1, niters+1):
             m = restoreFile(scanname)
             m.smoothBy(8./3600.)
 
-        
         if np.all(np.isnan(m.Data)):
                 warn('Map data is all NaNs!')
-        
 
         if ms and m:
             ms = mapsumfast([ms,m])
@@ -157,9 +159,8 @@ for iter in range(1, niters+1):
             snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             # rescaling SNR map by beam size
-            tmp=copy.deepcopy(snrMap)
-            a = tmp.computeRms()
-            scale = tmp.RmsBeam
+            a = snrMap.computeRms()
+            scale = snrMap.RmsBeam
             snrMap.Data /= np.array(scale,'f')
 
             # plotting
@@ -170,10 +171,9 @@ for iter in range(1, niters+1):
     snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
     # rescaling SNR map by beam size
-    tmp=copy.deepcopy(snrMap)
-    tmp.iterativeSigmaClip(below=-4,above=4)        
-    a = tmp.computeRms()
-    scale = tmp.RmsBeam
+    snrMap.iterativeSigmaClip(below=-4,above=4)        
+    a = snrMap.computeRms()
+    scale = snrMap.RmsBeam
     snrMap.Data /= np.array(scale,'f')
 
     # creating rms map
