@@ -79,10 +79,10 @@ for iter in range(1, niters + 1):
 
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        print scanname
-        globlist=glob(scanname)
+        print('Processing scan %s (file: %s)...'%(scan, scanname))
 
         m = None
+        globlist=glob(scanname)
         if len(globlist) ==  0:
             redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=True,writeSummary=writeSummary)
             #if scan == 22919: #flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
