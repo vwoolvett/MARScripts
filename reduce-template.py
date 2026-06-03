@@ -5,25 +5,30 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source  = 'Name'                # as in APECS/ObsLogs
-fe      = 'LFA'                 # frontend, either 'LFA' or 'HFA'
-system  = 'EQ'                  # coordinate system for map, either 'EQ' or 'GAL' is usual
-center  = [0.0, 0.0]            # center of map in CHOSEN absolute coordinates in deg
-xsize   = 1.5                   # size of map in x direction in DEG
-ysize   = 1.5                   # size of map in y direction in DEG
-padding = 0.25                  # padding around the map in DEG for grid, default is about the width of the array.
-doPlot  = False                 # whether to display maps at each iteration, set to False for faster reduction
+source  = 'Name'                # As in APECS/ObsLogs
+fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
+system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL'
+center  = [0.0, 0.0]            # Center of map in CHOSEN absolute coordinates in deg
+xsize   = 1.5                   # Size of map in x direction in DEG
+ysize   = 1.5                   # Size of map in y direction in DEG
+padding = 0.25                  # Padding around the map in DEG for grid, default is 
+                                # about the width of the array.
+doPlot  = False                 # Whether to display maps at each iteration
 
 # ----- Reduction parameters -----
-writeSummary = True             # whether to write a summary file for each scan with noise and area information
-niters       = 2                # number of iterations to run, 1 to 3 (recommended 2)
-clip         = 3.               # sigma clipping level for masking high noise pixels in the final coadded map
-flagJumps    = False            # whether to flag jumps/spikes in the data, recommended to set to True for LFA
+writeSummary = True             # Whether to write a summary file for each scan with 
+                                # noise and area information.
+niters       = 2                # Number of iterations to run, 1 to 3 (recommended 2)
+clip         = 3.               # Sigma clipping level for masking high noise pixels in
+                                # the final coadded map.
+flagJumps    = False            # Whether to flag jumps/spikes in the data, recommended
+                                # to set to True for weak sources in LFA.
 
 # ----- Scans ------
-scans = []
-# Manually exclude bad scans:
-badscans = []
+scans    = []                   # 'Auto' or list of scans to reduce
+                                # NOTE: If using 'Auto', make sure to set the correct
+                                # source name and frontend above
+badscans = []                   # Manually exclude bad scans if needed
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -37,7 +42,7 @@ badscans = []
 
 
 
-# ===== BEGINNING OF REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+# ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
@@ -115,7 +120,7 @@ for iter in range(1,3):
                 f.close()
             
         else:
-            info('Scan %s reduction found (file: %s)...'%(scan, scanname))
+            info('Reduction for scan %s found (file: %s)...'%(scan, scanname))
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
             
