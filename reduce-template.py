@@ -157,7 +157,7 @@ for iter in range(1, niters+1):
 
         if np.all(np.isnan(m.Data)):
             warn('Map data is all NaNs! Ensure that the map bounds are correct.')
-            return
+            break
         
         if ms and m:
             ms = mapsumfast([ms,m])
