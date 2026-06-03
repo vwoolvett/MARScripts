@@ -135,7 +135,7 @@ for iter in range(1, niters+1):
             
         else:
             info('Reduction found at:')
-            print('File: %s'%scanname)
+            print('        %s'%scanname)
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
         
