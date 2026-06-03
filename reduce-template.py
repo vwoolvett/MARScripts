@@ -27,7 +27,7 @@ flagJumps    = False            # Whether to flag jumps/spikes in the data, reco
 # ----- Scans ------
 # 'Auto' or list of scans to reduce. If using 'Auto', make sure to set the correct
 # source name and frontend above
-scans = [27974]                  
+scans = [27974]
 
 # Manually exclude bad scans if needed            
 badscans = []                   
