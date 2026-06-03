@@ -1,44 +1,64 @@
 import copy as copy
 
-# ===== BEGINNING OF USER INPUT =====
-SourceName
+# =================================
+# ==== BEGINNING OF USER INPUT ====
+# =================================
 
+# --- Source and map parameters ---
+source  = 'Name'                # as in APECS/ObsLogs
+fe      = 'LFA'                 # frontend, either 'LFA' or 'HFA'
+system  = 'EQ'                  # coordinate system for map, either 'EQ' or 'GAL' is usual
+center  = [0.0, 0.0]            # center of map in CHOSEN absolute coordinates in deg
+xsize   = 1.5                   # size of map in x direction in DEG
+ysize   = 1.5                   # size of map in y direction in DEG
+padding = 0.25                  # padding around the map in DEG for grid, default is about the width of the array.
+doPlot  = False                 # whether to display maps at each iteration, set to False for faster reduction
 
-# Science target scans
+# ----- Reduction parameters -----
+flagJumps    = True             # whether to flag jumps/spikes in the data, recommended to set to True for LFA
+writeSummary = False            # whether to write a summary file for each scan with noise and area information
+niters       = 2                # number of iterations to run, 1 to 3 (recommended 2)
+clip         = 3.               # sigma clipping level for masking high noise pixels in the final coadded map
+
+# ----- Scans ------
 scans = []
+# Manually exclude bad scans:
+badscans = []
 
-# Manually exclude scans
-bad = []
-for s in bad:
-    if s in scans:
-        scans.remove(s)
-
-
-myname = 'LFA-G345'
-fe = 'LFA'
-writeSummary=True
-clip = 3.
-
-# map bounds in absolute EQ or GAL coordinates in deg
-system='EQ'
-xsize=[256.7,252.0]
-ysize=[-42.0,-38.0]
- 
-# Plot intermediate mapping steps
-doPlot=False
-
-
+# ==============================
 # ===== END OF USER INUPUT =====
+# ==============================
 
 
 
+
+
+
+
+
+
+
+
+# ===== BEGINNING OF REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+# Define myname variable
+myname = str(fe) + "-" + str(source) + "-" + str(system)
+# map bounds in absolute EQ or GAL coordinates in deg
+xsize = [center[0] - xsize/2 - padding, center[0] + xsize/2 + padding]
+ysize = [center[1] - ysize/2 - padding, center[1] + ysize/2 + padding]
+
+# Remove bad scans from the list of scans to be reduced
+for badscan in badscans:
+    if badscan in scans:
+        scans.remove(badscan)
+
+# Set noPlot
 if not doPlot:
-    noPlot=True
+    noPlot = True
 else:
-    noPlot=False
+    noPlot = False
 
-
-for iter in range(1,3):
+# Beginning of reduction loop
+for iter in range(1, niters + 1):
     if iter == 1:
         mymodel=None
         subtract = False
