@@ -156,8 +156,9 @@ for iter in range(1, niters+1):
             m.smoothBy(8./3600.)
 
         if np.all(np.isnan(m.Data)):
-            warn('Map data is all NaNs!')
-
+            warn('Map data is all NaNs! Ensure that the map bounds are correct.')
+            return
+        
         if ms and m:
             ms = mapsumfast([ms,m])
         elif not ms:
