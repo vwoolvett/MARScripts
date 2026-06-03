@@ -135,7 +135,7 @@ for iter in range(1, niters+1):
             
         else:
             info('Reduction found at:')
-            print('        %s'%scanname)
+            print('         %s'%scanname)
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
         
@@ -151,11 +151,9 @@ for iter in range(1, niters+1):
             snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             # rescaling SNR map by beam size
-            #tmp=copy.deepcopy(snrMap)
-            #a = tmp.computeRms()
-            # FOR SCAN
-            a = snrMap.computeRms()
-            scale = snrMap.RmsBeam
+            tmp=copy.deepcopy(snrMap)
+            a = tmp.computeRms()
+            scale = tmp.RmsBeam
             snrMap.Data /= np.array(scale,'f')
 
             # plotting
