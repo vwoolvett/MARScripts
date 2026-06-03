@@ -16,7 +16,7 @@ doPlot  = False                 # whether to display maps at each iteration, set
 
 # ----- Reduction parameters -----
 flagJumps    = True             # whether to flag jumps/spikes in the data, recommended to set to True for LFA
-writeSummary = False            # whether to write a summary file for each scan with noise and area information
+writeSummary = True             # whether to write a summary file for each scan with noise and area information
 niters       = 2                # number of iterations to run, 1 to 3 (recommended 2)
 clip         = 3.               # sigma clipping level for masking high noise pixels in the final coadded map
 
@@ -42,6 +42,9 @@ badscans = []
 # ===== BEGINNING OF REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
+if flagJumps:
+    myname += "-despiked"
+
 # map bounds in absolute EQ or GAL coordinates in deg
 xsize = [center[0] - xsize/2 - padding, center[0] + xsize/2 + padding]
 ysize = [center[1] - ysize/2 - padding, center[1] + ysize/2 + padding]
