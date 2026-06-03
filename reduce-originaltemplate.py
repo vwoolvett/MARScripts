@@ -1,35 +1,28 @@
-#indir('/apex-archive/rawdata/M-0117.F-9550A-2026/')
 import copy as copy
 
-
-scans = [27974,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]
-
-bad = [27979,28213,28217,28498]
+scans = []
+bad = []
 for s in bad:
     if s in scans:
         scans.remove(s)
 
 
-myname = 'LFA-OG259-EQ'
+myname = 'LFA-G345'
 fe = 'LFA'
-flagJumps=True
 writeSummary=True
 clip = 3.
 
+##map size  in absolute EQ or GAL coordinates in deg :
 system='EQ'
-xsize=[125.1,128.9]
-ysize=[-42.4,-39.5]
-
-
-
+xsize=[256.7,252.0]
+ysize=[-42.0,-38.0]
+    
 doPlot=False
 if not doPlot:
     noPlot=True
 else:
     noPlot=False
 
-if os.path.exists("ReducedFiles") == False:
-    os.makedirs("ReducedFiles")
 
 for iter in range(1,3):
     if iter == 1:
@@ -51,14 +44,15 @@ for iter in range(1,3):
 
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        info('Processing scan %s (file: %s)...'%(scan, scanname))
+        print scanname
         globlist=glob(scanname)
 
         m = None
         if len(globlist) ==  0:
-            info('Reducing scan %s (file: %s)...'%(scan, scanname))
-            redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
-            mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
+            redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=True,writeSummary=writeSummary)
+            #if scan == 22919: #flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
+            #    flagMJD(above=1430,below=1600,flag=2)
+            mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,limitsZ=[-0.8,1.5],noPlot=noPlot)
             data.Map.dumpMap(scanname)
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
@@ -83,7 +77,6 @@ for iter in range(1,3):
                 f.close()
             
         else:
-            info('Scan %s reduction found (file: %s)...'%(scan, scanname))
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
             
@@ -97,33 +90,17 @@ for iter in range(1,3):
     
         rmsMap = copy.deepcopy(ms)
         snrMap = copy.deepcopy(ms)
-        
 
         snrMap.Data *= np.sqrt(snrMap.Weight)
-
-        tmp=copy.deepcopy(snrMap)
-        a = tmp.computeRms()
-        scale=tmp.RmsBeam
+        a = snrMap.computeRms()
+        scale=snrMap.RmsBeam
         snrMap.Data /= np.array(scale,'f')
 
+        rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
+        rmsMap.Data *= np.array(scale,'f')
     
         if doPlot:
             snrMap.display(aspect=1,limitsZ=[-4,12])
-
-    rmsMap = copy.deepcopy(ms)
-    snrMap = copy.deepcopy(ms)
-        
-
-    snrMap.Data *= np.sqrt(snrMap.Weight)
-
-    tmp=copy.deepcopy(snrMap)
-    tmp.iterativeSigmaClip(below=-4,above=4)        
-    a = tmp.computeRms()
-    scale=tmp.RmsBeam
-    snrMap.Data /= np.array(scale,'f')
-
-    rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
-    rmsMap.Data *= np.array(scale,'f')
 
     minnoise=np.nanmedian(rmsMap.Data)
     meannoise=np.nanmedian(rmsMap.Data)
@@ -135,7 +112,7 @@ for iter in range(1,3):
         rmsMap.Data[mask] = np.NaN
 
     snrMap.display(aspect=0,limitsZ=[-4,12])
-    #rmsMap.display(aspect=0,limitsZ=[0,2*meannoise],doContour=1,levels=[meannoise],overplot=1)
+    rmsMap.display(aspect=0,limitsZ=[0,2*meannoise],doContour=1,levels=[meannoise],overplot=1)
 
     outname=str(myname)+"-coadded-flux-iter"+str(iter)+".data"
     ms.dumpMap(outname)

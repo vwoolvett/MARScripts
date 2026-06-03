@@ -68,7 +68,7 @@ if os.path.exists("ReducedFiles") == False:
     os.makedirs("ReducedFiles")
 
 # Beginning of reduction loop
-for iter in range(1,3):
+for iter in range(1, niters+1):
     if iter == 1:
         mymodel=None
         subtract = False
@@ -95,6 +95,8 @@ for iter in range(1,3):
         if len(globlist) ==  0:
             info('Reducing scan %s...'%(scan))
             redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
+            #if scan == 22919: #flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
+            #    flagMJD(above=1430,below=1600,flag=2)
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
             data.Map.dumpMap(scanname)
             m=restoreFile(scanname)
@@ -121,47 +123,31 @@ for iter in range(1,3):
             
         else:
             info('Reduction found at:')
-            print(scanname)
+            print('File: %s'%scanname)
             m=restoreFile(scanname)
             m.smoothBy(8./3600.)
-            
+        
 
         if ms and m:
             ms = mapsumfast([ms,m])
         elif not ms:
             ms = copy.deepcopy(m)
     
-        
+
     
         rmsMap = copy.deepcopy(ms)
         snrMap = copy.deepcopy(ms)
         
-
         snrMap.Data *= np.sqrt(snrMap.Weight)
-
-        tmp=copy.deepcopy(snrMap)
-        a = tmp.computeRms()
-        scale=tmp.RmsBeam
+        a = snrMap.computeRms()
+        scale=snrMap.RmsBeam
         snrMap.Data /= np.array(scale,'f')
 
+        rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
+        rmsMap.Data *= np.array(scale,'f')
     
         if doPlot:
             snrMap.display(aspect=1,limitsZ=[-4,12])
-
-    rmsMap = copy.deepcopy(ms)
-    snrMap = copy.deepcopy(ms)
-        
-
-    snrMap.Data *= np.sqrt(snrMap.Weight)
-
-    tmp=copy.deepcopy(snrMap)
-    tmp.iterativeSigmaClip(below=-4,above=4)        
-    a = tmp.computeRms()
-    scale=tmp.RmsBeam
-    snrMap.Data /= np.array(scale,'f')
-
-    rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
-    rmsMap.Data *= np.array(scale,'f')
 
     minnoise=np.nanmedian(rmsMap.Data)
     meannoise=np.nanmedian(rmsMap.Data)
@@ -173,6 +159,8 @@ for iter in range(1,3):
         rmsMap.Data[mask] = np.NaN
 
     snrMap.display(aspect=0,limitsZ=[-4,12])
+    rmsMap.display(aspect=0,limitsZ=[0,2*meannoise],doContour=1,levels=[meannoise],overplot=1)
+
     outname=str(myname)+"-coadded-flux-iter"+str(iter)+".data"
     ms.dumpMap(outname)
 
