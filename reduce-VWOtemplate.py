@@ -5,15 +5,15 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source  = 'OG259'                # As in APECS/ObsLogs
+source  = 'OG259'               # As in APECS/ObsLogs
 fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'                  # Coordinate system for map, either 'EQ' or 'GAL'
-center  = [259.3, -1.4]            # Center of map in CHOSEN absolute coordinates in deg
+system  = 'GAL'                 # Coordinate system for map, either 'EQ' or 'GAL'
+center  = [259.3, -1.4]         # Center of map in CHOSEN absolute coordinates in deg
 xsize   = 1.5                   # Size of map in x direction in DEG
 ysize   = 1.5                   # Size of map in y direction in DEG
 padding = 0.25                  # Padding around the map in DEG for grid, default is 
                                 # about the width of the array.
-doPlot  = False                 # Whether to display maps at each iteration
+doPlot  = True                  # Whether to display maps at each iteration
 
 # ----- Reduction parameters -----
 writeSummary = True             # Whether to write a summary file for each scan with 
@@ -25,10 +25,12 @@ flagJumps    = False            # Whether to flag jumps/spikes in the data, reco
                                 # to set to True for weak sources in LFA.
 
 # ----- Scans ------
-scans    = [27974]#,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]                   # 'Auto' or list of scans to reduce
-                                # NOTE: If using 'Auto', make sure to set the correct
-                                # source name and frontend above
-badscans = []#[27979,28213,28217,28498]                   # Manually exclude bad scans if needed
+# 'Auto' or list of scans to reduce. If using 'Auto', make sure to set the correct
+# source name and frontend above
+scans    = [27974]                  
+
+# Manually exclude bad scans if needed            
+badscans = []                   
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -43,6 +45,14 @@ badscans = []#[27979,28213,28217,28498]                   # Manually exclude bad
 
 
 # ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+# variable checks
+if fe not in ['LFA', 'HFA']:
+    raise ValueError("fe must be either 'LFA' or 'HFA'.")
+#if system not in ['EQ', 'GAL']:
+#    raise ValueError("system must be either 'EQ' or 'GAL'.")
+if niters < 1 or niters > 3:
+    raise ValueError("niters must be 1, 2, or 3.")
+
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
@@ -67,8 +77,7 @@ else:
 if os.path.exists("ReducedFiles") == False:
     os.makedirs("ReducedFiles")
 
-if niters < 1 or niters > 3:
-    raise ValueError("niters must be 1, 2, or 3.")
+
 
 # Beginning of reduction loop
 for iter in range(1, niters+1):
@@ -97,7 +106,7 @@ for iter in range(1, niters+1):
         m = None
         if len(globlist) ==  0:
             info('Reducing scan %s...'%(scan))
-            redweak(scan,fe='LFA',size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
+            redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
             #if scan == 22919: #flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
             #    flagMJD(above=1430,below=1600,flag=2)
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
@@ -144,6 +153,7 @@ for iter in range(1, niters+1):
             # rescaling SNR map by beam size
             #tmp=copy.deepcopy(snrMap)
             #a = tmp.computeRms()
+            # FOR SCAN
             a = snrMap.computeRms()
             scale = snrMap.RmsBeam
             snrMap.Data /= np.array(scale,'f')
@@ -158,6 +168,7 @@ for iter in range(1, niters+1):
     # rescaling SNR map by beam size
     #tmp=copy.deepcopy(snrMap)
     #a = tmp.computeRms()
+    # FOR FULL ITERATION
     a = snrMap.computeRms()
     scale = snrMap.RmsBeam
     snrMap.Data /= np.array(scale,'f')
