@@ -5,13 +5,13 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source  = 'OG259'               # As in APECS/ObsLogs
+source  = 'Name'                # As in observing logs
 fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
-system  = 'EQ'                  # Coordinate system for map, either 'EQ' or 'GAL'
-center  = [127, -40.95]         # Center of map in CHOSEN absolute coordinates in deg
-sizex   = 3.8                   # Size of map in x direction in DEG
-sizey   = 2.9                   # Size of map in y direction in DEG
-padding = 0                     # Padding around the map in DEG for grid, default is 
+system  = 'EQ'                  # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center  = [0, 0]                # Center of map in CHOSEN coordinates in deg
+sizex   = 1.0                   # Size of map in x direction in deg
+sizey   = 1.0                   # Size of map in y direction in deg
+padding = 0.25                  # Padding around the map in deg for grid, default is 
                                 # about the width of the array.
 doPlot  = True                  # Whether to display maps at each scan. If False, only final
                                 # coadded map per iteration will be displayed.
@@ -19,16 +19,16 @@ doPlot  = True                  # Whether to display maps at each scan. If False
 # ----- Reduction parameters -----
 writeSummary = True             # Whether to write a summary file for each scan with 
                                 # noise and area information.
-niters       = 1                # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 2                # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 5.               # Sigma clipping level for masking high noise pixels in
                                 # the final coadded map.
 flagJumps    = False            # Whether to flag jumps/spikes in the data, recommended
                                 # to set to True for weak sources in LFA.
 
 # ----- Scans ------
-# 'Auto' or list of scans to reduce. If using 'Auto', make sure to set the correct
-# source name and frontend above
-scans = [27974]
+# If empty, automatically retrieves all scans of source from Obslogs
+# NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
+scans = []
 
 # Manually exclude bad scans if needed            
 badscans = []                   
@@ -49,10 +49,18 @@ badscans = []
 # variable checks
 if fe not in ['LFA', 'HFA']:
     raise ValueError("fe must be either 'LFA' or 'HFA'.")
-#if system not in ['EQ', 'GAL']:
-#    raise ValueError("system must be either 'EQ' or 'GAL'.")
+if system not in ['EQ', 'GAL', 'HO']:
+    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
+
+# find scans if not provided
+#def findScans(source, fe):
+    
+
+
+if len(scans) == 0:
+    scans = findScans(source, fe)
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -158,8 +166,11 @@ for iter in range(1, niters+1):
                 f.write(myline)
                 f.close()
 
-                # VWO: move to summary folder to clean up dir.
-                os.rename(outname, "Summaries/"+outname)
+                # VWO: make iteration-specific and move to
+                # Summmaries directory to clean up current dir.
+                newdir = "Summaries/"
+                newname = myname+"-"+str(scan)+"-iter"+str(iter)+"_summary.txt"
+                os.rename(outname, newdir+newname)
             
         else:
             info('Reduction for scan %i (iteration %i) found'%(scan, iter))
