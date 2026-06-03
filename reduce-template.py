@@ -90,7 +90,10 @@ if writeSummary and os.path.exists("ReductionSummaries") == False:
 
 # Beginning of reduction loop
 for iter in range(1, niters+1):
+    print("####################################################################")
     print("################### Starting iteration %i ##########################"%(iter))
+    print("####################################################################")
+
     if iter == 1:
         mymodel=None
         subtract = False
@@ -110,7 +113,7 @@ for iter in range(1, niters+1):
 
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        info('Processing scan %s (iteration %i)...'%(scan, iter))
+        #info('Processing scan %s (iteration %i)...'%(scan, iter))
         globlist=glob(scanname)
 
         m = None
@@ -147,8 +150,8 @@ for iter in range(1, niters+1):
                 os.rename(outname, "ReductionSummaries/"+outname)
             
         else:
-            info('Reduction found. Restoring from:')
-            print('         %s'%scanname)
+            info('Reduction for scan %i (iteration %i) found'%(scan, iter))
+            #print('         %s'%scanname)
             m = restoreFile(scanname)
             m.smoothBy(8./3600.)
 
