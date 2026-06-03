@@ -85,13 +85,13 @@ if os.path.exists("ReducedFiles") == False:
     os.makedirs("ReducedFiles")
 
 # Create directory for reduced files if it doesn't exist
-if writeSummary and os.path.exists("ReductionSummaries") == False:
-    os.makedirs("ReductionSummaries")
+if writeSummary and os.path.exists("Summaries") == False:
+    os.makedirs("Summaries")
 
 # Beginning of reduction loop
 for iter in range(1, niters+1):
     print("####################################################################")
-    print("################### Starting iteration %i ##########################"%(iter))
+    print("####################### Iteration %i starting #######################"%(iter))
     print("####################################################################")
 
     if iter == 1:
@@ -147,7 +147,7 @@ for iter in range(1, niters+1):
                 f.close()
 
                 # VWO: move to summary folder to clean up dir.
-                os.rename(outname, "ReductionSummaries/"+outname)
+                os.rename(outname, "Summaries/"+outname)
             
         else:
             info('Reduction for scan %i (iteration %i) found'%(scan, iter))
@@ -211,9 +211,9 @@ for iter in range(1, niters+1):
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
     ms.dumpMap(outname)
 
-    print("################### Iteration %i ##########################"%(iter))
+    print("################### Iteration %i finished ###################"%(iter))
     print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
-    print("###########################################################")
+    print("############################################################")
 
     outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
     writeFits2(ms, outfile=outname, overwrite=1)
