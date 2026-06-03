@@ -5,14 +5,16 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source    = 'Name'                # as in APECS/ObsLogs
-fe        = 'LFA'                 # frontend, either 'LFA' or 'HFA'
-system    = 'EQ'                  # coordinate system of reduced maps, either 'EQ' or 'GAL' is usual
-iter      = 2                     # which iteration of the reduction to show
-flagJumps = False                 # whether the maps were deJumped with 'flagJumps = True' at reduction
+source    = 'Name'              # as in APECS/ObsLogs
+fe        = 'LFA'               # frontend, either 'LFA' or 'HFA'
+system    = 'EQ'                # coordinate system of reduced maps, either 'EQ' or 'GAL' is usual
+iter      = 2                   # which iteration of the reduction to show
+flagJumps = False               # whether the maps were deJumped with 'flagJumps = True' at reduction
 
 # ----- Scans ------
-scans = []
+scans = []                      # 'Auto' or list of scans to reduce
+                                # NOTE: If using 'Auto', make sure to set the correct
+                                # source name and frontend above
 
 # ==============================
 # ===== END OF USER INUPUT =====
