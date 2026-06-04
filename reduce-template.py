@@ -51,13 +51,10 @@ if system not in ['EQ', 'GAL', 'HO']:
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
-# find scans if not provided
-#def findScans(source, fe):
-    
-
-
-if len(scans) == 0:
-    scans = findScans(source, fe)
+# find scans if not provided (TO-DO)
+# def findScans(source, fe):
+#if len(scans) == 0:
+#    scans = findScans(source, fe)
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -118,18 +115,18 @@ for iter in range(1, niters+1):
     print("####################################################################")
 
     if iter == 1:
-        mymodel=None
+        mymodel = None
         subtract = False
     else:
-        mymodel="ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter-1)+".data"
-        m=restoreFile(mymodel)
+        mymodel = "ReducedFiles/" + str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
+        m = restoreFile(mymodel)
         if iter == 2:
             subtract = False
-            mymodel=createSourceModel(m,highcut=5.5,lowcut=2.5,sm=8.,mtype='snr',clip=3)
+            mymodel = createSourceModel(m,highcut=5.5,lowcut=2.5,sm=8.,mtype='snr',clip=3)
             
         if iter == 3:
             subtract = True
-            mymodel=createSourceModel(m,highcut=5.5,lowcut=2.5,sm=0.,mtype='flux',clip=3)
+            mymodel = createSourceModel(m,highcut=5.5,lowcut=2.5,sm=0.,mtype='flux',clip=3)
             
     
     ms=None
@@ -159,20 +156,20 @@ for iter in range(1, niters+1):
                 area = nrpix*pixelsize**2
                 noise = np.nanmedian(rmsMap.Data)
                 outname = "%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
-                f=open(outname,'r')
-                lines=f.readlines()
+                f = open(outname,'r')
+                lines = f.readlines()
                 f.close()
-                myline=lines[0].replace("\n","")
-                myline=myline+",{:.3f},{:.4f}\n".format(area,noise)
-                f=open(outname,'w')
+                myline = lines[0].replace("\n","")
+                myline = myline+",{:.3f},{:.4f}\n".format(area,noise)
+                f = open(outname,'w')
                 f.write(myline)
                 f.close()
 
                 # VWO: make iteration-specific and move to
                 # Summmaries directory to clean up current dir.
                 newdir = "Summaries/"
-                newname = myname+"-"+str(scan)+"-iter"+str(iter)+"_summary.txt"
-                os.rename(outname, newdir+newname)
+                newname = myname + "-" + str(scan) + "-iter" + str(iter) + "_summary.txt"
+                os.rename(outname, newdir + newname)
             
         else:
             info('Reduction for scan %i (iteration %i) found'%(scan, iter))
