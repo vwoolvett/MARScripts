@@ -139,12 +139,32 @@ for iter in range(1, niters+1):
         if len(globlist) ==  0:
             info('Reducing scan %s (iteration %i)...'%(scan, iter))
             redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
-            #if scan == 22919: #flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
-            #    flagMJD(above=1430,below=1600,flag=2)
+            
+            # Immediately rename summary file to avoid overlaps with other running MARS
+            if writeSummary:
+                # VWO: make iteration-specific and move to
+                # Summmaries directory to clean up current dir.
+                outname = "%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
+                newdir = "Summaries/"
+                newname = myname + "-" + str(scan) + "-iter" + str(iter) + "_summary.txt"
+                newoutname = newdir + newname
+                os.rename(outname, newoutname)
+
+            # Flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
+            #if scan == 22919: 
+            #    flagMJD(above=1430, below=1600,flag=2)
+
+            # Flagging example to flag a certain tone/KID in a scan
+            #if scan == 28517:
+            #    flagC(3353, flag=2)
+
+            # create map
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
             data.Map.dumpMap(scanname)
             m = restoreFile(scanname)
             m.smoothBy(8./3600.)
+
+            # Add map info to summary
             if writeSummary:
                 rmsMap = copy.deepcopy(m)
                 rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
@@ -155,21 +175,14 @@ for iter in range(1, niters+1):
                 nrpix = np.sum(~np.isnan(rmsMap.Data))
                 area = nrpix*pixelsize**2
                 noise = np.nanmedian(rmsMap.Data)
-                outname = "%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
-                f = open(outname,'r')
+                f = open(newoutname,'r')
                 lines = f.readlines()
                 f.close()
                 myline = lines[0].replace("\n","")
                 myline = myline+",{:.3f},{:.4f}\n".format(area,noise)
-                f = open(outname,'w')
+                f = open(newoutname,'w')
                 f.write(myline)
                 f.close()
-
-                # VWO: make iteration-specific and move to
-                # Summmaries directory to clean up current dir.
-                newdir = "Summaries/"
-                newname = myname + "-" + str(scan) + "-iter" + str(iter) + "_summary.txt"
-                os.rename(outname, newdir + newname)
             
         else:
             info('Reduction for scan %i (iteration %i) found'%(scan, iter))
