@@ -11,7 +11,7 @@ system  = 'EQ'                  # Coordinate system for map, 'EQ', 'GAL' or 'HO'
 center  = [0, 0]                # Center of map in CHOSEN coordinates in deg
 sizex   = 1.0                   # Size of map in x direction in deg
 sizey   = 1.0                   # Size of map in y direction in deg
-padding = 0.5                  # Padding around the map in deg for grid, default is 
+padding = 0.5                   # Padding around the map in deg for grid, default is 
                                 # about the width of the array.
 doPlot  = True                  # Whether to display maps at each scan. If False, only final
                                 # coadded map per iteration will be displayed.
