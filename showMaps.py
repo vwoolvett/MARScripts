@@ -80,5 +80,4 @@ for i,scan in enumerate(scans):
             # plotting
             rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise])
 
-    raw_input(msg)
-    
+    raw_input()
