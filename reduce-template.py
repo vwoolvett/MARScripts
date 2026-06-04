@@ -92,8 +92,8 @@ Frontend:           %s
 Coordinate system:  %s
 Map center:         %s, %s deg
 Map size (x,y):     %s, %s deg
-Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Padding:            %s deg
+Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
