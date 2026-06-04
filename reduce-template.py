@@ -98,8 +98,8 @@ Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
 
-'''%(source, fe, system, center[0], center[1], sizex, sizey, 
-     xsize[0], xsize[1], ysize[0], ysize[1], padding, niters, clip, flagJumps))
+'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
+     xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps))
 
 # Set noPlot
 if not doPlot:
