@@ -121,7 +121,7 @@ for iter in range(1, niters+1):
         mymodel=None
         subtract = False
     else:
-        mymodel=str(myname)+"-coadded-flux-iter"+str(iter-1)+".data"
+        mymodel="ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter-1)+".data"
         m=restoreFile(mymodel)
         if iter == 2:
             subtract = False
