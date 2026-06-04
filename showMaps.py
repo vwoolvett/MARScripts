@@ -5,11 +5,12 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source    = 'Name'              # as in APECS/ObsLogs
-fe        = 'LFA'               # frontend, either 'LFA' or 'HFA'
-system    = 'EQ'                # coordinate system of reduced maps, either 'EQ' or 'GAL' is usual
-iter      = 2                   # which iteration of the reduction to show
-flagJumps = False               # whether the maps were deJumped with 'flagJumps = True' at reduction
+source    = 'Name'          # As in observing logs
+fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
+system    = 'EQ'            # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
+iter      = 2               # Which iteration of the reduction to show (usual 1-3)
+flagJumps = False           # Whether the maps to show were de-jumped with
+                            # 'flagJumps = True' at reduction
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
@@ -37,12 +38,11 @@ if flagJumps:
 
 for i,scan in enumerate(scans):
     scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-    info('Retrieving reduction for scan %s ...'%(scan))
-    print('File: %s'%scanname)
-
+    info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))
     globlist = glob(scanname)
     if len(globlist) == 0:
-        warn('File not found, check script params. Skipping...')
+        warn('File not found. Skipping...')
+        print('')
         continue
     m=restoreFile(scanname)
     m.smoothBy(8./3600.)

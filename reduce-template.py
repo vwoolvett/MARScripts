@@ -5,25 +5,22 @@ import copy as copy
 # =================================
 
 # --- Source and map parameters ---
-source  = 'Name'                # As in observing logs
-fe      = 'LFA'                 # Frontend, either 'LFA' or 'HFA'
-system  = 'EQ'                  # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center  = [0, 0]                # Center of map in CHOSEN coordinates in deg
-sizex   = 1.0                   # Size of map in x direction in deg
-sizey   = 1.0                   # Size of map in y direction in deg
-padding = 0.5                   # Padding around the map in deg for grid, default is 
-                                # about the width of the array.
-doPlot  = True                  # Whether to display maps at each scan. If False, only final
-                                # coadded map per iteration will be displayed.
+source  = 'SrcName'         # As in observing logs
+fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
+system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center  = [0, 0]            # Center of map in CHOSEN COORDINATES in deg
+sizex   = 1.0               # Size of map in deg for X direction
+sizey   = 1.0               # Size of map in deg for Y direction
+padding = 0.5               # Padding around the map in deg for grid (default ~ 2x array)
+doPlot  = True              # Display maps at each scan. If False, only final
+                            # coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
-writeSummary = True             # Whether to write a summary file for each scan with 
-                                # noise and area information.
-niters       = 2                # Number of iterations to run, 1 to 3 (recommended 2)
-clip         = 5.               # Sigma clipping level for masking high noise pixels in
-                                # the final coadded map.
-flagJumps    = False            # Whether to flag jumps/spikes in the data, recommended
-                                # to set to True for weak sources in LFA.
+writeSummary = True         # Write summary of reductions or not
+niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2)
+clip         = 5.           # Sigma clipping level for masking high noise pixels
+flagJumps    = False        # Flag jumps/spikes in the data:
+                            # recommended to set to True for 'weak' sources in LFA
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
