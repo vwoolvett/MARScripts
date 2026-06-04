@@ -82,8 +82,7 @@ for badscan in badscans:
         scans.remove(badscan)
 
 
-print(
-'''
+print('''\
 =====================
 Reduction parameters:
 =====================
