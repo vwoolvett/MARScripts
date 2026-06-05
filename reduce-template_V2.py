@@ -224,10 +224,6 @@ for iter in range(1, niters+1):
             ms = copy.deepcopy(m)
 
         if doPlot:
-            # RMS map creation
-            rmsMap = copy.deepcopy(ms)  # Signal
-            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
-
             # SNR map creation
             snrMap = copy.deepcopy(ms)  # Signal
             snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
@@ -235,30 +231,24 @@ for iter in range(1, niters+1):
             # Smooth (if needed) for display
             if smoothby_deg > 0.0:
                 snrMap.smoothBy(smoothby_deg)
-                rmsMap.smoothBy(smoothby_deg)
 
             # plotting
-            mediannoise = np.nanmedian(rmsMap.Data)
             snrMap.display(aspect=1,limitsZ=[-4,12])
-            rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
 
     # Iteration complete, now create final coadded maps and display
     # final SNR map + noise contours with optional clipping of high noise pixels.
-    # If plotting was not done before, then these don't exist. Otherwise,
-    # last scan already created the rms and snr maps for mapsum.
-    if not doPlot:
-        # RMS map creation
-        rmsMap = copy.deepcopy(ms)  # Signal
-        rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+    # RMS map creation
+    rmsMap = copy.deepcopy(ms)  # Signal
+    rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
 
-        # SNR map creation
-        snrMap = copy.deepcopy(ms)  # Signal
-        snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+    # SNR map creation
+    snrMap = copy.deepcopy(ms)  # Signal
+    snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-        # Smooth (if needed) for stats and display
-        if smoothby_deg > 0.0:
-            snrMap.smoothBy(smoothby_deg)
-            rmsMap.smoothBy(smoothby_deg)
+    # Smooth (if needed) for stats and display
+    if smoothby_deg > 0.0:
+        snrMap.smoothBy(smoothby_deg)
+        rmsMap.smoothBy(smoothby_deg)
 
     # clipping high noise pixels if clip > 0
     minnoise = np.nanmin(rmsMap.Data)
