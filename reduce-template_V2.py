@@ -1,5 +1,9 @@
 import copy as copy
 
+# ==== VERSION 2.0: CORRECT RMS MAP HANDLING? ======
+# VWO: solution is to not smooth until exporting
+# a FITS file!
+
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
@@ -29,6 +33,9 @@ scans = []
 
 # Manually exclude bad scans if needed            
 badscans = []                   
+
+# ----- Smoothing -----
+smoothby_arcsec = 8.
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -108,6 +115,10 @@ if os.path.exists("ReducedFiles") == False:
 if writeSummary and os.path.exists("Summaries") == False:
     os.makedirs("Summaries")
 
+# smoothby
+smoothby_deg = smoothby_arcsec / 3600.
+
+
 # Beginning of reduction loop
 for iter in range(1, niters+1):
     print("####################################################################")
@@ -122,11 +133,11 @@ for iter in range(1, niters+1):
         m = restoreFile(mymodel)
         if iter == 2:
             subtract = False
-            mymodel = createSourceModel(m,highcut=5.5,lowcut=2.5,sm=8.,mtype='snr',clip=3)
+            mymodel = createSourceModel(m, highcut=5.5, lowcut=2.5, sm=smoothby_arcsec, mtype='snr', clip=3)
             
         if iter == 3:
             subtract = True
-            mymodel = createSourceModel(m,highcut=5.5,lowcut=2.5,sm=0.,mtype='flux',clip=3)
+            mymodel = createSourceModel(m, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
             
     
     ms=None
@@ -140,15 +151,14 @@ for iter in range(1, niters+1):
             info('Reducing scan %s (iteration %i)...'%(scan, iter))
             redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
             
-            # Immediately rename summary file to avoid overlaps with other running MARS
+            # Immediately rename summary and move to new folder
             if writeSummary:
-                # VWO: make iteration-specific and move to
-                # Summmaries directory to clean up current dir.
-                outname = "%s-%s-%i_summary.txt"%(fe,data.ScanParam.Object,data.ScanParam.ScanNum)
+                # VWO: made it iteration-specific
+                origname = "%s-%s-%i_summary.txt"%(fe, data.ScanParam.Object, data.ScanParam.ScanNum)
                 newdir = "Summaries/"
                 newname = myname + "-" + str(scan) + "-iter" + str(iter) + "_summary.txt"
-                newoutname = newdir + newname
-                os.rename(outname, newoutname)
+                outname = newdir + newname
+                os.rename(origname, outname)
 
             # Flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
             #if scan == 22919: 
@@ -158,18 +168,28 @@ for iter in range(1, niters+1):
             #if scan == 28517:
             #    flagC(3353, flag=2)
 
-            # create map
+            # Create map
             mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
+            
+            # Save map
             data.Map.dumpMap(scanname)
+
+            # create BoA map
             m = restoreFile(scanname)
 
-            # smooth
-            m.smoothBy(8./3600.)
-
-            # Add map info to summary
+            # For this scan, add non-noisy area and median noise info to summary
             if writeSummary:
+                # First copy unsmoothed map
                 rmsMap = copy.deepcopy(m)
+
+                # Compute RMS map
                 rmsMap.Data =  1.0 / np.sqrt(rmsMap.Weight)
+
+                # Smooth (if needed) for statistics
+                if smoothby_deg > 0.0:
+                    rmsMap.smoothBy(smoothby_deg)
+
+                # Statistics and write
                 minnoise = np.nanmin(rmsMap.Data)
                 mask = np.where(rmsMap.Data > 5*minnoise)
                 rmsMap.Data[mask] = np.NaN
@@ -177,66 +197,68 @@ for iter in range(1, niters+1):
                 nrpix = np.sum(~np.isnan(rmsMap.Data))
                 area = nrpix*pixelsize**2
                 noise = np.nanmedian(rmsMap.Data)
-                f = open(newoutname,'r')
+                f = open(outname,'r')
                 lines = f.readlines()
                 f.close()
                 myline = lines[0].replace("\n","")
                 myline = myline+",{:.3f},{:.4f}\n".format(area,noise)
-                f = open(newoutname,'w')
+                f = open(outname,'w')
                 f.write(myline)
                 f.close()
             
         else:
+            # Retrieve BoA map
             info('Reduction for scan %i (iteration %i) found'%(scan, iter))
             m = restoreFile(scanname)
-
-            # smooth
-            m.smoothBy(8./3600.)
 
         if np.all(np.isnan(m.Data)):
             warn('Map data is all NaNs! Ensure that the map bounds are correct.')
             break
         
         if ms and m:
-            # both are smoothed already
-            ms = mapsumfast([ms,m])
+            # both are native resolution
+            ms = mapsumfast([ms,m])  
+        
         elif not ms:
-            # is smoothed already
+            # is native resolution
             ms = copy.deepcopy(m)
 
         if doPlot:
+            # RMS map creation
+            rmsMap = copy.deepcopy(ms)  # Signal
+            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+
             # SNR map creation
             snrMap = copy.deepcopy(ms)  # Signal
-            # VWO: this is not correct because weight map was convolved
-            # and that is not linear with RMS!
             snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-            # rescaling SNR map by beam size
-            a = snrMap.computeRms()
-            scale = snrMap.RmsBeam
-            snrMap.Data /= np.array(scale,'f')
+            # Smooth (if needed) for display
+            if smoothby_deg > 0.0:
+                snrMap.smoothBy(smoothby_deg)
+                rmsMap.smoothBy(smoothby_deg)
 
             # plotting
+            mediannoise = np.nanmedian(rmsMap.Data)
             snrMap.display(aspect=1,limitsZ=[-4,12])
+            rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
 
-    # Iteration complete, now create final coadded maps and display final SNR map with optional clipping of high noise pixels
-    snrMap = copy.deepcopy(ms)  # Signal
-    # NOTE: VWO: also not linear!
-    snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+    # Iteration complete, now create final coadded maps and display
+    # final SNR map + noise contours with optional clipping of high noise pixels.
+    # If plotting was not done before, then these don't exist. Otherwise,
+    # last scan already created the rms and snr maps for mapsum.
+    if not doPlot:
+        # RMS map creation
+        rmsMap = copy.deepcopy(ms)  # Signal
+        rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
 
-    # rescaling SNR map by beam size
-    # snrMap.iterativeSigmaClip(below=-4,above=4)
-    # NOTE: then we need this rescaling...      
-    a = snrMap.computeRms()
-    scale = snrMap.RmsBeam
-    snrMap.Data /= np.array(scale,'f')
+        # SNR map creation
+        snrMap = copy.deepcopy(ms)  # Signal
+        snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-    # creating rms map
-    rmsMap = copy.deepcopy(ms)  # Signal
-    rmsMap.Data =  1.0 / np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
-
-    # Rescaling rms map by beam size
-    rmsMap.Data *= np.array(scale,'f')
+        # Smooth (if needed) for stats and display
+        if smoothby_deg > 0.0:
+            snrMap.smoothBy(smoothby_deg)
+            rmsMap.smoothBy(smoothby_deg)
 
     # clipping high noise pixels if clip > 0
     minnoise = np.nanmin(rmsMap.Data)
@@ -244,14 +266,17 @@ for iter in range(1, niters+1):
     mediannoise = np.nanmedian(rmsMap.Data)
     
     if clip > 0:
-        mask=np.where(rmsMap.Data > clip * mediannoise)
+        mask = np.where(rmsMap.Data > clip * mediannoise)
         ms.Data[mask] = np.NaN
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
 
+    # plotting (these are already smoothed)
     snrMap.display(aspect=0,limitsZ=[-4,12])
     rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
 
+    # save full-iteration map without smoothing!
+    # createSourceModel already smooths this, which will be the model
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
     ms.dumpMap(outname)
 
@@ -259,5 +284,10 @@ for iter in range(1, niters+1):
     print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
     print("############################################################")
 
+    # NOTE: VWO: currently, if smooth > 0.0 writeFits2 would
+    # still be computing the RMS wrong...
+    # Smooth (if needed) and export to FITS
+    if smoothby_deg > 0.0:
+        ms.smoothBy(smoothby_deg)
     outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
     writeFits2(ms, outfile=outname, overwrite=1)
