@@ -167,7 +167,7 @@ for iter in range(1, niters+1):
             # Add map info to summary
             if writeSummary:
                 rmsMap = copy.deepcopy(m)
-                rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight)
+                rmsMap.Data =  1.0 / np.sqrt(rmsMap.Weight)
                 minnoise = np.nanmin(rmsMap.Data)
                 mask = np.where(rmsMap.Data > 5*minnoise)
                 rmsMap.Data[mask] = np.NaN
@@ -223,7 +223,7 @@ for iter in range(1, niters+1):
 
     # creating rms map
     rmsMap = copy.deepcopy(ms)  # Signal
-    rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
+    rmsMap.Data =  1.0 / np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
 
     # Rescaling rms map by beam size
     rmsMap.Data *= np.array(scale,'f')
