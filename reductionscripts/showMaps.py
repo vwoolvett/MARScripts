@@ -37,9 +37,19 @@ myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
+# display message
+msg = \
+'''
+Show next map:      Enter
+Quit:               q
+'''
+
+
 for i,scan in enumerate(scans):
     scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
     info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))
+
+    # check if reduction exists
     globlist = glob(scanname)
     if len(globlist) == 0:
         warn('File not found. Skipping...')
@@ -59,6 +69,7 @@ for i,scan in enumerate(scans):
         rmsMap = copy.deepcopy(m)
         rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
         
+        # smooth both
         m.smoothBy(8./3600.)
         rmsMap.smoothBy(8./3600)
 
@@ -81,4 +92,6 @@ for i,scan in enumerate(scans):
             # plotting
             snrMap.display(aspect=1,limitsZ=[-4,12])
 
-    raw_input()
+    usrinput = raw_input(msg)
+    if str.upper(str(usrinput)) == 'Q':
+        break
