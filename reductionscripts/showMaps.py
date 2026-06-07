@@ -1,15 +1,13 @@
-import copy as copy
-
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
 
 # --- Source and map parameters ---
-source    = 'Name'          # As in observing logs
+source    = 'SrcName'       # As in observing logs
 fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
 system    = 'EQ'            # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
-iter      = 2               # Which iteration of the reduction to show (usual 1-3)
-show      = 'sig'           # Show Signal (sig), Noise (rms) or SNR (snr)
+iter      = 2               # Which iteration of the reduction to show (usual 1-2)
+show      = 'sig'           # Show Signal (sig), Noise (noise) or SNR (snr)
 flagJumps = False           # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
 
@@ -32,6 +30,8 @@ scans = []
 
 
 # ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+import copy as copy
+
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
@@ -45,39 +45,40 @@ for i,scan in enumerate(scans):
         warn('File not found. Skipping...')
         print('')
         continue
-    m = restoreFile(scanname)
-    m.smoothBy(8./3600.)
-    info('File found, displaying scan %s...'%(scan))
 
+    # retrieve unsmoothed map
+    m = restoreFile(scanname)
+    
     if show == 'sig':
+        info('File found, displaying Signal map...')
+        m.smoothBy(8./3600.)
         m.display(aspect=1,limitsZ=[-0.2,0.5])
 
     else:
-        # creating SNR map
-        snrMap = copy.deepcopy(m)  # Signal
-        snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+        # extract unsmoothed RMS, then smooth
+        rmsMap = copy.deepcopy(m)
+        rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
+        
+        m.smoothBy(8./3600.)
+        rmsMap.smoothBy(8./3600)
 
-        # rescaling SNR map by beam size 
-        a = snrMap.computeRms()
-        scale = snrMap.RmsBeam
-        snrMap.Data /= np.array(scale,'f')
-
-        if show =='snr':
-            # plotting
-            snrMap.display(aspect=1,limitsZ=[-4,12])
-
-        else:
-            # creating rms map
-            rmsMap = copy.deepcopy(m)  # Signal
-            rmsMap.Data =  (rmsMap.Data*0.0+1.0)/np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
-
-            # Rescaling rms map by beam size
-            rmsMap.Data *= np.array(scale,'f')
-
+        if show =='noise':
+            info('File found, displaying Noise map...')
             # median noise
             mediannoise = np.nanmedian(rmsMap.Data)
 
             # plotting
             rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise])
+            
+
+        else:
+            info('File found, displaying Signal-to-Noise map...')
+
+            # creatie SNR map
+            snrMap = copy.deepcopy(m)  # already smoothed Signal
+            snrMap.Data /= rmsMap.Data  # divide by smoothed noise
+
+            # plotting
+            snrMap.display(aspect=1,limitsZ=[-4,12])
 
     raw_input()

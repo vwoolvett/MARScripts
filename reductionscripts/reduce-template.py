@@ -1,9 +1,3 @@
-import copy as copy
-
-# ==== VERSION 2.0: CORRECT RMS MAP HANDLING? ======
-# VWO: solution is to not smooth until exporting
-# a FITS file!
-
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
@@ -21,10 +15,12 @@ doPlot  = True              # Display maps at each scan. If False, only final
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = False        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
+smoothby_arcsec = 8.        # Default 8. arcsec adds ~ 2 arcsec to the native
+                            # beam of AMKID but allows a way better reduction
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
@@ -32,10 +28,9 @@ flagJumps    = False        # Flag jumps/spikes in the data:
 scans = []
 
 # Manually exclude bad scans if needed            
-badscans = []                   
+badscans = []
 
-# ----- Smoothing -----
-smoothby_arcsec = 8.
+
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -50,6 +45,8 @@ smoothby_arcsec = 8.
 
 
 # ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+import copy as copy
+
 # variable checks
 if fe not in ['LFA', 'HFA']:
     raise ValueError("fe must be either 'LFA' or 'HFA'.")
@@ -59,9 +56,7 @@ if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
 # find scans if not provided (TO-DO)
-# def findScans(source, fe):
 #if len(scans) == 0:
-#    scans = findScans(source, fe)
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -97,9 +92,11 @@ Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
+Smoothing:          %s arcsec
 
 '''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
-     xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps))
+     xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
+     smoothby_arcsec))
 
 # Set noPlot
 if not doPlot:
