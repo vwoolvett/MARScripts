@@ -100,9 +100,7 @@ Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Smoothing:          %s arcsec
-
-'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
+Smoothing:          %s arcsec'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
      xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
      smoothby_arcsec))
 
@@ -149,11 +147,15 @@ def auxsmoothby(m, Size=smoothby_deg):
     # Smooth COVERAGE (same as BoA)
     C1 = fMap.ksmooth(m.Coverage, K_norm)
     
-    # new scale per beam
+    # new scale per beam for Jy/beam units
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
 
-    # Update map
+    # Convert weight map from pixel-based to beam-based
+    beam_factor2 = np.sum(K_norm**2)
+    W1 /= beam_factor2
+
+    # Update map with correct Jy/beam scale
     m.Data = I1 * scale
     m.Weight = W1 / scale**2
     m.Coverage = C1
@@ -227,6 +229,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
 # ===========================
 with np.errstate(divide='ignore', invalid='ignore'):
     for iter in range(1, niters+1):
+        print('')
         print("####################################################################")
         print("####################### Iteration %i starting #######################"%(iter))
         print("####################################################################")
