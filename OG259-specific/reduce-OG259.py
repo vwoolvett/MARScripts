@@ -3,31 +3,31 @@
 # =================================
 
 # --- Source and map parameters ---
-source  = 'SrcName'         # As in observing logs
+source  = 'OG259'         # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center  = [0, 0]            # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.0               # Size of map in deg for X direction
-sizey   = 1.0               # Size of map in deg for Y direction
+system  = 'GAL'              # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center  = [259.3, -1.4]            # Center of map in CHOSEN COORDINATES in deg
+sizex   = 1.5               # Size of map in deg for X direction
+sizey   = 1.5               # Size of map in deg for Y direction
 padding = 0.5               # Padding around the map in deg for grid (default ~ 2x array)
 doPlot  = True              # Display maps at each scan. If False, only final
                             # coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters       = 1            # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
-flagJumps    = False        # Flag jumps/spikes in the data:
+flagJumps    = True        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
 smoothby_arcsec = 8.        # Default 8. arcsec
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
 # NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
-scans = []
+scans = [27974,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]
 
 # Manually exclude bad scans if needed            
-badscans = []
+badscans = [27979, 28217, 28498] 
 
 
 
@@ -156,8 +156,8 @@ def auxsmoothby(m, Size=smoothby_deg):
     scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
-    m.Data = I1 * scale
-    m.Weight = W1 * scale
+    m.Data = I1
+    m.Weight = W1
     m.Coverage = C1
     m.BeamSize = newbeam
 
