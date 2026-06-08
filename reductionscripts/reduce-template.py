@@ -367,7 +367,6 @@ with np.errstate(divide='ignore', invalid='ignore'):
         if clip > 0:
             mask = np.where(rmsMap.Data > clip * mediannoise)
             ms.Data[mask] = np.NaN
-            
             snrMap.Data[mask] = np.NaN
             rmsMap.Data[mask] = np.NaN
 
