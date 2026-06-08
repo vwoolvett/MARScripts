@@ -145,11 +145,11 @@ def auxsmoothby(m, Size=smoothby_deg):
     # Correct variance propagation for weights
     #    V' = K^2 * V
     W0 = m.Weight
-    V0 = np.zeros_like(W0, dtype=float)
+    V0 = np.zeros_like(W0)
     mask = W0 > 0
     V0[mask] = 1.0 / W0[mask]
     V1 = fMap.ksmooth(V0, K_norm**2)
-    W1 = np.zeros_like(V1, dtype=float)
+    W1 = np.zeros_like(V1)
     mask2 = V1 > 0
     W1[mask2] = 1.0 / V1[mask2]
     print('END SMOOTH')
