@@ -337,7 +337,8 @@ with np.errstate(divide='ignore', invalid='ignore'):
             if np.all(np.isnan(m.Data)):
                 warn('Map data is all NaNs! Ensure that the map bounds are correct.')
                 break
-        
+
+            info('Coadding...')
             if ms and m:
                 # both are smoothed
                 ms = mapsumfast([ms,m])  
