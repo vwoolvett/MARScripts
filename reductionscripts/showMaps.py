@@ -75,14 +75,16 @@ def auxsmoothby(m, Size=smoothby_deg):
 
     # Correct variance propagation for weights
     #    V' = K^2 * V
-    W0 = m.Weight
-    V0 = 1.0 / W0
+    V0 = np.where(m.Weight > 0, 1.0 / m.Weight, 0.0)
     V1 = fMap.ksmooth(V0, K**2)
-    W1 = 1.0 / V1
+    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+    
+    # new scale per beam
+    scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
-    m.Data = I1
-    m.Weight = W1
+    m.Data = I1 * scale
+    m.Weight = W1 * scale
     m.Coverage = C1
     m.BeamSize = np.sqrt(m.BeamSize**2 + Size**2)
 
