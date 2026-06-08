@@ -132,7 +132,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     - Weight: propagated via variance (K^2)
     - Coverage: convolved with K (same as BoA)
     '''
-    
+    print('START SMOOTH')
     # Build kernel
     pixsize = abs(m.WCS['CDELT2'])
     K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
@@ -141,18 +141,11 @@ def auxsmoothby(m, Size=smoothby_deg):
     # Smooth INTENSITY (same as BoA)
     I1 = fMap.ksmooth(m.Data, K_norm)
 
-    print('START SMOOTH')
     # Correct variance propagation for weights
     #    V' = K^2 * V
-    W0 = m.Weight
-    V0 = np.zeros_like(W0)
-    mask = W0 > 0
-    V0[mask] = 1.0 / W0[mask]
-    V1 = fMap.ksmooth(V0, K_norm**2)
-    W1 = np.zeros_like(V1)
-    mask2 = V1 > 0
-    W1[mask2] = 1.0 / V1[mask2]
-    print('END SMOOTH')
+    V0 = np.where(m.Weight > 0, 1.0 / m.Weight, np.NaN)
+    V1 = fMap.ksmooth(V0, K**2)
+    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
 
     # try: rms convolution instead?
     #V0 = np.where(m.Weight > 0, 1.0 / m.Weight, np.NaN)
@@ -173,6 +166,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Weight = W1 / scale**2
     m.Coverage = C1
     m.BeamSize = newbeam
+    print('END SMOOTH')
 
 #def auxmapsum(m1, m2):
 #    '''
@@ -387,12 +381,12 @@ for iter in range(1, niters+1):
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
 
-    minnoise = np.nanmin(rmsMap.Data)
+    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.1*mediannoise])
     meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.1*mediannoise])
 
     # plotting (these are already smoothed if used)
     snrMap.display(aspect=1,limitsZ=[-4,12])
-    rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+    rmsMap.display(aspect=1,limitsZ=[0, 1.1*mediannoise],doContour=1,levels=[1.1*mediannoise],overplot=1)
 
     # Save smoothed (if used) full-iteration map
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
