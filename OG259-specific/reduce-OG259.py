@@ -156,7 +156,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
-    m.Data = I1
+    m.Data = I1 * scale
     m.Weight = W1
     m.Coverage = C1
     m.BeamSize = newbeam
