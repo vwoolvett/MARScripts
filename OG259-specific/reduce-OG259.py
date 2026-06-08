@@ -142,9 +142,9 @@ def auxsmoothby(m, Size=smoothby_deg):
 
     # Correct variance propagation for weights
     #    V' = K^2 * V
-    #V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    #V1 = fMap.ksmooth(V0, K**2)
-    #W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
+    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
+    V1 = fMap.ksmooth(V0, K**2)
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
 
     # try: rms convolution instead?
     #V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
@@ -154,7 +154,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     #W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
 
     # what if weight convolution is fine?
-    W1 = fMap.ksmooth(m.Weight, K_norm)
+    #W1 = fMap.ksmooth(m.Weight, K_norm)
 
     # Smooth COVERAGE (same as BoA)
     C1 = fMap.ksmooth(m.Coverage, K_norm)
@@ -164,10 +164,10 @@ def auxsmoothby(m, Size=smoothby_deg):
     scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
-    m.Data = I1 * scale
-    m.Weight = W1 / scale**2
+    m.Data = I1 #* scale
+    m.Weight = W1 #/ scale**2
     m.Coverage = C1
-    m.BeamSize = newbeam
+    #m.BeamSize = newbeam
 
     
 
