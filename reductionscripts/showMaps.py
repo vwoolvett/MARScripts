@@ -43,8 +43,7 @@ if flagJumps:
     myname += "-flagJumps"
 
 # display message
-msg = \
-'''
+msg = '''\
 Show next map:      Enter
 Quit:               q
 '''

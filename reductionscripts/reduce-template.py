@@ -203,9 +203,9 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
             #write FLux plane                                                            
             localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
             #write RMS plane
-            rmsMap._Image__writeImage(dataset, "Noise", intensityUnit=intensityUnit)
+            rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
             #write SNR plane
-            snrMap._Image__writeImage(dataset, "SNR", intensityUnit='-')
+            snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
             dataset.close()
             
         except Exception, data:
