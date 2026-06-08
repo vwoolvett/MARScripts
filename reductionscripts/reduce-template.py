@@ -137,18 +137,17 @@ def auxsmoothby(m, Size=smoothby_deg):
     K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
     K_norm = K / np.sum(K)
 
-    with np.errstate(divide='ignore', invalid='ignore'):
-        # Smooth INTENSITY (same as BoA)
-        I1 = fMap.ksmooth(m.Data, K_norm)
+    # Smooth INTENSITY (same as BoA)
+    I1 = fMap.ksmooth(m.Data, K_norm)
 
-        # Correct variance propagation for weights
-        #    V' = K^2 * V
-        V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-        V1 = fMap.ksmooth(V0, K_norm**2)
-        W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
+    # Correct variance propagation for weights
+    #    V' = K^2 * V
+    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
+    V1 = fMap.ksmooth(V0, K_norm**2)
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
 
-        # Smooth COVERAGE (same as BoA)
-        C1 = fMap.ksmooth(m.Coverage, K_norm)
+    # Smooth COVERAGE (same as BoA)
+    C1 = fMap.ksmooth(m.Coverage, K_norm)
     
     # new scale per beam
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
@@ -189,29 +188,28 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         localMap = copy.deepcopy(data)
         
         try:
-            with np.errstate(divide='ignore', invalid='ignore'):
-                # RMS map creation
-                rmsMap = copy.deepcopy(localMap)  # Signal
-                rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
+            # RMS map creation
+            rmsMap = copy.deepcopy(localMap)  # Signal
+            rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
 
-                # SNR map creation
-                snrMap = copy.deepcopy(localMap)  # Signal
-                snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+            # SNR map creation
+            snrMap = copy.deepcopy(localMap)  # Signal
+            snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-                if clip > 0:
-                    mediannoise = np.nanmedian(rmsMap.Data)
-                    mask = np.where(rmsMap.Data > clip * mediannoise)
-                    localMap.Data[mask] = np.NaN
-                    rmsMap.Data[mask] = np.NaN
-                    snrMap.Data[mask] = np.NaN
+            if clip > 0:
+                mediannoise = np.nanmedian(rmsMap.Data)
+                mask = np.where(rmsMap.Data > clip * mediannoise)
+                localMap.Data[mask] = np.NaN
+                rmsMap.Data[mask] = np.NaN
+                snrMap.Data[mask] = np.NaN
  
-                #write FLux plane                                                            
-                localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
-                #write RMS plane
-                rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
-                #write SNR plane
-                snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
-                dataset.close()
+            #write FLux plane                                                            
+            localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
+            #write RMS plane
+            rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
+            #write SNR plane
+            snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
+            dataset.close()
             
         except Exception, data:
             print('Could not write data to file %s: %s' % (outfile, data))
@@ -227,81 +225,79 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
 # ===========================
 # Beginning of reduction loop
 # ===========================
-for iter in range(1, niters+1):
-    print("####################################################################")
-    print("####################### Iteration %i starting #######################"%(iter))
-    print("####################################################################")
+with np.errstate(divide='ignore', invalid='ignore'):
+    for iter in range(1, niters+1):
+        print("####################################################################")
+        print("####################### Iteration %i starting #######################"%(iter))
+        print("####################################################################")
 
-    if iter == 1:
-        # First iteration -- no model
-        mymodel = None
-        subtract = False
-    else:
-        # retrieve last iteration map
-        mymodel = "ReducedFiles/" + str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
-        m = restoreFile(mymodel)
-
-        if iter == 2:
+        if iter == 1:
+            # First iteration -- no model
+            mymodel = None
             subtract = False
-            # Is already smoothed!
-            #auxsmoothby(m, smoothby_deg)
-            mymodel = createSourceModel(m, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
+        else:
+            # retrieve last iteration map
+            mymodel = "ReducedFiles/" + str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
+            coadded = restoreFile(mymodel)
+
+            if iter == 2:
+                subtract = False
+                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
             
-        if iter == 3:
-            subtract = True
-            mymodel = createSourceModel(m, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
+            if iter == 3:
+                subtract = True
+                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
 
   
-    # Initialize co-added map
-    ms = None
+        # Initialize co-added map
+        ms = None
 
-    for i,scan in enumerate(scans):
-        scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-        globlist = glob(scanname)
+        for i,scan in enumerate(scans):
+            scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
+            globlist = glob(scanname)
 
-        # Initialize map for this scan
-        m = None
+            # Initialize map for this scan
+            m = None
 
-        # Check if reduction exists
-        if len(globlist) ==  0:
-            info('Reducing scan %s (iteration %i)...'%(scan, iter))
+            # Check if reduction exists
+            if len(globlist) ==  0:
+                info('Reducing scan %s (iteration %i)...'%(scan, iter))
 
-            # Reduce it
-            redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
+                # Reduce it
+                redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
             
-            # Immediately rename summary and move to new folder
-            if writeSummary:
-                # VWO: made it iteration-specific
-                origname = "%s-%s-%i_summary.txt"%(fe, data.ScanParam.Object, data.ScanParam.ScanNum)
-                newdir = "Summaries/"
-                newname = myname + "-" + str(scan) + "-iter" + str(iter) + "_summary.txt"
-                outname = newdir + newname
-                os.rename(origname, outname)
+                # Immediately rename summary and move to new folder
+                if writeSummary:
+                    # VWO: made it iteration-specific
+                    origname = "%s-%s-%i_summary.txt"%(fe, data.ScanParam.Object, data.ScanParam.ScanNum)
+                    newdir = "Summaries/"
+                    newname = myname + "-" + str(scan) + "-iter" + str(iter) + "_summary.txt"
+                    outname = newdir + newname
+                    os.rename(origname, outname)
 
-            # Flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
-            #if scan == 22919: 
-            #    flagMJD(above=1430, below=1600,flag=2)
+                # Flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
+                #if scan == 22919: 
+                #    flagMJD(above=1430, below=1600,flag=2)
 
-            # Flagging example to flag a certain tone/KID in a scan
-            #if scan == 28517:
-            #    flagC(3353, flag=2)
+                # Flagging example to flag a certain tone/KID in a scan
+                #if scan == 28517:
+                #    flagC(3353, flag=2)
 
-            # Create map
-            mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
+                # Create map
+                mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
             
-            # Save unsmoothed map
-            data.Map.dumpMap(scanname)
+                # Save unsmoothed map
+                data.Map.dumpMap(scanname)
 
-            # Create BoA map
-            m = restoreFile(scanname)
+                # Create BoA map
+                m = restoreFile(scanname)
 
-            # Smooth if necessary
-            if smoothby_deg > 0.0:
-                auxsmoothby(m, smoothby_deg)
+                # Smooth if necessary
+                if smoothby_deg > 0.0:
+                    auxsmoothby(m, smoothby_deg)
 
-            # For this scan, add non-noisy area and median noise info to summary
-            if writeSummary:
-                with np.errstate(divide='ignore', invalid='ignore'):
+                # For this scan, add non-noisy area and median noise info to summary
+                if writeSummary:
                     # Create smoothed noise map
                     rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
 
@@ -322,40 +318,38 @@ for iter in range(1, niters+1):
                     f.write(myline)
                     f.close()
             
-        else:
-            # Retrieve BoA map
-            info('Reduction for scan %i (iteration %i) found'%(scan, iter))
-            m = restoreFile(scanname)
+            else:
+                # Retrieve BoA map
+                info('Reduction for scan %i (iteration %i) found'%(scan, iter))
+                m = restoreFile(scanname)
 
-            # Smooth if necessary
-            if smoothby_deg > 0.0:
-                auxsmoothby(m, smoothby_deg)
+                # Smooth if necessary
+                if smoothby_deg > 0.0:
+                    auxsmoothby(m, smoothby_deg)
 
 
-        if np.all(np.isnan(m.Data)):
-            warn('Map data is all NaNs! Ensure that the map bounds are correct.')
-            break
+            if np.all(np.isnan(m.Data)):
+                warn('Map data is all NaNs! Ensure that the map bounds are correct.')
+                break
         
-        if ms and m:
-            # both are smoothed
-            ms = mapsumfast([ms,m])  
+            if ms and m:
+                # both are smoothed
+                ms = mapsumfast([ms,m])  
         
-        elif not ms:
-            # is already smoothed
-            ms = copy.deepcopy(m)
+            elif not ms:
+                # is already smoothed
+                ms = copy.deepcopy(m)
 
-        if doPlot:
-            with np.errstate(divide='ignore', invalid='ignore'):
+            if doPlot:
                 # SNR map creation
                 snrMap = copy.deepcopy(ms)  # Signal
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN )  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-            # plotting
-            snrMap.display(aspect=1,limitsZ=[-4,12])
+                # plotting
+                snrMap.display(aspect=1,limitsZ=[-4,12])
 
-    # Iteration complete, now create final coadded maps and display
-    # final SNR map + noise contours with optional clipping of high noise pixels.
-    with np.errstate(divide='ignore', invalid='ignore'):
+        # Iteration complete, now create final coadded maps and display
+        # final SNR map + noise contours with optional clipping of high noise pixels.
         # RMS map creation
         rmsMap = copy.deepcopy(ms)  # Signal
         rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
@@ -376,17 +370,17 @@ for iter in range(1, niters+1):
         minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
         meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
 
-    # plotting (these are already smoothed if used)
-    snrMap.display(aspect=1,limitsZ=[-4,12])
-    rmsMap.display(aspect=1,limitsZ=[0, 1.5*mediannoise],doContour=1,levels=[1.5*mediannoise],overplot=1)
+        # plotting (these are already smoothed if used)
+        snrMap.display(aspect=1,limitsZ=[-4,12])
+        rmsMap.display(aspect=1,limitsZ=[0, 1.5*mediannoise],doContour=1,levels=[1.5*mediannoise],overplot=1)
 
-    # Save smoothed (if used) full-iteration map
-    outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
-    ms.dumpMap(outname)
+        # Save smoothed (if used) full-iteration map
+        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
+        ms.dumpMap(outname)
 
-    print("################### Iteration %i finished ###################"%(iter))
-    print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
-    print("############################################################")
+        print("################### Iteration %i finished ###################"%(iter))
+        print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
+        print("############################################################")
 
-    outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
-    auxwriteFits(ms, outfile=outname, overwrite=1)
+        outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
+        auxwriteFits(ms, outfile=outname, overwrite=1)
