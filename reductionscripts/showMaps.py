@@ -10,11 +10,14 @@ iter      = 2               # Which iteration of the reduction to show (usual 1-
 show      = 'sig'           # Show Signal (sig), Noise (noise) or SNR (snr)
 flagJumps = False           # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
+smoothby_arcsec = 8.        # Default 8. arcsec
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
 # NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
 scans = []
+
+
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -44,6 +47,44 @@ Show next map:      Enter
 Quit:               q
 '''
 
+# smoothby to deg
+smoothby_deg = smoothby_arcsec / 3600.
+
+# define the good functions :)
+def auxsmoothby(m, Size=smoothby_deg):
+    '''
+    BoA-like smoothing but with correct variance propagation.
+
+    - Data: convolved with K
+    - Weight: propagated via variance (K^2)
+    - Coverage: convolved with K (same as BoA)
+    '''
+    # Build kernel
+    pixsize = abs(m.WCS['CDELT2'])
+    Kobj = BOAMAP.Kernel(pixsize, Size)
+    K = Kobj.Data.astype(float)
+
+    # Smooth INTENSITY (same as BoA)
+    I0 = m.Data
+    I1 = fMap.ksmooth(I0, K)
+
+    # Smooth COVERAGE (same as BoA)
+    C0 = m.Coverage
+    C1 = fMap.ksmooth(C0, K)
+
+    # Correct variance propagation for weights
+    #    V' = K^2 * V
+    W0 = m.Weight
+    V0 = 1.0 / W0
+    V1 = fMap.ksmooth(V0, K**2)
+    W1 = 1.0 / V1
+
+    # Update map
+    m.Data = I1
+    m.Weight = W1
+    m.Coverage = C1
+    m.BeamSize = np.sqrt(m.BeamSize**2 + Size**2)
+
 
 for i,scan in enumerate(scans):
     scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
@@ -58,23 +99,22 @@ for i,scan in enumerate(scans):
 
     # retrieve unsmoothed map
     m = restoreFile(scanname)
+
+    # smooth if needed
+    if smoothby_arcsec > 0.0:
+        auxsmoothby(m, smoothby_deg)
     
     if show == 'sig':
         info('File found, displaying Signal map...')
-        m.smoothBy(8./3600.)
         m.display(aspect=1,limitsZ=[-0.2,0.5])
 
     else:
-        # extract unsmoothed RMS, then smooth
-        rmsMap = copy.deepcopy(m)
-        rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight) # Noise = 1/sqrt(weight)
-        
-        # smooth both
-        m.smoothBy(8./3600.)
-        rmsMap.smoothBy(8./3600)
-
         if show =='noise':
             info('File found, displaying Noise map...')
+            # RMS map creation
+            rmsMap = copy.deepcopy(m)  # Signal
+            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+
             # median noise
             mediannoise = np.nanmedian(rmsMap.Data)
 
@@ -84,10 +124,9 @@ for i,scan in enumerate(scans):
 
         else:
             info('File found, displaying Signal-to-Noise map...')
-
-            # creatie SNR map
-            snrMap = copy.deepcopy(m)  # already smoothed Signal
-            snrMap.Data /= rmsMap.Data  # divide by smoothed noise
+            # SNR map creation
+            snrMap = copy.deepcopy(m)  # Signal
+            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             # plotting
             snrMap.display(aspect=1,limitsZ=[-4,12])
