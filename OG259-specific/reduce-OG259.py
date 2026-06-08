@@ -143,9 +143,9 @@ def auxsmoothby(m, Size=smoothby_deg):
 
     # Correct variance propagation for weights
     #    V' = K^2 * V
-    V0 = np.where(m.Weight > 0, 1.0 / m.Weight, np.NaN)
+    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
     V1 = fMap.ksmooth(V0, K**2)
-    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
 
     # try: rms convolution instead?
     #V0 = np.where(m.Weight > 0, 1.0 / m.Weight, np.NaN)
@@ -381,12 +381,12 @@ for iter in range(1, niters+1):
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
 
-    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.1*mediannoise])
-    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.1*mediannoise])
+    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
+    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
 
     # plotting (these are already smoothed if used)
     snrMap.display(aspect=1,limitsZ=[-4,12])
-    rmsMap.display(aspect=1,limitsZ=[0, 1.1*mediannoise],doContour=1,levels=[1.1*mediannoise],overplot=1)
+    rmsMap.display(aspect=1,limitsZ=[0, 1.5*mediannoise],doContour=1,levels=[1.5*mediannoise],overplot=1)
 
     # Save smoothed (if used) full-iteration map
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
