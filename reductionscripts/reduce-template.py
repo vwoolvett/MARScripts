@@ -264,6 +264,9 @@ with np.errstate(divide='ignore', invalid='ignore'):
 
             # Check if reduction exists
             if len(globlist) ==  0:
+                print('')
+                print('')
+                print('')
                 info('Reducing scan %s (iteration %i)...'%(scan, iter))
 
                 # Reduce it
