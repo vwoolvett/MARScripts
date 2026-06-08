@@ -201,15 +201,15 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         try:
             # RMS map creation
             rmsMap = copy.deepcopy(localMap)  # Signal
-            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+            rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
 
             # SNR map creation
             snrMap = copy.deepcopy(localMap)  # Signal
-            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+            snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             if clip > 0:
-                meannoise=np.nanmedian(rmsMap.Data)
-                mask=np.where(rmsMap.Data > clip*meannoise)
+                mediannoise = np.nanmedian(rmsMap.Data)
+                mask = np.where(rmsMap.Data > clip * mediannoise)
                 localMap.Data[mask] = np.NaN
                 rmsMap.Data[mask] = np.NaN
                 snrMap.Data[mask] = np.NaN
@@ -311,7 +311,7 @@ for iter in range(1, niters+1):
             # For this scan, add non-noisy area and median noise info to summary
             if writeSummary:
                 # Create smoothed noise map
-                rmsArray = 1.0 / np.sqrt(m.Weight)
+                rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
 
                 # Statistics and write
                 minnoise = np.nanmin(rmsArray)
@@ -355,7 +355,7 @@ for iter in range(1, niters+1):
         if doPlot:
             # SNR map creation
             snrMap = copy.deepcopy(ms)  # Signal
-            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+            snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             # plotting
             snrMap.display(aspect=1,limitsZ=[-4,12])
@@ -364,11 +364,11 @@ for iter in range(1, niters+1):
     # final SNR map + noise contours with optional clipping of high noise pixels.
     # RMS map creation
     rmsMap = copy.deepcopy(ms)  # Signal
-    rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+    rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
 
     # SNR map creation
     snrMap = copy.deepcopy(ms)  # Signal
-    snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+    snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
     # clipping high noise pixels if clip > 0
     mediannoise = np.nanmedian(rmsMap.Data)
