@@ -19,7 +19,7 @@ niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
-smoothby_arcsec = 8.        # Default 8. arcsec
+smoothby_arcsec = 4.        # Default 8. arcsec
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
