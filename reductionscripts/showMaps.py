@@ -34,6 +34,8 @@ scans = []
 
 # ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 import copy as copy
+import BoaMapping as BOAMAP
+from mars.fortran import fMap
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
