@@ -134,31 +134,29 @@ def auxsmoothby(m, Size=smoothby_deg):
     '''
     # Build kernel
     pixsize = abs(m.WCS['CDELT2'])
-    Kobj = BOAMAP.Kernel(pixsize, Size)
-    K = Kobj.Data.astype(float)
+    K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+    K_norm = K / np.sum(K)
+    K2_norm = K_norm**2
 
     # Smooth INTENSITY (same as BoA)
-    I0 = m.Data
-    I1 = fMap.ksmooth(I0, K)
+    m.Data = fMap.ksmooth(m.Data, K_norm)
 
     # Smooth COVERAGE (same as BoA)
-    C0 = m.Coverage
-    C1 = fMap.ksmooth(C0, K)
+    m.Coverage = fMap.ksmooth(m.Coverage, K_norm)
 
     # Correct variance propagation for weights
     #    V' = K^2 * V
     V0 = np.where(m.Weight > 0, 1.0 / m.Weight, 0.0)
-    V1 = fMap.ksmooth(V0, K**2)
-    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+    V1 = fMap.ksmooth(V0, K2_norm)
+    m.Weight = np.where(V1 > 0, 1.0 / V1, 0.0)
     
     # new scale per beam
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
-    m.Data = I1 * scale
-    m.Weight = W1
-    m.Coverage = C1
+    m.Data *= scale
+    m.Weight /= scale**2
     m.BeamSize = newbeam
 
 #def auxmapsum(m1, m2):
