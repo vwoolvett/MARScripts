@@ -384,7 +384,7 @@ for iter in range(1, niters+1):
 
     # plotting (these are already smoothed if used)
     snrMap.display(aspect=1,limitsZ=[-4,12])
-    rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[mediannoise, 5*mediannoise],overplot=1)
+    rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
 
     # Save smoothed (if used) full-iteration map
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
