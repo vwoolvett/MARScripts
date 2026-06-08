@@ -15,7 +15,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 1            # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
@@ -147,14 +147,16 @@ def auxsmoothby(m, Size=smoothby_deg):
 
     # Correct variance propagation for weights
     #    V' = K^2 * V
-    W0 = m.Weight
-    V0 = 1.0 / W0
+    V0 = np.where(m.Weight > 0, 1.0 / m.Weight, 0.0)
     V1 = fMap.ksmooth(V0, K**2)
-    W1 = 1.0 / V1
+    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+    
+    # new scale per beam
+    scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
-    m.Data = I1
-    m.Weight = W1
+    m.Data = I1 * scale
+    m.Weight = W1 * scale
     m.Coverage = C1
     m.BeamSize = np.sqrt(m.BeamSize**2 + Size**2)
 
@@ -196,14 +198,14 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
             if clip > 0:
                 meannoise=np.nanmedian(rmsMap.Data)
                 mask=np.where(rmsMap.Data > clip*meannoise)
-                localMap.Data[mask] = np.NaN 
-                rmsMap.Data[mask] = np.NaN  
+                localMap.Data[mask] = np.NaN
+                rmsMap.Data[mask] = np.NaN
                 snrMap.Data[mask] = np.NaN
  
             #write FLux plane                                                            
             localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
             #write RMS plane
-            rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
+            rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
             #write SNR plane
             snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
             dataset.close()
