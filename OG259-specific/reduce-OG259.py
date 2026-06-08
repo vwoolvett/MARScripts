@@ -364,8 +364,6 @@ for iter in range(1, niters+1):
     snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
     # clipping high noise pixels if clip > 0
-    minnoise = np.nanmin(rmsMap.Data)
-    meannoise = np.nanmean(rmsMap.Data)
     mediannoise = np.nanmedian(rmsMap.Data)
     
     if clip > 0:
@@ -373,6 +371,9 @@ for iter in range(1, niters+1):
         ms.Data[mask] = np.NaN
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
+
+    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<np.inf])
+    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<np.inf])
 
     # plotting (these are already smoothed if used)
     snrMap.display(aspect=0,limitsZ=[-4,12])
