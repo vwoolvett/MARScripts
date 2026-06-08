@@ -15,7 +15,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 1            # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
@@ -24,7 +24,7 @@ smoothby_arcsec = 8.        # Default 8. arcsec
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
 # NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
-scans = [27974]#,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]
+scans = [27974,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]
 
 # Manually exclude bad scans if needed            
 badscans = [27979, 28217, 28498] 

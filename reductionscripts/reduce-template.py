@@ -134,22 +134,21 @@ def auxsmoothby(m, Size=smoothby_deg):
     '''
     # Build kernel
     pixsize = abs(m.WCS['CDELT2'])
-    Kobj = BOAMAP.Kernel(pixsize, Size)
-    K = Kobj.Data.astype(float)
+    K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+    K_norm = K / np.sum(K)
 
-    # Smooth INTENSITY (same as BoA)
-    I0 = m.Data
-    I1 = fMap.ksmooth(I0, K)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        # Smooth INTENSITY (same as BoA)
+        I1 = fMap.ksmooth(m.Data, K_norm)
 
-    # Smooth COVERAGE (same as BoA)
-    C0 = m.Coverage
-    C1 = fMap.ksmooth(C0, K)
+        # Correct variance propagation for weights
+        #    V' = K^2 * V
+        V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
+        V1 = fMap.ksmooth(V0, K_norm**2)
+        W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
 
-    # Correct variance propagation for weights
-    #    V' = K^2 * V
-    V0 = np.where(m.Weight > 0, 1.0 / m.Weight, 0.0)
-    V1 = fMap.ksmooth(V0, K**2)
-    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+        # Smooth COVERAGE (same as BoA)
+        C1 = fMap.ksmooth(m.Coverage, K_norm)
     
     # new scale per beam
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
@@ -157,15 +156,11 @@ def auxsmoothby(m, Size=smoothby_deg):
 
     # Update map
     m.Data = I1 * scale
-    m.Weight = W1 * scale
+    m.Weight = W1 / scale**2
     m.Coverage = C1
     m.BeamSize = newbeam
 
-#def auxmapsum(m1, m2):
-#    '''
-#    Same as BoA but handles weighting correctly
-#     '''
-    
+
 
 def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
         """
@@ -194,28 +189,29 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         localMap = copy.deepcopy(data)
         
         try:
-            # RMS map creation
-            rmsMap = copy.deepcopy(localMap)  # Signal
-            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                # RMS map creation
+                rmsMap = copy.deepcopy(localMap)  # Signal
+                rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
 
-            # SNR map creation
-            snrMap = copy.deepcopy(localMap)  # Signal
-            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+                # SNR map creation
+                snrMap = copy.deepcopy(localMap)  # Signal
+                snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-            if clip > 0:
-                meannoise=np.nanmedian(rmsMap.Data)
-                mask=np.where(rmsMap.Data > clip*meannoise)
-                localMap.Data[mask] = np.NaN
-                rmsMap.Data[mask] = np.NaN
-                snrMap.Data[mask] = np.NaN
+                if clip > 0:
+                    mediannoise = np.nanmedian(rmsMap.Data)
+                    mask = np.where(rmsMap.Data > clip * mediannoise)
+                    localMap.Data[mask] = np.NaN
+                    rmsMap.Data[mask] = np.NaN
+                    snrMap.Data[mask] = np.NaN
  
-            #write FLux plane                                                            
-            localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
-            #write RMS plane
-            rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
-            #write SNR plane
-            snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
-            dataset.close()
+                #write FLux plane                                                            
+                localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
+                #write RMS plane
+                rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
+                #write SNR plane
+                snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
+                dataset.close()
             
         except Exception, data:
             print('Could not write data to file %s: %s' % (outfile, data))
@@ -305,25 +301,26 @@ for iter in range(1, niters+1):
 
             # For this scan, add non-noisy area and median noise info to summary
             if writeSummary:
-                # Create smoothed noise map
-                rmsArray = 1.0 / np.sqrt(m.Weight)
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    # Create smoothed noise map
+                    rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
 
-                # Statistics and write
-                minnoise = np.nanmin(rmsArray)
-                mask = (rmsArray > 5*minnoise)
-                rmsArray[mask] = np.NaN
-                pixelsize = np.abs(m.WCS['CDELT2'])  # taken from smoothed map
-                nrpix = np.sum(~np.isnan(rmsArray))
-                area = nrpix * pixelsize**2
-                noise = np.nanmedian(rmsArray)
-                f = open(outname,'r')
-                lines = f.readlines()
-                f.close()
-                myline = lines[0].replace("\n","")
-                myline = myline+",{:.3f},{:.4f}\n".format(area,noise)
-                f = open(outname,'w')
-                f.write(myline)
-                f.close()
+                    # Statistics and write
+                    minnoise = np.nanmin(rmsArray)
+                    mask = (rmsArray > 5*minnoise)
+                    rmsArray[mask] = np.NaN
+                    pixelsize = np.abs(m.WCS['CDELT2'])  # taken from smoothed map
+                    nrpix = np.sum(~np.isnan(rmsArray))
+                    area = nrpix * pixelsize**2
+                    noise = np.nanmedian(rmsArray)
+                    f = open(outname,'r')
+                    lines = f.readlines()
+                    f.close()
+                    myline = lines[0].replace("\n","")
+                    myline = myline+",{:.3f},{:.4f}\n".format(area,noise)
+                    f = open(outname,'w')
+                    f.write(myline)
+                    f.close()
             
         else:
             # Retrieve BoA map
@@ -348,37 +345,40 @@ for iter in range(1, niters+1):
             ms = copy.deepcopy(m)
 
         if doPlot:
-            # SNR map creation
-            snrMap = copy.deepcopy(ms)  # Signal
-            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                # SNR map creation
+                snrMap = copy.deepcopy(ms)  # Signal
+                snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN )  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             # plotting
             snrMap.display(aspect=1,limitsZ=[-4,12])
 
     # Iteration complete, now create final coadded maps and display
     # final SNR map + noise contours with optional clipping of high noise pixels.
-    # RMS map creation
-    rmsMap = copy.deepcopy(ms)  # Signal
-    rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        # RMS map creation
+        rmsMap = copy.deepcopy(ms)  # Signal
+        rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
 
-    # SNR map creation
-    snrMap = copy.deepcopy(ms)  # Signal
-    snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+        # SNR map creation
+        snrMap = copy.deepcopy(ms)  # Signal
+        snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-    # clipping high noise pixels if clip > 0
-    minnoise = np.nanmin(rmsMap.Data)
-    meannoise = np.nanmean(rmsMap.Data)
-    mediannoise = np.nanmedian(rmsMap.Data)
+        # clipping high noise pixels if clip > 0
+        mediannoise = np.nanmedian(rmsMap.Data)
     
-    if clip > 0:
-        mask = np.where(rmsMap.Data > clip * mediannoise)
-        ms.Data[mask] = np.NaN
-        snrMap.Data[mask] = np.NaN
-        rmsMap.Data[mask] = np.NaN
+        if clip > 0:
+            mask = np.where(rmsMap.Data > clip * mediannoise)
+            ms.Data[mask] = np.NaN
+            snrMap.Data[mask] = np.NaN
+            rmsMap.Data[mask] = np.NaN
+
+        minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
+        meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
 
     # plotting (these are already smoothed if used)
-    snrMap.display(aspect=0,limitsZ=[-4,12])
-    rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
+    snrMap.display(aspect=1,limitsZ=[-4,12])
+    rmsMap.display(aspect=1,limitsZ=[0, 1.5*mediannoise],doContour=1,levels=[1.5*mediannoise],overplot=1)
 
     # Save smoothed (if used) full-iteration map
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
