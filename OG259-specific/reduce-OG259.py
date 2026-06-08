@@ -146,6 +146,13 @@ def auxsmoothby(m, Size=smoothby_deg):
     V1 = fMap.ksmooth(V0, K**2)
     W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
 
+    # try: rms convolution instead?
+    #V0 = np.where(m.Weight > 0, 1.0 / m.Weight, np.NaN)
+    #ms0 = np.sqrt(V0)
+    #rms1 = fMap.ksmooth(rms0, K)
+    #V1 = rms1**1
+    #W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+
     # Smooth COVERAGE (same as BoA)
     C1 = fMap.ksmooth(m.Coverage, K_norm)
     
@@ -376,8 +383,8 @@ for iter in range(1, niters+1):
     meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<np.inf])
 
     # plotting (these are already smoothed if used)
-    snrMap.display(aspect=0,limitsZ=[-4,12])
-    rmsMap.display(aspect=0,limitsZ=[0, 2*mediannoise],doContour=1,levels=[mediannoise],overplot=1)
+    snrMap.display(aspect=1,limitsZ=[-4,12])
+    rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[mediannoise, 5*mediannoise],overplot=1)
 
     # Save smoothed (if used) full-iteration map
     outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
