@@ -132,7 +132,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     - Weight: propagated via variance (K^2)
     - Coverage: convolved with K (same as BoA)
     '''
-    print('START SMOOTH')
+    
     # Build kernel
     pixsize = abs(m.WCS['CDELT2'])
     K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
@@ -141,6 +141,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     # Smooth INTENSITY (same as BoA)
     I1 = fMap.ksmooth(m.Data, K_norm)
 
+    print('START SMOOTH')
     # Correct variance propagation for weights
     #    V' = K^2 * V
     W0 = m.Weight
@@ -151,6 +152,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     W1 = np.zeros_like(V1, dtype=float)
     mask2 = V1 > 0
     W1[mask2] = 1.0 / V1[mask2]
+    print('END SMOOTH')
 
     # try: rms convolution instead?
     #V0 = np.where(m.Weight > 0, 1.0 / m.Weight, np.NaN)
@@ -171,7 +173,6 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Weight = W1 / scale**2
     m.Coverage = C1
     m.BeamSize = newbeam
-    print('END SMOOTH')
 
 #def auxmapsum(m1, m2):
 #    '''
