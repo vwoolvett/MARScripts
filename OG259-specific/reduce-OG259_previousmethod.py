@@ -21,7 +21,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 1            # Number of iterations to run, 1 to 3 (recommended 2)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
@@ -35,7 +35,7 @@ scans = [27974,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235
 badscans = [27979, 28217, 28498]                   
 
 # ----- Smoothing -----
-smoothby_arcsec = 0.
+smoothby_arcsec = 8.
 
 # ==============================
 # ===== END OF USER INUPUT =====
