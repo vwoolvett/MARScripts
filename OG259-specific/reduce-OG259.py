@@ -379,8 +379,8 @@ for iter in range(1, niters+1):
         snrMap.Data[mask] = np.NaN
         rmsMap.Data[mask] = np.NaN
 
-    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<np.inf])
-    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<np.inf])
+    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<mediannoise])
+    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<mediannoise])
 
     # plotting (these are already smoothed if used)
     snrMap.display(aspect=1,limitsZ=[-4,12])
