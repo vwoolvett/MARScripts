@@ -143,13 +143,13 @@ def auxsmoothby(m, Size=smoothby_deg):
     # Correct variance propagation for weights
     #    V' = K^2 * V
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = fMap.ksmooth(V0, K**2)
+    V1 = fMap.ksmooth(V0, K_norm**2)
     W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
 
     # try: rms convolution instead?
     #V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
     #rms0 = np.sqrt(V0)
-    #rms1 = fMap.ksmooth(rms0, K)
+    #rms1 = fMap.ksmooth(rms0, K_norm)
     #V1 = rms1**2
     #W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
 
