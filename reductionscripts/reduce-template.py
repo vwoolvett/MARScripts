@@ -152,13 +152,14 @@ def auxsmoothby(m, Size=smoothby_deg):
     W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
     
     # new scale per beam
+    newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
 
     # Update map
     m.Data = I1 * scale
     m.Weight = W1 * scale
     m.Coverage = C1
-    m.BeamSize = np.sqrt(m.BeamSize**2 + Size**2)
+    m.BeamSize = newbeam
 
 def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
         """
