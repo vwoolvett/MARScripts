@@ -80,9 +80,8 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         PSD_AMP = tone_dict[kid]['KID_amp_noise']
         dfs = f # offsets from sweepcenter
         freqs = freq + dfs  # absolute frequencies
-        status=int(tone_dict[kid]['overdriven'])
-        Status=['under','under','under','normal',
-                'over','over','over']
+        dfData = tone_dict[kid]['dfData']
+        phData = tone_dict[kid]['phData']
         chain=int(kid/kidsPerChain)+1
         ## FFT frequencies across fsweep
         chanRes = 2200./32768.
@@ -128,9 +127,22 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[0,0].legend(loc='lower left')
         
         #subplot with phase and responsivity of sweep trace:
-        # VWO: same as reduceFsweep
+        # VWO: almost same as reduceFsweep
         Z_norm = (Z - Z_0)/(Z_tune-Z_0)
         PHI = - _correctPhases(np.angle(Z_norm))
+        # Extract absolute radian shift from reduction:
+        # dfs and PHI are larger arrays than dfData and phData, but
+        # at df=0 the phase arrays are shifted because findPropertyForKid
+        # removes the necessary 2pi multiples to bring the point of minimum
+        # amplitude as close as possible to phi=0. Then we ensure that both
+        # arrays coincide at df=0 by applying this constant shift:
+        df0_reduction_index = np.argmin(np.abs(dfData))
+        phase_df0_reduction = phData[df0_reduction_index]
+        df0_here_index = np.argmin(np.abs(dfs))
+        phase_df0_here = PHI[df0_here_index]
+        excess = phase_df0_here - phase_df0_reduction
+        PHI -= excess
+
         ax[0,1].plot(dfs, PHI,label='Phi')
         ax[0,1].vlines([0], min(PHI),max(PHI),colors =['red'])
         ax[0,1].vlines([resonance_freq - freq], min(PHI),max(PHI),colors=['lightgreen'],linestyles=['dashed'])
