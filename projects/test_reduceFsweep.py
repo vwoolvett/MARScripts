@@ -172,4 +172,4 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[1,0].cla()
         ax[0,1].cla()
         ax[1,1].cla()
-        ax11b.cla()
+        ax01b.cla()
