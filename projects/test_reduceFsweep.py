@@ -105,7 +105,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         #d2Idf2 = np.real(d2Zdf2)
         #d2Qdf2 = np.imag(d2Zdf2)
         absspeed = np.abs(dZdf)
-        absaccel = no.abs(d2Zdf2)
+        absaccel = np.abs(d2Zdf2)
 
         #Figure title        
         fig.suptitle('KID %i, %s-%i, '%(kid,fe,chain)+ID)
