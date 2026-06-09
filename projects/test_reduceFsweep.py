@@ -18,7 +18,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
 
     #We need to get the sweep trace
     getIQBT(fsweep,fe=fe,sub=1)
-    sweepData=copy(data.Data)
+    sweepData=copy.copy(data.Data)
 
     # get the frequency steps from HK data
     febe, chains, kidsPerChain = getFebe(fe)      
@@ -32,7 +32,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         #get the noise trace
         getIQBT(fsweep,fe=fe,sub=2)
         #tone_dict = calibIQ(data.Data, data.tone_dict, is_fsweep=True, keep_iq=False)
-        noiseData = copy(data.Data)
+        noiseData = copy.copy(data.Data)
         dt = np.nanmedian(data.ScanParam.get('deltat'))
         f_samp = 1.0/dt
     else:
