@@ -99,7 +99,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # NOW COMPUTE NEW TONE PLACING
         Z = sweepData[:, kid-1]
         I = np.real(Z)
-        Q = np.imag(Q)
+        Q = np.imag(Z)
         dZdf = np.diff(Z) / df
         dIdf = np.real(dZdf)
         dQdf = np.imag(dZdf)
