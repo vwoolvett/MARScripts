@@ -67,7 +67,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
             NET = '--'
             ID = 'fsweep %i'%(fsweep)
             
-        #get Parameters from fsweep dictionary
+        # get Parameters from fsweep dictionary
         Z_0 =  tone_dict[kid]['circleI'] + 1j*tone_dict[kid]['circleQ']
         r   =  tone_dict[kid]['circleR']
         Z_tune = tone_dict[kid]['z_tuningpoint']
@@ -97,6 +97,13 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         fftmask= np.where( (np.array(fftFreq) >= np.nanmin(freqs)) *  (np.array(fftFreq) <= np.nanmax(freqs)) )
         fftFreq=fftFreq[fftmask]
 
+        # NOW COMPUTE NEW TONE PLACING
+        Z = sweepData[:, kid-1]
+        dZdf = np.diff(Z) / df
+        dIdf = np.real(dZdf)
+        dQdf = np.imag(dZdf)
+        absspeed = np.abs(dZdf)
+
         #Figure title        
         fig.suptitle('KID %i, %s-%i, '%(kid,fe,chain)+ID)
         
@@ -121,7 +128,8 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[0,0].legend(loc='lower left')
         
         #subplot with phase and responsivity of sweep trace:
-        Z_norm = (sweepData[:,kid-1] - Z_0)/(Z_tune-Z_0)
+        # VWO: same as reduceFsweep
+        Z_norm = (Z - Z_0)/(Z_tune-Z_0)
         PHI = - _correctPhases(np.angle(Z_norm))
         ax[0,1].plot(freqs, PHI,label='Phi')
         ax[0,1].vlines([freq], min(PHI),max(PHI),colors =['red'])
@@ -132,15 +140,19 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         
         d_PHI=(PHI[1:]-PHI[:-1])/df
         aux_freqs=(freqs[1:]+freqs[:-1])/2
-        
         ax01b.plot(aux_freqs, d_PHI, label='dPhi/dF= %.1f'%responsivity, color='yellow',marker='*')
         ax01b.set(ylim=[min(d_PHI),max(d_PHI)])
         ax01b.set_ylabel('Responsivity [rad/MHz]',color='yellow')
         ax01b.legend(loc='upper left')
-        
-        # Subplot with my considered points for frequency placing
-        plt.show()  
-        
+
+        # subplot with new considered IQBT trace
+
+        # subplot with IQBT-plane speeds
+        ax[1, 1].plot(freqs[:-1], absspeed)
+
+
+
+        plt.show()
         userInput = raw_input(msg)
         userInput=str(userInput)
 
