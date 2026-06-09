@@ -98,6 +98,9 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
 
         # Compute phases
         # VWO: almost same as reduceFsweep
+        Z = sweepData[:, kid-1]
+        I = np.real(Z)
+        Q = np.imag(Z)
         Z_norm = (Z - Z_0)/(Z_tune-Z_0)
         PHI = - _correctPhases(np.angle(Z_norm))
         # Extract absolute radian shift from reduction:
@@ -115,9 +118,6 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
 
 
         # NOW COMPUTE NEW TONE PLACING
-        Z = sweepData[:, kid-1]
-        I = np.real(Z)
-        Q = np.imag(Z)
         dZdf = np.diff(Z) / df
         dIdf = np.real(dZdf)
         dQdf = np.imag(dZdf)
