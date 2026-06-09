@@ -98,14 +98,12 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
 
         # NOW COMPUTE NEW TONE PLACING
         Z = sweepData[:, kid-1]
+        I = np.real(Z)
+        Q = np.imag(Q)
         dZdf = np.diff(Z) / df
-        d2Zdf2 = np.diff(dZdf) / df
-        #dIdf = np.real(dZdf)
-        #dQdf = np.imag(dZdf)
-        #d2Idf2 = np.real(d2Zdf2)
-        #d2Qdf2 = np.imag(d2Zdf2)
+        dIdf = np.real(dZdf)
+        dQdf = np.imag(dZdf)
         absspeed = np.abs(dZdf)
-        absaccel = np.abs(d2Zdf2)
 
         #Figure title        
         fig.suptitle('KID %i, %s-%i, '%(kid,fe,chain)+ID)
@@ -114,16 +112,21 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         N = len(sweepData[:,kid-1])
         circle=plt.Circle((1E3*np.real(Z_0),1E3*np.imag(Z_0)),1E3*r,fill=False)
         ax[0,0].add_patch(circle) 
-        ax[0,0].plot(1E3*np.real(sweepData[0:int(N/3+1),kid-1]),
-                     1E3*np.imag(sweepData[0:int(N/3+1),kid-1]),
+        ax[0,0].plot(1E3 * I[0:int(N/3+1)],
+                     1E3 * Q[0:int(N/3+1)],
                      'gray', linewidth=1,label=None)
-        ax[0,0].plot(1E3*np.real(sweepData[int(N/3):int(2*N/3),kid-1]),
-                     1E3*np.imag(sweepData[int(N/3):int(2*N/3),kid-1]),
+        ax[0,0].plot(1E3 * I[int(N/3):int(2*N/3)],
+                     1E3 * Q[int(N/3):int(2*N/3)],
                      color='red', linewidth=1,
                      label='sweep trace')
-        ax[0,0].plot(1E3*np.real(sweepData[int(2*N/3-1):N,kid-1]),
-                     1E3*np.imag(sweepData[int(2*N/3-1):N,kid-1]),
+        ax[0,0].plot(1E3 * I[int(2*N/3-1):N],
+                     1E3 * Q[int(2*N/3-1):N],
                      'gray', linewidth=1,label=None)
+        
+        ax[0,0].quiver(1E3 * I[int(N/3):int(2*N/3)],
+                       1E3 * Q[int(N/3):int(2*N/3)],
+                       1E3*dIdf[int(N/3):int(2*N/3)],
+                       1E3*dQdf[int(N/3):int(2*N/3)])
      
         ax[0,0].plot([1E3*np.real(Z_0), 1E3*np.real(Z_tune)],[1E3*np.imag(Z_0),1E3*np.imag(Z_tune)], marker='*',color='white',linewidth=1)
         ax[0,0].set(xlabel='I [mV], BT corrected', ylabel='Q [mV], BT corrected')
@@ -164,14 +167,9 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # subplot with new considered IQBT trace
 
         # subplot with IQBT-plane speeds
-        ax[1, 0].plot(dfs[:-1]+df/2, absspeed, marker='*')
-        ax[1, 0].vlines(fftFreq - freq, min(absspeed),max(absspeed),colors=['lightgray'],linestyles=['dotted'])
-        ax[1, 0].set(xlabel='dF [MHz]', ylabel='Speed [mV/MHz]') 
-
-        # subplot with IQBT-plane accels
-        ax[1, 1].plot(dfs[1:-1], absaccel, marker='*')
-        ax[1, 1].vlines(fftFreq - freq, min(absaccel),max(absaccel),colors=['lightgray'],linestyles=['dotted'])
-        ax[1, 1].set(xlabel='dF [MHz]', ylabel='Acceleration [mV/MHz^2]') 
+        ax[1, 1].plot(dfs[:-1]+df/2, absspeed, marker='*')
+        ax[1, 1].vlines(fftFreq - freq, min(absspeed),max(absspeed),colors=['lightgray'],linestyles=['dotted'])
+        ax[1, 1].set(xlabel='dF [MHz]', ylabel='Speed [mV/MHz]') 
 
 
         plt.show()
