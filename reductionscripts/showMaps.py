@@ -10,7 +10,7 @@ iter      = 2               # Which iteration of the reduction to show (usual 1-
 show      = 'sig'           # Show Signal (sig), Noise (noise) or SNR (snr)
 flagJumps = False           # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
-smoothby_arcsec = 8.        # Default 8. arcsec
+smoothby_arcsec = 8.        # Default 8. arcsec. Use same smoothing as reduction.
 
 # ----- Scans ------
 # If empty, automatically retrieves all scans of source from Obslogs
@@ -62,31 +62,34 @@ def auxsmoothby(m, Size=smoothby_deg):
     '''
     # Build kernel
     pixsize = abs(m.WCS['CDELT2'])
-    Kobj = BOAMAP.Kernel(pixsize, Size)
-    K = Kobj.Data.astype(float)
+    K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+    K_norm = K / np.sum(K)
 
     # Smooth INTENSITY (same as BoA)
-    I0 = m.Data
-    I1 = fMap.ksmooth(I0, K)
-
-    # Smooth COVERAGE (same as BoA)
-    C0 = m.Coverage
-    C1 = fMap.ksmooth(C0, K)
+    I1 = fMap.ksmooth(m.Data, K_norm)
 
     # Correct variance propagation for weights
     #    V' = K^2 * V
-    V0 = np.where(m.Weight > 0, 1.0 / m.Weight, 0.0)
-    V1 = fMap.ksmooth(V0, K**2)
-    W1 = np.where(V1 > 0, 1.0 / V1, 0.0)
+    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
+    V1 = fMap.ksmooth(V0, K_norm**2)
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
+
+    # Smooth COVERAGE (same as BoA)
+    C1 = fMap.ksmooth(m.Coverage, K_norm)
     
-    # new scale per beam
+    # new scale per beam for Jy/beam units
+    newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
 
-    # Update map
+    # Convert weight map from pixel-based to beam-based
+    beam_factor2 = np.sum(K_norm**2)
+    W1 /= beam_factor2
+
+    # Update map with correct Jy/beam scale
     m.Data = I1 * scale
-    m.Weight = W1 * scale
+    m.Weight = W1 / scale**2
     m.Coverage = C1
-    m.BeamSize = np.sqrt(m.BeamSize**2 + Size**2)
+    m.BeamSize = newbeam
 
 
 for i,scan in enumerate(scans):
