@@ -51,6 +51,7 @@ badscans = []
 # Coverage_smoothed = Kernel * Coverage
 
 # NOTE 2: redweak still uses smoothBy!
+import warnings
 import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
@@ -227,7 +228,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
 # ===========================
 # Beginning of reduction loop
 # ===========================
-with np.errstate(divide='ignore', invalid='ignore'):
+with warnings.filterwarnings("ignore"):
     for iter in range(1, niters+1):
         print('')
         print("####################################################################")

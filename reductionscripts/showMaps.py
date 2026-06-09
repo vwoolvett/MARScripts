@@ -33,6 +33,7 @@ scans = []
 
 
 # ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+import warnings
 import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
@@ -91,7 +92,7 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Coverage = C1
     m.BeamSize = newbeam
 
-with np.errstate(divide='ignore', invalid='ignore'):
+with warnings.filterwarnings("ignore"):
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
         info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))
