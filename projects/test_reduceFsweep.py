@@ -96,6 +96,24 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         fftmask= np.where( (np.array(fftFreq) >= np.nanmin(freqs)) *  (np.array(fftFreq) <= np.nanmax(freqs)) )
         fftFreq=fftFreq[fftmask]
 
+        # Compute phases
+        # VWO: almost same as reduceFsweep
+        Z_norm = (Z - Z_0)/(Z_tune-Z_0)
+        PHI = - _correctPhases(np.angle(Z_norm))
+        # Extract absolute radian shift from reduction:
+        # dfs and PHI are larger arrays than dfData and phData, but
+        # at df=0 the phase arrays are shifted because findPropertyForKid
+        # removes the necessary 2pi multiples to bring the point of minimum
+        # amplitude as close as possible to phi=0. Then we ensure that both
+        # arrays coincide at df=0 by applying this constant shift:
+        df0_reduction_index = np.argmin(np.abs(dfData))
+        phase_df0_reduction = phData[df0_reduction_index]
+        df0_here_index = np.argmin(np.abs(dfs))
+        phase_df0_here = PHI[df0_here_index]
+        excess = phase_df0_here - phase_df0_reduction
+        PHI -= excess
+
+
         # NOW COMPUTE NEW TONE PLACING
         Z = sweepData[:, kid-1]
         I = np.real(Z)
@@ -104,10 +122,10 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         dIdf = np.real(dZdf)
         dQdf = np.imag(dZdf)
         absspeed = np.abs(dZdf)
-        lowspeeds = absspeed<np.nanpercentile(absspeed, 30)
-        velangles = np.angle(dZdf)
-        velangles[lowspeeds] = np.nan  # ignore low speed angles, it's just wobbling around there
-        velangles = _correctPhases(velangles)
+        velangles = _correctPhases(np.angle(dZdf))
+
+        # visualize angles w/r to velocity at sweepcenter i.e. Z_tuningpoint
+        velangles -= velangles[df0_here_index]
 
         #Figure title        
         fig.suptitle('KID %i, %s-%i, '%(kid,fe,chain)+ID)
@@ -140,22 +158,6 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[0,0].legend(loc='lower left')
         
         #subplot with phase and responsivity of sweep trace:
-        # VWO: almost same as reduceFsweep
-        Z_norm = (Z - Z_0)/(Z_tune-Z_0)
-        PHI = - _correctPhases(np.angle(Z_norm))
-        # Extract absolute radian shift from reduction:
-        # dfs and PHI are larger arrays than dfData and phData, but
-        # at df=0 the phase arrays are shifted because findPropertyForKid
-        # removes the necessary 2pi multiples to bring the point of minimum
-        # amplitude as close as possible to phi=0. Then we ensure that both
-        # arrays coincide at df=0 by applying this constant shift:
-        df0_reduction_index = np.argmin(np.abs(dfData))
-        phase_df0_reduction = phData[df0_reduction_index]
-        df0_here_index = np.argmin(np.abs(dfs))
-        phase_df0_here = PHI[df0_here_index]
-        excess = phase_df0_here - phase_df0_reduction
-        PHI -= excess
-
         ax[0,1].plot(dfs, PHI,label='Phi')
         ax[0,1].vlines([0], min(PHI),max(PHI),colors =['red'])
         ax[0,1].vlines([resonance_freq - freq], min(PHI),max(PHI),colors=['lightgreen'],linestyles=['dashed'])
