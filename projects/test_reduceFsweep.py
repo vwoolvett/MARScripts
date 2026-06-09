@@ -104,7 +104,10 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         dIdf = np.real(dZdf)
         dQdf = np.imag(dZdf)
         absspeed = np.abs(dZdf)
-        velangles = _correctPhases(np.angle(dZdf))
+        lowspeeds = absspeed<np.nanpercentile(absspeed, 30)
+        velangles = np.angle(dZdf)
+        velangles[lowspeeds] = np.nan  # ignore low speed angles, it's just wobbling around there
+        velangles = _correctPhases(velangles)
 
         #Figure title        
         fig.suptitle('KID %i, %s-%i, '%(kid,fe,chain)+ID)
