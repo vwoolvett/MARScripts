@@ -126,7 +126,9 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[0,0].quiver(1E3 * I[int(N/3):int(2*N/3)],
                        1E3 * Q[int(N/3):int(2*N/3)],
                        1E3 * dIdf[int(N/3):int(2*N/3)] * df,
-                       1E3 * dQdf[int(N/3):int(2*N/3)] * df, color='green')
+                       1E3 * dQdf[int(N/3):int(2*N/3)] * df,
+                       angles='xy', scale_units='xy', scale=1,
+                       color='green', zorder=1e9)
      
         ax[0,0].plot([1E3*np.real(Z_0), 1E3*np.real(Z_tune)],[1E3*np.imag(Z_0),1E3*np.imag(Z_tune)], marker='*',color='white',linewidth=1)
         ax[0,0].set(xlabel='I [mV], BT corrected', ylabel='Q [mV], BT corrected')
