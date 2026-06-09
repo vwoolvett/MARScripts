@@ -108,15 +108,19 @@ with np.errstate(divide='ignore', invalid='ignore'):
 
         # smooth if needed
         if smoothby_arcsec > 0.0:
+            info('File found, smoothing by %.1f arcseconds...'%smoothby_arcsec)
             auxsmoothby(m, smoothby_deg)
+        
+        else:
+            info('File found')
     
         if show == 'sig':
-            info('File found, displaying Signal map...')
+            info('Displaying Signal map...')
             m.display(aspect=1,limitsZ=[-0.2,0.5])
 
         else:
             if show =='noise':
-                info('File found, displaying Noise map...')
+                info('Displaying Noise map...')
                 # RMS map creation
                 rmsMap = copy.deepcopy(m)  # Signal
                 rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
@@ -129,7 +133,7 @@ with np.errstate(divide='ignore', invalid='ignore'):
             
 
             else:
-                info('File found, displaying Signal-to-Noise map...')
+                info('Displaying Signal-to-Noise map...')
                 # SNR map creation
                 snrMap = copy.deepcopy(m)  # Signal
                 snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
