@@ -91,52 +91,52 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Coverage = C1
     m.BeamSize = newbeam
 
+with np.errstate(divide='ignore', invalid='ignore'):
+    for i,scan in enumerate(scans):
+        scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
+        info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))
 
-for i,scan in enumerate(scans):
-    scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
-    info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))
+        # check if reduction exists
+        globlist = glob(scanname)
+        if len(globlist) == 0:
+            warn('File not found. Skipping...')
+            print('')
+            continue
 
-    # check if reduction exists
-    globlist = glob(scanname)
-    if len(globlist) == 0:
-        warn('File not found. Skipping...')
-        print('')
-        continue
+        # retrieve unsmoothed map
+        m = restoreFile(scanname)
 
-    # retrieve unsmoothed map
-    m = restoreFile(scanname)
-
-    # smooth if needed
-    if smoothby_arcsec > 0.0:
-        auxsmoothby(m, smoothby_deg)
+        # smooth if needed
+        if smoothby_arcsec > 0.0:
+            auxsmoothby(m, smoothby_deg)
     
-    if show == 'sig':
-        info('File found, displaying Signal map...')
-        m.display(aspect=1,limitsZ=[-0.2,0.5])
-
-    else:
-        if show =='noise':
-            info('File found, displaying Noise map...')
-            # RMS map creation
-            rmsMap = copy.deepcopy(m)  # Signal
-            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
-
-            # median noise
-            mediannoise = np.nanmedian(rmsMap.Data)
-
-            # plotting
-            rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise])
-            
+        if show == 'sig':
+            info('File found, displaying Signal map...')
+            m.display(aspect=1,limitsZ=[-0.2,0.5])
 
         else:
-            info('File found, displaying Signal-to-Noise map...')
-            # SNR map creation
-            snrMap = copy.deepcopy(m)  # Signal
-            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+            if show =='noise':
+                info('File found, displaying Noise map...')
+                # RMS map creation
+                rmsMap = copy.deepcopy(m)  # Signal
+                rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
 
-            # plotting
-            snrMap.display(aspect=1,limitsZ=[-4,12])
+                # median noise
+                mediannoise = np.nanmedian(rmsMap.Data)
 
-    usrinput = raw_input(msg)
-    if str.upper(str(usrinput)) == 'Q':
-        break
+                # plotting
+                rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise])
+            
+
+            else:
+                info('File found, displaying Signal-to-Noise map...')
+                # SNR map creation
+                snrMap = copy.deepcopy(m)  # Signal
+                snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+
+                # plotting
+                snrMap.display(aspect=1,limitsZ=[-4,12])
+
+        usrinput = raw_input(msg)
+        if str.upper(str(usrinput)) == 'Q':
+            break
