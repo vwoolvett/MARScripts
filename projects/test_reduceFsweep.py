@@ -121,8 +121,8 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[0,0].legend(loc='lower left')
         
         #subplot with phase and responsivity of sweep trace:
-        Z = sweepData[:,kid-1] - Z_0
-        PHI = - _correctPhases(np.angle(Z) - np.angle(Z_tune-Z_0))
+        Z_norm = (sweepData[:,kid-1] - Z_0)/(Z_tune-Z_0)
+        PHI = - _correctPhases(np.angle(Z_norm))
         ax[0,1].plot(freqs, PHI,label='Phi')
         ax[0,1].vlines([freq], min(PHI),max(PHI),colors =['red'])
         ax[0,1].vlines([resonance_freq], min(PHI),max(PHI),colors=['lightgreen'],linestyles=['dashed'])
@@ -154,6 +154,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
 
         elif userInput == 'q':
             plt.close(fig)
+            break
     
         else:
             try: 
