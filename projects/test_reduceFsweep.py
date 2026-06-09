@@ -168,14 +168,14 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax01b.legend(loc='upper left')
 
         # subplot with IQBT-plane speeds
-        ax[1, 0].plot(dfs[:-1]+df/2, absspeed, marker='*')
+        ax[1, 0].plot(aux_dfs, absspeed, marker='*')
         ax[1, 0].vlines(fftFreq - freq, min(absspeed),max(absspeed),colors=['lightgray'],linestyles=['dotted'])
         ax[1, 0].set(xlabel='dF [MHz]', ylabel='Speed [mV/MHz]') 
 
         # subplot with direction of IQBT-plane speed to catch loops
-        ax[1, 0].plot(dfs[:-1]+df/2, velangles, marker='*')
-        ax[1, 0].vlines(fftFreq - freq, min(velangles),max(velangles),colors=['lightgray'],linestyles=['dotted'])
-        ax[1, 0].set(xlabel='dF [MHz]', ylabel='Velocity angle in IQ plane [rad]') 
+        ax[1, 1].plot(dfs[:-1]+df/2, velangles, marker='*')
+        ax[1, 1].vlines(fftFreq - freq, min(velangles),max(velangles),colors=['lightgray'],linestyles=['dotted'])
+        ax[1, 1].set(xlabel='dF [MHz]', ylabel='Velocity angle in IQ plane [rad]') 
 
 
 
