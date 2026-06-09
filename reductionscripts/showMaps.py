@@ -92,7 +92,8 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Coverage = C1
     m.BeamSize = newbeam
 
-with warnings.filterwarnings("ignore"):
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
         info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))

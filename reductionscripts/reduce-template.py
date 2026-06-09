@@ -228,7 +228,8 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
 # ===========================
 # Beginning of reduction loop
 # ===========================
-with warnings.filterwarnings("ignore"):
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
     for iter in range(1, niters+1):
         print('')
         print("####################################################################")
