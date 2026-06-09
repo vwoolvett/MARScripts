@@ -99,9 +99,13 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # NOW COMPUTE NEW TONE PLACING
         Z = sweepData[:, kid-1]
         dZdf = np.diff(Z) / df
-        dIdf = np.real(dZdf)
-        dQdf = np.imag(dZdf)
+        d2Zdf2 = np.diff(dZdf) / df
+        #dIdf = np.real(dZdf)
+        #dQdf = np.imag(dZdf)
+        #d2Idf2 = np.real(d2Zdf2)
+        #d2Qdf2 = np.imag(d2Zdf2)
         absspeed = np.abs(dZdf)
+        absaccel = no.abs(d2Zdf2)
 
         #Figure title        
         fig.suptitle('KID %i, %s-%i, '%(kid,fe,chain)+ID)
@@ -147,7 +151,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         ax[0,1].vlines([0], min(PHI),max(PHI),colors =['red'])
         ax[0,1].vlines([resonance_freq - freq], min(PHI),max(PHI),colors=['lightgreen'],linestyles=['dashed'])
         ax[0,1].vlines(fftFreq - freq, min(PHI),max(PHI),colors=['lightgray'],linestyles=['dotted'])
-        ax[0,1].set(xlabel='Frequency [MHz]', ylabel='Phi [rad]')   
+        ax[0,1].set(xlabel='dF [MHz]', ylabel='Phi [rad]')   
         ax[0,1].set(xlim=[min(dfs),max(dfs)])
         
         d_PHI=(PHI[1:]-PHI[:-1])/df
@@ -160,8 +164,14 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # subplot with new considered IQBT trace
 
         # subplot with IQBT-plane speeds
-        ax[1, 1].plot(dfs[:-1], absspeed)
+        ax[1, 0].plot(dfs[:-1]+df/2, absspeed)
+        ax[1, 0].vlines(fftFreq - freq, min(absspeed),max(absspeed),colors=['lightgray'],linestyles=['dotted'])
+        ax[1, 0].set(xlabel='dF [MHz]', ylabel='Speed [mV/MHz]') 
 
+        # subplot with IQBT-plane accels
+        ax[1, 1].plot(dfs[1:-1], absaccel)
+        ax[1, 1].vlines(fftFreq - freq, min(absaccel),max(absaccel),colors=['lightgray'],linestyles=['dotted'])
+        ax[1, 1].set(xlabel='dF [MHz]', ylabel='Acceleration [mV/MHz^2]') 
 
 
         plt.show()
