@@ -131,16 +131,16 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # VWO: same as reduceFsweep
         Z_norm = (Z - Z_0)/(Z_tune-Z_0)
         PHI = - _correctPhases(np.angle(Z_norm))
-        ax[0,1].plot(freqs, PHI,label='Phi')
-        ax[0,1].vlines([freq], min(PHI),max(PHI),colors =['red'])
-        ax[0,1].vlines([resonance_freq], min(PHI),max(PHI),colors=['lightgreen'],linestyles=['dashed'])
-        ax[0,1].vlines(fftFreq, min(PHI),max(PHI),colors=['lightgray'],linestyles=['dotted'])
+        ax[0,1].plot(dfs, PHI,label='Phi')
+        ax[0,1].vlines([0], min(PHI),max(PHI),colors =['red'])
+        ax[0,1].vlines([resonance_freq - freq], min(PHI),max(PHI),colors=['lightgreen'],linestyles=['dashed'])
+        ax[0,1].vlines(fftFreq - freq, min(PHI),max(PHI),colors=['lightgray'],linestyles=['dotted'])
         ax[0,1].set(xlabel='Frequency [MHz]', ylabel='Phi [rad]')   
-        ax[0,1].set(xlim=[min(freqs),max(freqs)])
+        ax[0,1].set(xlim=[min(dfs),max(dfs)])
         
         d_PHI=(PHI[1:]-PHI[:-1])/df
-        aux_freqs=(freqs[1:]+freqs[:-1])/2
-        ax01b.plot(aux_freqs, d_PHI, label='dPhi/dF= %.1f'%responsivity, color='yellow',marker='*')
+        aux_dfs=(dfs[1:]+dfs[:-1])/2
+        ax01b.plot(aux_dfs, d_PHI, label='dPhi/dF= %.1f'%responsivity, color='yellow',marker='*')
         ax01b.set(ylim=[min(d_PHI),max(d_PHI)])
         ax01b.set_ylabel('Responsivity [rad/MHz]',color='yellow')
         ax01b.legend(loc='upper left')
@@ -148,7 +148,7 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # subplot with new considered IQBT trace
 
         # subplot with IQBT-plane speeds
-        ax[1, 1].plot(freqs[:-1], absspeed)
+        ax[1, 1].plot(dfs[:-1], absspeed)
 
 
 
