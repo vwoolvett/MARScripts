@@ -125,8 +125,8 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         
         ax[0,0].quiver(1E3 * I[int(N/3):int(2*N/3)],
                        1E3 * Q[int(N/3):int(2*N/3)],
-                       1E3 * dIdf[int(N/3):int(2*N/3)] * df,
-                       1E3 * dQdf[int(N/3):int(2*N/3)] * df,
+                       1E3 * dIdf[int(N/3):int(2*N/3)] * 0.100,  # how much it moves in 100 kHz
+                       1E3 * dQdf[int(N/3):int(2*N/3)] * 0.100,  # how much it moves in 100 kHz
                        angles='xy', scale_units='xy', scale=1,
                        color='green', zorder=1e9)
      
