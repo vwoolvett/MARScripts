@@ -164,12 +164,12 @@ def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
         # subplot with new considered IQBT trace
 
         # subplot with IQBT-plane speeds
-        ax[1, 0].plot(dfs[:-1]+df/2, absspeed)
+        ax[1, 0].plot(dfs[:-1]+df/2, absspeed, marker='*')
         ax[1, 0].vlines(fftFreq - freq, min(absspeed),max(absspeed),colors=['lightgray'],linestyles=['dotted'])
         ax[1, 0].set(xlabel='dF [MHz]', ylabel='Speed [mV/MHz]') 
 
         # subplot with IQBT-plane accels
-        ax[1, 1].plot(dfs[1:-1], absaccel)
+        ax[1, 1].plot(dfs[1:-1], absaccel, marker='*')
         ax[1, 1].vlines(fftFreq - freq, min(absaccel),max(absaccel),colors=['lightgray'],linestyles=['dotted'])
         ax[1, 1].set(xlabel='dF [MHz]', ylabel='Acceleration [mV/MHz^2]') 
 
