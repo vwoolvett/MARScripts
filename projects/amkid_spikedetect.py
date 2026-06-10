@@ -40,11 +40,11 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
     totaltime = time[-1] - time[0]
     dt = np.nanmedian(np.diff(time))
 
-    # Ensure at least 100 windows
+    # Ensure at least 50 windows
     nwindows = totaltime / windowtime
-    if nwindows<50.0:
+    if nwindows < 50.0:
         nwindows = 50
-        warn('Windowtime of %1.2f seconds yields too few windows. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime/nwindows))
+        warn('Default windowtime of %1.2f seconds yields too few windows. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime/nwindows))
         windowtime = totaltime / nwindows
 
     # Derivatives
@@ -102,11 +102,11 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
             thresh_tonebased = np.nanpercentile(windows_speed_std[:, toneidx], expspikefree)
             valid = windows_speed_std[:, toneidx] <= thresh_tonebased
 
-            # Compute the spike-free mean of speed means for tone (MEAN floor)
+            # Compute the spike-free mean of window speed means for tone (MEAN floor)
             floor_speedMEAN = np.nanmean(windows_speed_mean[valid, toneidx])
             tone_floor_speedMEANs.append(floor_speedMEAN)
 
-            # compute the spike-free mean of speed STDs for tone (STD floor)
+            # compute the spike-free mean of window speed STDs for tone (STD floor)
             floor_speedSTD = np.nanmean(windows_speed_std[valid, toneidx])
             tone_floor_speedSTDs.append(floor_speedSTD)
 
@@ -114,7 +114,8 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
             threshold_speed = floor_speedMEAN + sig * floor_speedSTD
             tone_thresholds_speed.append(threshold_speed)
 
-            # Tone has spike if ANY speed sample in window surpasses threshold
+            # Tone likely has spike if ANY speed sample in window surpasses threshold
+            # or equivalently if the maximum speed does (less comparisons)
             hasspike = windows_speed_max[:, toneidx] >= threshold_speed
 
             # fill data mask array
