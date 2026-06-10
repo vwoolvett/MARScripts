@@ -1,12 +1,13 @@
-def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
+def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
     '''
-
-    VERSION 4.0 - 10.06.2026
+    ** VERSION 4.0 - 10.06.2026 **
+    Changes: for a given tone, the threshold to consider spikes is lower but now cross-checks spiked
+    windows between tones (crosstones parameter): spikes are seen by more than only one tone in
+    neighboring timestamps so if a window is flagged for only one tone, it's not really a spike.
 
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
     on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
     in a tone is also spiked in other tones and decides whether it is a spike or not.
-
     Outputs a mask for data.Data of whether a timestamp should be used for each tone.
     
     Timestamps within a spiked window are all flagged for a given tone, even if not all
@@ -14,9 +15,27 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
     Whether all non-spiked windows have the same KID state is unknown: the algorithm can
     only detect jumps, not if the tone went back to the original KID and KID state for which
     it was calibrated.
+
+    @param windowtime:      size of windows in seconds
+    @type windowtime:       float
+    @param sig:             how many STDs away from mean tone speed to flag as spikes
+    @type sig:              float
+    @param expspikefree:    percentage of the timelines that is expected to be spike-free to determine "usual tone behavior"
+    @type expspikefree:     float
+    @param crosstones:      for any time window, what percentage of tones must be spiked to consider them as really spiked
+    @type crosstones:       float
+    @param ignoreblinds:    whether to ignore (True) or consider (False) blindtones. Useful if blindtones are spiked too.
+    @type ignoreblinds:     bool
+    @param full_output:     if False, only mask for data.Data is returned. Otherwise, the mask (0) and the 1-D array (1) of
+                            fraction of timeline lost to spikes for all used tones (dependent of ignoreblinds!) are returned
+    @type full_output:      bool
+    @param doplots:         whether to do an example plot of the spike detection
+    @type doplots:          bool
+    @param testtone:        tone to use for example plot
+    @type testtone:         int
     '''
     
-    info('Beginning spike detection...')
+    info('** Beginning spike detection...')
     # data array
     scannum = data.ScanParam.ScanNum
     Z = data.Data
@@ -53,18 +72,17 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
         windowtime = totaltime / nwindows
         changedwindowtime = True
 
-    # Derivatives
-    dZdt = np.diff(Z, axis=0) / dt * 1000  # mV / s
-    speeds = np.abs(dZdt)
-    auxtime = time[:-1] + dt/2
-
     # define windows
     windows_tstart = np.arange(0, totaltime, windowtime)
     windows_time = windows_tstart + windowtime/2
 
-    # print if did not already:
-    if not changedwindowtime:
-        info('The %.2f seconds of data will be divided in %i windows of %.1f seconds each...'%(totaltime, len(windows_tstart), windowtime))
+    # print final window information
+    info('The %.2f seconds of data will be divided in %i windows of %.1f seconds each...'%(totaltime, len(windows_tstart), windowtime))
+
+    # Derivatives
+    dZdt = np.diff(Z, axis=0) / dt * 1000  # mV / s
+    speeds = np.abs(dZdt)
+    auxtime = time[:-1] + dt/2
 
     # RMS of windows
     info('Computing spike detection metrics...')
@@ -136,6 +154,14 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
             tone_floor_speedSTDs.append(np.nan)
             tone_thresholds_speed.append(np.nan)
             windowflag[:, toneidx] = False
+
+    info('Cross-checking tones...')
+    for windowidx in range(len(windows_tstart)):
+        flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
+        if flaggedtones_thiswindow <= crosstones/100 * nused:
+            # Not real spike
+            windowflag[windowidx, :] = False
+
 
     # inizialize data flagging array
     # if blindtones are ignored in process, flag is false for all blindtones so they will not be affected
