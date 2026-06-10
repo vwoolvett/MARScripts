@@ -1,9 +1,7 @@
 def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
     '''
     ** VERSION 4.0 - 10.06.2026 **
-    Changes: for a given tone, the threshold to consider spikes is lower but now cross-checks spiked
-    windows between tones (crosstones parameter): spikes are seen by more than only one tone in
-    neighboring timestamps so if a window is flagged for only one tone, it's not really a spike.
+    Changes: for a given window, if 
 
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
     on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
@@ -158,6 +156,10 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ig
     info('Cross-checking tones...')
     for windowidx in range(len(windows_tstart)):
         flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
+        # if the number of presumably spiked tones in this window is less than
+        # crosstones% of the number of used tones (or straight-up it's not flagged
+        # for any tone), then there is no spike. Otherwise, the window is spiked in
+        # more than crosstones% of the tones and is a real spike 
         if flaggedtones_thiswindow <= crosstones/100 * nused:
             # Not real spike
             windowflag[windowidx, :] = False
