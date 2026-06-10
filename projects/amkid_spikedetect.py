@@ -80,8 +80,6 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ig
     # print final window information
     info('%.2f seconds of data: %i windows of %.1f seconds'%(totaltime, len(windows_tstart), windowtime))
 
-    
-
     # RMS of windows
     info('Computing spike detection metrics...')
     windows_speed_mean = []
