@@ -130,7 +130,6 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
             tone_floor_speedMEANs.append(np.nan)
             tone_floor_speedSTDs.append(np.nan)
             tone_thresholds_speed.append(np.nan)
-            flagmask[:, toneidx] = False
             windowflag[:, toneidx] = False
 
     # inizialize data flagging array
