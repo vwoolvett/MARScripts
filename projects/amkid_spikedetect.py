@@ -1,7 +1,9 @@
 def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
     '''
     ** VERSION 4.0 - 10.06.2026 **
-    Changes: for a given window, if 
+    Changes: for a given window, if the number of tones with spikes is not greater than crosstones%
+    then they are not really spiked: spikes appear in many tones at neighboring timestamps (very
+    likely within the same window)
 
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
     on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
