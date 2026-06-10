@@ -56,19 +56,22 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ig
         nused = ntones
 
     # time array
-    info('Retrieving time axis data...')
+    info('Retrieving time axis data and computing IQ speeds...')
     time = (data.ScanParam.MJD - data.ScanParam.MJD[0]) * 24 * 3600
     totaltime = time[-1] - time[0]
     dt = np.nanmedian(np.diff(time))
 
+    # Derivatives
+    dZdt = np.diff(Z, axis=0) / dt * 1000  # mV / s
+    speeds = np.abs(dZdt)
+    auxtime = time[:-1] + dt/2
+
     # Ensure at least 50 windows
     nwindows = totaltime / windowtime
-    changedwindowtime = False
     if nwindows < 50.0:
         nwindows = 50
         warn('Default windowtime of %1.2f seconds is too large for only %.2f seconds of data. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime/nwindows))
         windowtime = totaltime / nwindows
-        changedwindowtime = True
 
     # define windows
     windows_tstart = np.arange(0, totaltime, windowtime)
@@ -77,10 +80,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=5., ig
     # print final window information
     info('%.2f seconds of data: %i windows of %.1f seconds'%(totaltime, len(windows_tstart), windowtime))
 
-    # Derivatives
-    dZdt = np.diff(Z, axis=0) / dt * 1000  # mV / s
-    speeds = np.abs(dZdt)
-    auxtime = time[:-1] + dt/2
+    
 
     # RMS of windows
     info('Computing spike detection metrics...')
