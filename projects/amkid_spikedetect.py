@@ -1,10 +1,14 @@
 def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
     '''
 
-    VERSION 3.5 - 02.06.2026
+    VERSION 4.0 - 10.06.2026
 
-    Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone 
-    and outputs a mask for data.Data of whether a timestamp should be used for each tone.
+    Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
+    on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
+    in a tone is also spiked in other tones and decides whether it is a spike or not.
+
+    Outputs a mask for data.Data of whether a timestamp should be used for each tone.
+    
     Timestamps within a spiked window are all flagged for a given tone, even if not all
     timestamps are spiked. This is to ensure at least <windowtime> seconds of stable data.
     Whether all non-spiked windows have the same KID state is unknown: the algorithm can
@@ -84,13 +88,13 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
 
     # initialize window flagging array
     windowflag = np.zeros_like(windows_speed_std, dtype=bool)
-    tone_floor_speedMEANs = []
-    tone_floor_speedSTDs = []
-    tone_thresholds_speed = []
 
-    # inizialize data flagging array
-    # if blindtones are ignored in process, flag is false for all blindtones so they will not be affected
-    flagmask = np.zeros_like(data.Data, dtype=bool)
+    if doplots:
+        # initialize used values list
+        # has as many values as tones
+        tone_floor_speedMEANs = []
+        tone_floor_speedSTDs = []
+        tone_thresholds_speed = []
 
     info('Detecting spikes...')
     # fill windows flagging array - has True for each window timestamp and tone if window has rms above a carefully chosen threshold
@@ -104,29 +108,22 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
 
             # Compute the spike-free mean of window speed means for tone (MEAN floor)
             floor_speedMEAN = np.nanmean(windows_speed_mean[valid, toneidx])
-            tone_floor_speedMEANs.append(floor_speedMEAN)
-
+            
             # compute the spike-free mean of window speed STDs for tone (STD floor)
             floor_speedSTD = np.nanmean(windows_speed_std[valid, toneidx])
-            tone_floor_speedSTDs.append(floor_speedSTD)
-
+            
             # compute the mean + sig STD threshold
             threshold_speed = floor_speedMEAN + sig * floor_speedSTD
-            tone_thresholds_speed.append(threshold_speed)
+
+            if doplots:
+                # save values
+                tone_floor_speedMEANs.append(floor_speedMEAN)
+                tone_floor_speedSTDs.append(floor_speedSTD)
+                tone_thresholds_speed.append(threshold_speed)
 
             # Tone likely has spike if ANY speed sample in window surpasses threshold
             # or equivalently if the maximum speed does (less comparisons)
-            hasspike = windows_speed_max[:, toneidx] >= threshold_speed
-
-            # fill data mask array
-            flagged_windows = np.where(hasspike)[0]
-            for winidx in flagged_windows:
-                t_start = windows_tstart[winidx]
-                t_end = t_start + windowtime
-                flagmask[:, toneidx] |= (time >= t_start) & (time < t_end)
-
-            # fill window mask array
-            windowflag[:, toneidx] = hasspike
+            windowflag[:, toneidx] = windows_speed_max[:, toneidx] >= threshold_speed
 
         else:
             # Tone is only NaNs, then fill masks to leave un-edited (no spikes)
@@ -135,11 +132,24 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
             tone_thresholds_speed.append(np.nan)
             flagmask[:, toneidx] = False
             windowflag[:, toneidx] = False
-    
-    # convert to arrays
-    tone_floor_speedMEANs = np.array(tone_floor_speedMEANs)
-    tone_floor_speedSTDs = np.array(tone_floor_speedSTDs)
-    tone_thresholds_speed = np.array(tone_thresholds_speed)
+
+    # inizialize data flagging array
+    # if blindtones are ignored in process, flag is false for all blindtones so they will not be affected
+    flagmask = np.zeros_like(data.Data, dtype=bool)
+
+    # fill data mask array
+    for toneidx in range(nused):
+        flagged_windows = np.where(windowflag[:, toneidx])[0]
+        for winidx in flagged_windows:
+            t_start = windows_tstart[winidx]
+            t_end = t_start + windowtime
+            flagmask[:, toneidx] |= (time >= t_start) & (time < t_end)
+
+    if doplots:
+        # convert to arrays
+        tone_floor_speedMEANs = np.array(tone_floor_speedMEANs)
+        tone_floor_speedSTDs = np.array(tone_floor_speedSTDs)
+        tone_thresholds_speed = np.array(tone_thresholds_speed)
 
     # final info
     spikedfraction_alltones = np.sum(windowflag, axis=0) / float(np.shape(windowflag)[0])
