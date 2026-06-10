@@ -46,10 +46,12 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
 
     # Ensure at least 50 windows
     nwindows = totaltime / windowtime
+    changedwindowtime = False
     if nwindows < 50.0:
         nwindows = 50
         warn('Default windowtime of %1.2f seconds yields too few windows. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime/nwindows))
         windowtime = totaltime / nwindows
+        changedwindowtime = True
 
     # Derivatives
     dZdt = np.diff(Z, axis=0) / dt * 1000  # mV / s
@@ -59,7 +61,10 @@ def findspikes_IQBT(windowtime=10, sig=5, expspikefree=75, ignoreblinds=True, fu
     # define windows
     windows_tstart = np.arange(0, totaltime, windowtime)
     windows_time = windows_tstart + windowtime/2
-    info('The %.2f seconds of data will be divided in %i windows of %.1f seconds each...'%(totaltime, len(windows_tstart), windowtime))
+
+    # print if did not already:
+    if not changedwindowtime:
+        info('The %.2f seconds of data will be divided in %i windows of %.1f seconds each...'%(totaltime, len(windows_tstart), windowtime))
 
     # RMS of windows
     info('Computing spike detection metrics...')
