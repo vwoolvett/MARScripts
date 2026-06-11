@@ -51,9 +51,10 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     _, chains, kidsPerChain = getFebe(fe)
     nkids = len(chains) * kidsPerChain
 
-    kids_in_chains = np.array([np.arange(kidsPerChain*chain, kidsPerChain*(chain+1)) for chain in chains])
+    kids_in_chains = np.array([np.arange(kidsPerChain*(chain-1), kidsPerChain*(chain)) for chain in chains])
     for chain in chains:
-        kids_here = kids_in_chains[chain]
+        chainidx = chain-1
+        kids_here = kids_in_chains[chainidx]
         first, last = kids_here[0], kids_here[-1]
         print('DEBUG: CHAIN=%i, FIRSTKID=%i, LASTKID=%i'%(chain, first, last))
 
