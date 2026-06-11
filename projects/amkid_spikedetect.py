@@ -152,12 +152,13 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
             windowflag[:, toneidx] = False
 
     info('Cross-checking tones...')
+    # Spikes are only real if they appear in the same time window as at least
+    # crosstones% of the analyzed tones.
+
+    # If they appear in less than crosstones% of the tones, then it's not a real
+    # spike (say, it could be the wirescanner!)
     for windowidx in range(len(windows_tstart)):
         flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
-        # if the number of presumably spiked tones in this window is less than
-        # crosstones% of the number of used tones (or straight-up it's not flagged
-        # for any tone), then there is no spike. Otherwise, the window is spiked in
-        # more than crosstones% of the tones and is a real spike 
         if flaggedtones_thiswindow <= crosstones/100 * nused:
             # Not real spike
             windowflag[windowidx, :] = False
