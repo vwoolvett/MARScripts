@@ -1,4 +1,4 @@
-def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., ignoreblinds=True, full_output=False, doplots=False, debug=False):
+def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., ignoreblinds=True, full_output=False, doplots=False, debug=False):
     '''
     ** VERSION 4.0 - 11.06.2026 **
 
@@ -45,6 +45,10 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
     else:
         warn('This is not AMKID data!')
         return
+    
+    if scanIsBeamscan(scannum, fe):
+        warn('Running de-spiking on WireScanner. Changing crosstones to 50%...')
+        crosstones = 50
     
     _ , chains, kidsPerChain = getFebe(fe)
     nkids = len(chains) * kidsPerChain
