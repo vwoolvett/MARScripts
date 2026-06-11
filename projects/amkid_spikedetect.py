@@ -73,7 +73,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     nwindows = totaltime / windowtime
     if nwindows < 50.0:
         nwindows = 50
-        warn('Default windowtime of %1.2f seconds is too large for only %.2f seconds of data. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime/nwindows))
+        warn('Default windowtime of %1.2f seconds is too large for only %.2f seconds of data. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime, totaltime/nwindows))
         windowtime = totaltime / nwindows
 
     # define windows
