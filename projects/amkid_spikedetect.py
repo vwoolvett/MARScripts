@@ -193,17 +193,17 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
             print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
 
         # if this window
-        should_this_window_be_flagged = (flaggedtones_thiswindow <= int(crosstones/100. * float(nused)))
+        should_this_window_be_flagged = (flaggedtones_thiswindow >= int(crosstones/100. * float(nused)))
 
         # or the previous (if exists)
         if windowidx != 0:
             flaggedtones_prevwindow = np.sum(windowflag[windowidx - 1, :])
-            should_this_window_be_flagged |= (flaggedtones_prevwindow <= int(crosstones/100. * float(nused)))
+            should_this_window_be_flagged |= (flaggedtones_prevwindow >= int(crosstones/100. * float(nused)))
 
         # or the next (if exists)
         if windowidx != len(windows_tstart) - 1:
             flaggedtones_nextwindow = np.sum(windowflag[windowidx + 1, :])
-            should_this_window_be_flagged |= (flaggedtones_nextwindow <= int(crosstones/100. * float(nused)))
+            should_this_window_be_flagged |= (flaggedtones_nextwindow >= int(crosstones/100. * float(nused)))
 
         # fulfill the criterium, then this window should be flagged
         # to allow propagation of spike across array
