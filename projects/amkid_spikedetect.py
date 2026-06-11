@@ -322,6 +322,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
             elif userInput == '-':
                 testtone -=1
             elif userInput == 'q':
+                plt.close()
                 break
             else:    
                 try: 
