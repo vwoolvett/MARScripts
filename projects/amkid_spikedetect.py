@@ -1,4 +1,4 @@
-def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
+def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., ignoreblinds=True, full_output=False, doplots=False):
     '''
     ** VERSION 4.0 - 11.06.2026 **
 
@@ -188,84 +188,9 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     info('On average, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost due to spikes'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
 
     if doplots:
-        if not(testtone in range(1, nused+1)):
-            info('Tone %s not in analized array, displaying tone 2642 (default for LFA4)'%testtone)
-            testtone = 2642
-        else:
-            info('Plotting spike detection process for tone %s'%testtone)
-         
-        # define data array tone index
-        toneidx = testtone - 1
-
-        # extract IQBT-plane speed of tone
-        speed_testtone = speeds[:, toneidx]
-
-        # create mask applied to speed array
-        auxflagmask = np.zeros_like(speed_testtone, dtype=bool)
-        for winidx in range(len(windows_time)):
-            if windowflag[winidx, toneidx]:
-                # flag all data points that fall in this window
-                t_start = windows_time[winidx] - windowtime/2
-                t_end = windows_time[winidx] + windowtime/2
-                auxflagmask[(auxtime >= t_start) & (auxtime < t_end)] = True
-
-        # now we make nan all values in the original data that fall in a spiked window
-        despiked_Z_testtone = data.Data[:, toneidx].copy()
-        despiked_Z_testtone[flagmask[:, toneidx]] = np.nan
-
-        # and for the speed
-        despiked_speed_testtone = speed_testtone.copy()
-        despiked_speed_testtone[auxflagmask] = np.nan
-
-        # and the window speed mean array
-        despiked_windows_speed_mean_testtone = windows_speed_mean[:, toneidx].copy()
-        despiked_windows_speed_mean_testtone[windowflag[:, toneidx]] = np.nan
-
-        # and the window speed std array
-        despiked_windows_speed_std_testtone = windows_speed_std[:, toneidx].copy()
-        despiked_windows_speed_std_testtone[windowflag[:, toneidx]] = np.nan
-
-        # testplot
-        fig, ax = plt.subplots(2, 2, figsize=(20, 10))
-
-        # IQBT
-        ax[0, 0].plot(data.Data.real[:, toneidx], data.Data.imag[:, toneidx], label='Spiked IQBT')
-        ax[0, 0].plot(despiked_Z_testtone.real, despiked_Z_testtone.imag, label='Spike-masked IQBT', zorder=1e9)
-        ax[0, 0].set_xlabel('I (V)')
-        ax[0, 0].set_ylabel('Q (V)')
-        ax[0, 0].axis('equal')
-        ax[0, 0].legend(framealpha=1)
-
-        # IQBT speed
-        ax[0, 1].plot(auxtime, speed_testtone)
-        ax[0, 1].plot(auxtime, despiked_speed_testtone)
-        ax[0, 1].axhline(tone_floor_speedMEANs[testtone - 1], c='green', lw=2, label='Average spike-free tone speed')
-        ax[0, 1].axhline(tone_thresholds_speed[testtone - 1], c='red', lw=2, label='Mean + %s Sigma'%sig)
-        ax[0, 1].set_xlabel('Time (s)')
-        ax[0, 1].set_ylabel('IQ-plane speed (mV/s)')
-        ax[0, 1].legend(framealpha=1)
-
-        # IQBT speed window mean
-        ax[1, 0].plot(windows_time, windows_speed_mean[:, testtone-1])
-        ax[1, 0].plot(windows_time, despiked_windows_speed_mean_testtone)
-        ax[1, 0].axhline(0)
-        ax[1, 0].axhline(tone_floor_speedMEANs[testtone - 1], c='green', lw=2, label='Average spike-free tone speed')
-        ax[1, 0].legend(framealpha=1)
-        ax[1, 0].set_xlabel('Time (s)')
-        ax[1, 0].set_ylabel('Windowed IQBT-speed mean (mV/s)')
-
-        # IQBT speed window mean
-        ax[1, 1].plot(windows_time, windows_speed_std[:, testtone-1])
-        ax[1, 1].plot(windows_time, despiked_windows_speed_std_testtone)
-        ax[1, 1].axhline(0)
-        ax[1, 1].axhline(tone_floor_speedSTDs[testtone - 1], c='red', lw=2, label='Average spike-free tone speed STD')
-        ax[1, 1].legend(framealpha=1)
-        ax[1, 1].set_xlabel('Time (s)')
-        ax[1, 1].set_ylabel('Windowed IQBT-speed STD (mV/s)')
-
-        fig.suptitle('Spike detection for test tone %i in scan %i'%(testtone, scannum))
-
+        # ==========
         # Histograms
+        # ==========
         fig, ax = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
 
         # speed MEAN floor histogram
@@ -294,6 +219,121 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
         ax[2].legend(framealpha=1)
 
         fig.suptitle('Spike detection histograms for scan %i'%scannum)
+        
+        # =====================
+        # Interactive plot
+        # =====================
+
+        # Message to interact with user
+        msg = '\n------------------------------------------------\n'
+        msg += 'Plot next Tone:                           <Enter>\n'
+        msg += 'Plot previous Tone:                     - <Enter>\n'
+        msg += 'Go to Tone Number:               <number> <Enter>\n'
+        msg += 'Exit script execution:                  q <Enter>\n'
+        msg += '-------------------------------------------------\n'
+        msg += 'Enter choice: '
+
+        # Create figure
+        fig, ax = plt.subplots(2, 2, figsize=(20, 10))
+
+        usedtones = np.arange(1, nused+1)
+        testtone = 1
+
+        while True:
+            # define data array tone index
+            toneidx = testtone - 1
+
+            # extract IQBT-plane speed of tone
+            speed_testtone = speeds[:, toneidx]
+
+            # create mask applied to speed array
+            auxflagmask = np.zeros_like(speed_testtone, dtype=bool)
+            for winidx in range(len(windows_time)):
+                if windowflag[winidx, toneidx]:
+                    # flag all data points that fall in this window
+                    t_start = windows_time[winidx] - windowtime/2
+                    t_end = windows_time[winidx] + windowtime/2
+                    auxflagmask[(auxtime >= t_start) & (auxtime < t_end)] = True
+
+            # now we make nan all values in the original data that fall in a spiked window
+            despiked_Z_testtone = data.Data[:, toneidx].copy()
+            despiked_Z_testtone[flagmask[:, toneidx]] = np.nan
+
+            # and for the speed
+            despiked_speed_testtone = speed_testtone.copy()
+            despiked_speed_testtone[auxflagmask] = np.nan
+
+            # and the window speed mean array
+            despiked_windows_speed_mean_testtone = windows_speed_mean[:, toneidx].copy()
+            despiked_windows_speed_mean_testtone[windowflag[:, toneidx]] = np.nan
+
+            # and the window speed std array
+            despiked_windows_speed_std_testtone = windows_speed_std[:, toneidx].copy()
+            despiked_windows_speed_std_testtone[windowflag[:, toneidx]] = np.nan
+
+            # testplot
+            
+
+            # IQBT
+            ax[0, 0].plot(data.Data.real[:, toneidx], data.Data.imag[:, toneidx], label='Spiked IQBT')
+            ax[0, 0].plot(despiked_Z_testtone.real, despiked_Z_testtone.imag, label='Spike-masked IQBT', zorder=1e9)
+            ax[0, 0].set_xlabel('I (V)')
+            ax[0, 0].set_ylabel('Q (V)')
+            ax[0, 0].axis('equal')
+            ax[0, 0].legend(framealpha=1)
+
+            # IQBT speed
+            ax[0, 1].plot(auxtime, speed_testtone)
+            ax[0, 1].plot(auxtime, despiked_speed_testtone)
+            ax[0, 1].axhline(tone_floor_speedMEANs[toneidx], c='green', lw=2, label='Average spike-free tone speed')
+            ax[0, 1].axhline(tone_thresholds_speed[toneidx], c='red', lw=2, label='Mean + %s Sigma'%sig)
+            ax[0, 1].set_xlabel('Time (s)')
+            ax[0, 1].set_ylabel('IQ-plane speed (mV/s)')
+            ax[0, 1].legend(framealpha=1)
+
+            # IQBT speed window mean
+            ax[1, 0].plot(windows_time, windows_speed_mean[:, testtone-1])
+            ax[1, 0].plot(windows_time, despiked_windows_speed_mean_testtone)
+            ax[1, 0].axhline(0)
+            ax[1, 0].axhline(tone_floor_speedMEANs[toneidx], c='green', lw=2, label='Average spike-free tone speed')
+            ax[1, 0].legend(framealpha=1)
+            ax[1, 0].set_xlabel('Time (s)')
+            ax[1, 0].set_ylabel('Windowed IQBT-speed mean (mV/s)')
+
+            # IQBT speed window mean
+            ax[1, 1].plot(windows_time, windows_speed_std[:, testtone-1])
+            ax[1, 1].plot(windows_time, despiked_windows_speed_std_testtone)
+            ax[1, 1].axhline(0)
+            ax[1, 1].axhline(tone_floor_speedSTDs[toneidx], c='red', lw=2, label='Average spike-free tone speed STD')
+            ax[1, 1].legend(framealpha=1)
+            ax[1, 1].set_xlabel('Time (s)')
+            ax[1, 1].set_ylabel('Windowed IQBT-speed STD (mV/s)')
+
+            fig.suptitle('Spike detection for test tone %i in scan %i'%(testtone, scannum))
+
+            userInput = raw_input(msg)
+            userInput=str(userInput)
+            if userInput == '':
+                testtone += 1
+            elif userInput == '-':
+                testtone -=1
+            elif userInput == 'q':
+                break
+            else:    
+                try: 
+                    testtone = int(userInput)
+                except:
+                    print('Tone number must be a number.')
+                    continue
+
+            if testtone not in usedtones:
+                print('Resulting tone out of bounds. Going back to tone 1.')
+                testtone = 1
+
+            ax[0, 0].cla()
+            ax[0, 1].cla()
+            ax[1, 0].cla()
+            ax[1, 1].cla()
 
     if full_output:
         return flagmask, spikedfraction_alltones
