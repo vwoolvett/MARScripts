@@ -1,4 +1,4 @@
-def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., ignoreblinds=True, full_output=False, doplots=False):
+def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., ignoreblinds=True, full_output=False, doplots=False):
     '''
     ** VERSION 4.0 - 11.06.2026 **
 
@@ -178,7 +178,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
         for windowidx in range(len(windows_tstart)):
             flaggedtones_thischain_thiswindow = np.sum(windowflag[windowidx, kididx_here])
             print("DEBUG: CHAIN=%i, WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(chain, windowidx, flaggedtones_thischain_thiswindow, int(crosstones/100. * float(kidsPerChain))))
-            
+
             if flaggedtones_thischain_thiswindow <= int(crosstones/100. * float(kidsPerChain)):
                 # Not real spike
                 windowflag[windowidx, kididx_here] = False
