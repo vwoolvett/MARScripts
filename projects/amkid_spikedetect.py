@@ -48,10 +48,12 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
         warn('This is not AMKID data!')
         return
     
-    febe, chains, kidsPerChain = getFebe(fe)
-    print('DEBUG: NCH=%i, KPC=%i'%(len(chains), kidsPerChain))
-    return
+    _, chains, kidsPerChain = getFebe(fe)
     nkids = len(chains) * kidsPerChain
+
+    kids_in_chains = np.array(np.arange(kidsPerChain*chain, kidsPerChain*(chain+1)) for chain in chains])
+    print(kids_in_chains[chains[0]])
+    return
     
     if ignoreblinds:
         Z = Z[:, :nkids]
