@@ -19,7 +19,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     @type sig:              float
     @param expspikefree:    percentage of the timelines that is expected to be spike-free to determine "usual tone behavior"
     @type expspikefree:     float
-    @param crosstones:      for any time window, what percentage of tones must be spiked to consider them as really spiked
+    @param crosstones:      for any time window and a given chain, what percentage of tones must be spiked to consider them as really spiked
     @type crosstones:       float
     @param ignoreblinds:    whether to ignore (True) or consider (False) blindtones. Useful if blindtones are spiked too.
     @type ignoreblinds:     bool
@@ -47,16 +47,6 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     else:
         warn('This is not AMKID data!')
         return
-    
-    _, chains, kidsPerChain = getFebe(fe)
-    nkids = len(chains) * kidsPerChain
-
-    kididx_in_chain = np.array([np.arange(kidsPerChain*(chain-1), kidsPerChain*(chain)) for chain in chains])
-    for chain in chains:
-        chainidx = chain-1
-        kids_here = kididx_in_chain[chainidx]
-        first, last = kids_here[0], kids_here[-1]
-        print('DEBUG: CHAIN=%i, FIRSTKID=%i, LASTKID=%i'%(chain, first, last))
     
     if ignoreblinds:
         Z = Z[:, :nkids]
@@ -161,28 +151,37 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
             tone_thresholds_speed.append(np.nan)
             windowflag[:, toneidx] = False
 
-    info('Cross-checking tones per chain...')
-    # Spikes are only real if they appear in the same time window as at least
-    # crosstones% of the tones, chain-wise.
-    # NOTE: NEW METHOD COMPARE PER CHAIN
-    for chain in chains:
-        chainidx = chain - 1
-        kididx_here = kididx_in_chain[chainidx]
-        for windowidx in range(len(windows_tstart)):
-            flaggedtones_thischain_thiswindow = np.sum(windowflag[windowidx, kididx_here])
-            if flaggedtones_thischain_thiswindow <= int(crosstones/100. * float(kidsPerChain)):
-                # Not real spike
-                windowflag[windowidx, kididx_here] = False
-
+    
     # NOTE: OLD METHOD COMPARE ALL KIDS
-    # If they appear in less than crosstones% of the tones, then it's not a real
-    # spike (say, it could be the wirescanner!)
+    # Spikes are only real if they appear in the same time window as at least
+    # crosstones% of all the tones.
+    # info('Cross-checking tones...')
     # for windowidx in range(len(windows_tstart)):
     #     flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
     #     #print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
     #     if flaggedtones_thiswindow <= int(crosstones/100. * float(nused)):
     #         # Not real spike
     #         windowflag[windowidx, :] = False
+
+
+    # Spikes are only real if they appear in the same time window as at least
+    # crosstones% of the tones, chain-wise.
+    # NOTE: NEW METHOD COMPARE PER CHAIN
+    info('Cross-checking tones per chain...')
+    _, chains, kidsPerChain = getFebe(fe)
+    nkids = len(chains) * kidsPerChain
+    kididx_in_chain = np.array([np.arange(kidsPerChain*(chain-1), kidsPerChain*(chain)) for chain in chains])
+    for chain in chains:
+        chainidx = chain - 1
+        kididx_here = kididx_in_chain[chainidx]
+
+        for windowidx in range(len(windows_tstart)):
+            flaggedtones_thischain_thiswindow = np.sum(windowflag[windowidx, kididx_here])
+            print("DEBUG: CHAIN=%i, WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(chain, windowidx, flaggedtones_thischain_thiswindow, int(crosstones/100. * float(kidsPerChain))))
+            
+            if flaggedtones_thischain_thiswindow <= int(crosstones/100. * float(kidsPerChain)):
+                # Not real spike
+                windowflag[windowidx, kididx_here] = False
 
 
     # inizialize data flagging array
