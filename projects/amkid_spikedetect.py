@@ -1,6 +1,6 @@
 def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., ignoreblinds=True, full_output=False, doplots=False, debug=False):
     '''
-    ** VERSION 4.0 - 11.06.2026 **
+    ** VERSION 4.1 - 11.06.2026 **
 
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
     on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
@@ -157,7 +157,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             windowflag[:, toneidx] = False
 
     
-    # NOTE: OLD METHOD COMPARE ALL KIDS (ACTUALLY WORKS BEST)
+    # NOTE: OLD METHOD COMPARE ALL KIDS (ACTUALLY WORKS BETTER THAN CHAIN-BASED)
     # Spikes are only real if they appear in the same time window as at least
     # crosstones% of all the tones.
     # info('Cross-checking tones...')
@@ -189,7 +189,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     #             windowflag[windowidx, kididx_here] = False
 
 
-    # NOTE: TAKE 3: COMPARE ADJACENT WINDOWS TOO
+    # NOTE: TAKE 3: COMPARE ADJACENT WINDOWS TOO (WORKS BEST)
     info('Cross-checking tones...')
     for windowidx in range(len(windows_tstart)):
         flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
@@ -211,6 +211,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
 
         # fulfill the criterium, then this window should be flagged
         # to allow propagation of spike across array
+
         # otherwise, it's not a spike and we should not flag
         if not should_this_window_be_flagged:
             # Not real spike
