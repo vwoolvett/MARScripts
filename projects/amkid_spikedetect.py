@@ -207,7 +207,8 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
 
         # fulfill the criterium, then this window should be flagged
         # to allow propagation of spike across array
-        if should_this_window_be_flagged:
+        # otherwise, it's not a spike and we should not flag
+        if not should_this_window_be_flagged:
             # Not real spike
             windowflag[windowidx, :] = False
 
