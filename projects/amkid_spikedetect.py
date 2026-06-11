@@ -48,6 +48,11 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
         warn('This is not AMKID data!')
         return
     
+    febe, chains, kidsPerChain = getFebe(fe)
+    print('DEBUG: NCH=%i, KPC=%i'%(len(chains), kidsPerChain))
+    return
+    nkids = len(chains) * kidsPerChain
+    
     if ignoreblinds:
         Z = Z[:, :nkids]
         nused = nkids
@@ -151,7 +156,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
             tone_thresholds_speed.append(np.nan)
             windowflag[:, toneidx] = False
 
-    info('Cross-checking tones...')
+    info('Cross-checking tones per chain...')
     # Spikes are only real if they appear in the same time window as at least
     # crosstones% of the analyzed tones.
 
@@ -159,7 +164,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     # spike (say, it could be the wirescanner!)
     for windowidx in range(len(windows_tstart)):
         flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
-        print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
+        #print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
         if flaggedtones_thiswindow <= int(crosstones/100. * float(nused)):
             # Not real spike
             windowflag[windowidx, :] = False
