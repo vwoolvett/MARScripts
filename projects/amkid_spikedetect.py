@@ -156,14 +156,14 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
     # NOTE: OLD METHOD COMPARE ALL KIDS (ACTUALLY WORKS BEST)
     # Spikes are only real if they appear in the same time window as at least
     # crosstones% of all the tones.
-    info('Cross-checking tones...')
-    for windowidx in range(len(windows_tstart)):
-        flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
-        if debug:
-            print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
-        if flaggedtones_thiswindow <= int(crosstones/100. * float(nused)):
-            # Not real spike
-            windowflag[windowidx, :] = False
+    # info('Cross-checking tones...')
+    # for windowidx in range(len(windows_tstart)):
+    #     flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
+    #     if debug:
+    #         print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
+    #     if flaggedtones_thiswindow <= int(crosstones/100. * float(nused)):
+    #         # Not real spike
+    #         windowflag[windowidx, :] = False
 
 
     # Spikes are only real if they appear in the same time window as at least
@@ -184,6 +184,32 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
     #             # Not real spike
     #             windowflag[windowidx, kididx_here] = False
 
+
+    # NOTE: TAKE 3: COMPARE ADJACENT WINDOWS TOO
+    info('Cross-checking tones...')
+    for windowidx in range(len(windows_tstart)):
+        flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
+        if debug:
+            print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
+
+        # if this window
+        should_this_window_be_flagged = (flaggedtones_thiswindow <= int(crosstones/100. * float(nused)))
+
+        # or the previous (if exists)
+        if windowidx != 0:
+            flaggedtones_prevwindow = np.sum(windowflag[windowidx - 1, :])
+            should_this_window_be_flagged |= (flaggedtones_prevwindow <= int(crosstones/100. * float(nused)))
+
+        # or the next (if exists)
+        if windowidx != len(windows_tstart) - 1
+            flaggedtones_nextwindow = np.sum(windowflag[windowidx + 1, :])
+            should_this_window_be_flagged |= (flaggedtones_nextwindow <= int(crosstones/100. * float(nused)))
+
+        # fulfill the criterium, then this window should be flagged
+        # to allow propagation of spike across array
+        if should_this_window_be_flagged:
+            # Not real spike
+            windowflag[windowidx, :] = False
 
     # inizialize data flagging array
     # if blindtones are ignored in process, flag is false for all blindtones so they will not be affected
