@@ -194,34 +194,34 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
         # ==========
         # Histograms
         # ==========
-        fig, ax = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
+        fighist, axhist = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
 
         # speed MEAN floor histogram
         avg = np.nanmean(tone_floor_speedMEANs)
         nonan = ~np.isnan(tone_floor_speedMEANs)
-        ax[0].hist(np.log10(tone_floor_speedMEANs[nonan]), bins=100)
-        ax[0].axvline(np.log10(avg), c='green', lw=2, label='Mean: %.2f mV / s'%avg)
-        ax[0].set_xlabel('log10(Average tone speed in mV/s)')
-        ax[0].set_ylabel('Number of tones')
-        ax[0].legend(framealpha=1)
+        axhist[0].hist(np.log10(tone_floor_speedMEANs[nonan]), bins=100)
+        axhist[0].axvline(np.log10(avg), c='green', lw=2, label='Mean: %.2f mV / s'%avg)
+        axhist[0].set_xlabel('log10(Average tone speed in mV/s)')
+        axhist[0].set_ylabel('Number of tones')
+        axhist[0].legend(framealpha=1)
         
         # speed STD floor histogram
         avg = np.nanmean(tone_floor_speedSTDs)
         nonan = ~np.isnan(tone_floor_speedSTDs)
-        ax[1].hist(np.log10(tone_floor_speedSTDs[nonan]), bins=100)
-        ax[1].axvline(np.log10(avg), c='red', lw=2, label='Mean: %.2f mV / s'%avg)
-        ax[1].set_xlabel('log10(Average tone speed STD in mV/s)')
-        ax[1].legend(framealpha=1)
+        axhist[1].hist(np.log10(tone_floor_speedSTDs[nonan]), bins=100)
+        axhist[1].axvline(np.log10(avg), c='red', lw=2, label='Mean: %.2f mV / s'%avg)
+        axhist[1].set_xlabel('log10(Average tone speed STD in mV/s)')
+        axhist[1].legend(framealpha=1)
 
         # spike percentage histogram
         meanpercentlost = np.nanmean(spikedfraction_alltones*100)
-        ax[2].hist(spikedfraction_alltones*100, bins=100, range=(0, 100))
-        ax[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
-        ax[2].set_xlim(0, np.nanmax(spikedfraction_alltones*100)+2)
-        ax[2].set_xlabel('Percentage of timeline lost to spikes')
-        ax[2].legend(framealpha=1)
+        axhist[2].hist(spikedfraction_alltones*100, bins=100, range=(0, 100))
+        axhist[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
+        axhist[2].set_xlim(0, np.nanmax(spikedfraction_alltones*100)+2)
+        axhist[2].set_xlabel('Percentage of timeline lost to spikes')
+        axhist[2].legend(framealpha=1)
 
-        fig.suptitle('Spike detection histograms for scan %i'%scannum)
+        fighist.suptitle('Spike detection histograms for scan %i'%scannum)
         
         # =====================
         # Interactive plot
@@ -323,7 +323,8 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
             elif userInput == '-':
                 testtone -=1
             elif userInput == 'q':
-                plt.close()
+                fig.close()
+                fighist.close()
                 break
             else:    
                 try: 
