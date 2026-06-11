@@ -237,9 +237,15 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     # final info
     spikedfraction_alltones = np.sum(windowflag, axis=0) / float(np.shape(windowflag)[0])
     spikedfraction_alltones_nonzero = spikedfraction_alltones[spikedfraction_alltones != 0]
-    spikedfraction_avg = np.nanmean(spikedfraction_alltones_nonzero)
-    spikedtime_avg = spikedfraction_avg * totaltime
-    info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
+    if len(spikedfraction_alltones_nonzero) != 0:
+        spikedfraction_avg = np.nanmean(spikedfraction_alltones_nonzero)
+        spikedtime_avg = spikedfraction_avg * totaltime
+        info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
+        scanisspikefree = False
+    else:
+        info('Scan is spike-free!')
+        scanisspikefree = True
+
 
     if doplots:
         info('Initializing de-spiking process histograms and interactive plot...')
@@ -266,12 +272,21 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         axhist[1].legend(framealpha=1)
 
         # spike percentage histogram
-        meanpercentlost = np.nanmean(spikedfraction_alltones_nonzero*100)
-        axhist[2].hist(spikedfraction_alltones_nonzero*100, bins=100, range=(0, 100))
-        axhist[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
-        axhist[2].set_xlim(0, np.nanmax(spikedfraction_alltones_nonzero*100)+2)
-        axhist[2].set_xlabel('Percentage of timeline lost to spikes (spiked tones only!)')
-        axhist[2].legend(framealpha=1)
+        if not scanisspikefree:
+            meanpercentlost = np.nanmean(spikedfraction_alltones_nonzero*100)
+            axhist[2].hist(spikedfraction_alltones_nonzero*100, bins=100, range=(0, 100))
+            axhist[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
+            axhist[2].set_xlim(0, np.nanmax(spikedfraction_alltones_nonzero*100)+2)
+            axhist[2].set_xlabel('Percentage of timeline lost to spikes (spiked tones only!)')
+            axhist[2].legend(framealpha=1)
+        
+        else:
+            meanpercentlost = np.nanmean(spikedfraction_alltones*100)
+            axhist[2].hist(spikedfraction_alltones*100, bins=100, range=(0, 100))
+            axhist[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
+            axhist[2].set_xlim(0, np.nanmax(spikedfraction_alltones*100)+2)
+            axhist[2].set_xlabel('Percentage of timeline lost to spikes (scan is spike-free!)')
+            axhist[2].legend(framealpha=1)
 
         fighist.suptitle('Spike detection histograms for scan %i'%scannum)
         
