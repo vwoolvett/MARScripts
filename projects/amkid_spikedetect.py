@@ -160,7 +160,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     for windowidx in range(len(windows_tstart)):
         flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
         print("DEBUG: WIN=%i | NFLAGGED=%.3f | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, crosstones/100 * nused))
-        if flaggedtones_thiswindow <= crosstones/100. * nused:
+        if flaggedtones_thiswindow <= int(crosstones/100. * float(nused)):
             # Not real spike
             windowflag[windowidx, :] = False
 
