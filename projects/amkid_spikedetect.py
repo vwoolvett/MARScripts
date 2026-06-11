@@ -40,13 +40,14 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
     febe = data.BolometerArray.FeBe
     if febe == 'AMKID870-AMKID870BE':
         fe = 'LFA'
-        nkids = 880 * 4
     elif febe == 'AMKID350-AMKID350BE':
         fe = 'HFA'
-        nkids = 800 * 5 * 4
     else:
         warn('This is not AMKID data!')
         return
+    
+    _ , chains, kidsPerChain = getFebe(fe)
+    nkids = len(chains) * kidsPerChain
     
     if ignoreblinds:
         Z = Z[:, :nkids]
