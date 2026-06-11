@@ -1,14 +1,10 @@
 def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., ignoreblinds=True, full_output=False, doplots=False, testtone=2642):
     '''
-    ** VERSION 4.0 - 10.06.2026 **
-    Changes: for a given window, if the number of tones with spikes is not greater than crosstones%
-    of the analyzed tones, then they are not really spiked: spikes appear in many tones at neighboring
-    timestamps (very likely within the same window). This allows to detect smaller spikes that appear
-    in many tones at neighborng timestamps (tone-based threshold reduced from 5 sigma to 4.5 sigma)
+    ** VERSION 4.0 - 11.06.2026 **
 
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
     on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
-    in a tone is also spiked in other tones and decides whether it is a spike or not.
+    in a tone is also spiked in other (at least crosstones%) tones and decides whether it is a spike or not.
     Outputs a mask for data.Data of whether a timestamp should be used for each tone.
     
     Timestamps within a spiked window are all flagged for a given tone, even if not all
@@ -73,7 +69,8 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     nwindows = totaltime / windowtime
     if nwindows < 50.0:
         nwindows = 50
-        warn('Default windowtime of %1.2f seconds is too large for only %.2f seconds of data. Changing windowtime to %1.2f seconds to ensure 50 windows...'%(windowtime, totaltime, totaltime/nwindows))
+        warn('Default windowtime of %1.2f seconds is too large for only %.2f seconds of data.'%(windowtime, totaltime))
+        warn('Changing windowtime to %1.2f seconds to ensure 50 windows...'%(totaltime/nwindows))
         windowtime = totaltime / nwindows
 
     # define windows
