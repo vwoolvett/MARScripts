@@ -188,6 +188,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
     info('On average, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost due to spikes'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
 
     if doplots:
+        info('Initializing de-spiking process histograms and interactive plot...')
         # ==========
         # Histograms
         # ==========
@@ -310,6 +311,8 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=20., i
             ax[1, 1].set_ylabel('Windowed IQBT-speed STD (mV/s)')
 
             fig.suptitle('Spike detection for test tone %i in scan %i'%(testtone, scannum))
+
+            plt.show()
 
             userInput = raw_input(msg)
             userInput=str(userInput)
