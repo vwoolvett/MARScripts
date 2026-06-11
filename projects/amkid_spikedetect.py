@@ -201,7 +201,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=50., i
             should_this_window_be_flagged |= (flaggedtones_prevwindow <= int(crosstones/100. * float(nused)))
 
         # or the next (if exists)
-        if windowidx != len(windows_tstart) - 1
+        if windowidx != len(windows_tstart) - 1:
             flaggedtones_nextwindow = np.sum(windowflag[windowidx + 1, :])
             should_this_window_be_flagged |= (flaggedtones_nextwindow <= int(crosstones/100. * float(nused)))
 
