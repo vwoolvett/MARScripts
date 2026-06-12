@@ -115,6 +115,8 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                     else:
                         message += 'SCAN WILL BE SKIPPED'
                         print(message)
+                else:
+                    print(message)
 
 
 assert False, 'Temporary script stop'
