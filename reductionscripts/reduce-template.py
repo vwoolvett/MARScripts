@@ -43,6 +43,7 @@ badscans = []
 
 
 
+
 # ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 # NOTE: VWO: BoA smoothBy smooths weights with the kernel, but weights are 1 / rms^2 which is
 # a non-linear scale. All smoothing should be done as:
