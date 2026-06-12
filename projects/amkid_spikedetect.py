@@ -113,7 +113,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     # initialize window flagging array
     windowflag = np.zeros_like(windows_speed_std, dtype=bool)
 
-    if doplots:
+    if doplots or scaniswire:
         # initialize used values list
         # has as many values as tones
         tone_floor_speedMEANs = []
@@ -139,7 +139,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             # compute the mean + sig STD threshold
             threshold_speed = floor_speedMEAN + sig * floor_speedSTD
 
-            if doplots:
+            if doplots or scaniswire:
                 # save values
                 tone_floor_speedMEANs.append(floor_speedMEAN)
                 tone_floor_speedSTDs.append(floor_speedSTD)
@@ -236,7 +236,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             t_end = t_start + windowtime
             flagmask[:, toneidx] |= (time >= t_start) & (time < t_end)
 
-    if doplots:
+    if doplots or scaniswire:
         # convert to arrays
         tone_floor_speedMEANs = np.array(tone_floor_speedMEANs)
         tone_floor_speedSTDs = np.array(tone_floor_speedSTDs)
@@ -249,16 +249,15 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         spikedfraction_avg = np.nanmean(spikedfraction_alltones_nonzero)
         spikedtime_avg = spikedfraction_avg * totaltime
         scanisspikefree = False
+        info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
         
         # if wirescanner has spikes, then need to recalibrate!
         if scaniswire:
             warn('=============================================================')
             warn('========= WIRE SCANNER IS CONTAMINATED WITH SPIKES! =========')
+            warn('========= FORCING SPIKE DETECTION DISPLAY, ANALYZE!')
             warn('=============================================================')
-            warn('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
-
-        else:
-            info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
+            doplots = True
 
     else:
         info('Scan is spike-free!')
