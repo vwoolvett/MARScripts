@@ -70,7 +70,7 @@ if niters < 1 or niters > 3:
 if len(scans) == 0 and os.path.exists(obslogsdir):
     files = os.listdir(obslogsdir)
     for file in files:
-        f = open(file,'r')
+        f = open(obslogsdir + file,'r')
         lines = f.readlines()
         index = 0
         start = False
@@ -88,7 +88,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
             else:
                 index+=1
             if start:
-                message=''   
+                message=''
                 scan=0 
                 for key in keys:
                     line=lines[index]
