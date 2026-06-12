@@ -70,7 +70,8 @@ if niters < 1 or niters > 3:
 if len(scans) == 0 and os.path.exists(obslogsdir):
     files = os.listdir(obslogsdir)
     for file in files:
-        f = open(obslogsdir + file,'r')
+        fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
+        f = open(fullfilename,'r')
         lines = f.readlines()
         index = 0
         start = False
@@ -95,19 +96,26 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                     index+=1 
                     if key=='Scan' :
                         scan=int(line[4:-6])
-                        message+=(line[4:-6] + ' , ')
+                        message+=(line[4:-6] + ' | ')
                     if key=='Source':
-                        message+=(line[4:-6].ljust(12) + ' , ')               
+                        message+=(line[4:-6].ljust(12) + ' | ')               
                     if key== 'Scan status':
-                        message+=(line[4:-6] + ' , ')
+                        message+=(line[4:-6] + ' | ')
                     if key=='Scan type':
-                        message+=(line[4:-6].ljust(6) + ' , ')
-                    if key=='Comment':
-                        message+=(line[4:-6].ljust(20) )               
+                        message+=(line[4:-6].ljust(6) + ' | ')
+                    #if key=='Comment':
+                    #    message+=(line[4:-6].ljust(20) )               
                 start = False
+
                 if source in message:
-                    print('Adding scan #%i of source %i'%(scan, source))
-                    scans.append(scan)
+                    if 'OK' in message:
+                        message += 'SCAN WILL BE ADDED TO REDUCTION'
+                        print(message)
+                        scans.append(scan)
+                    else:
+                        message += 'SCAN WILL BE SKIPPED'
+                        print(message)
+
 
 assert False, 'Temporary script stop'
 
