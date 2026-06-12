@@ -46,8 +46,9 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         warn('This is not AMKID data!')
         return
     
-    if scanIsBeamscan(scannum, fe):
-        warn('Running de-spiking on WireScanner. Changing crosstones to 50%...')
+    scaniswire = scanIsBeamscan(scannum, fe)
+    if scaniswire:
+        info('Running de-spiking on WireScanner. Changing crosstones to 50%...')
         crosstones = 50
     
     _ , chains, kidsPerChain = getFebe(fe)
@@ -74,8 +75,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     nwindows = totaltime / windowtime
     if nwindows < 50.0:
         nwindows = 50
-        warn('Default windowtime of %1.2f seconds is too large for only %.2f seconds of data.'%(windowtime, totaltime))
-        warn('Changing windowtime to %1.2f seconds to ensure 50 windows...'%(totaltime/nwindows))
+        warn('Changing window size to %1.2f seconds to ensure 50 windows...'%(totaltime/nwindows))
         windowtime = totaltime / nwindows
 
     # define windows
@@ -248,8 +248,16 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     if len(spikedfraction_alltones_nonzero) != 0:
         spikedfraction_avg = np.nanmean(spikedfraction_alltones_nonzero)
         spikedtime_avg = spikedfraction_avg * totaltime
-        info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
         scanisspikefree = False
+        
+        # if wirescanner has spikes, then need to recalibrate!
+        if scaniswire:
+            warn('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
+            assert False, "Wirescanner is contaminated with spikes!"
+
+        else:
+            info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
+
     else:
         info('Scan is spike-free!')
         scanisspikefree = True
