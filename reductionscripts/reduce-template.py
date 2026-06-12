@@ -73,6 +73,7 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
     assert False, 'STOPPING SCRIPT: Either enter scans or an existing obslogs directory...'
 
 # find scans if not provided
+info('Retrieving source scan numbers from ObsLogs...')
 if len(scans) == 0 and os.path.exists(obslogsdir):
     files = os.listdir(obslogsdir)
     for file in files:
@@ -100,29 +101,30 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                 for key in keys:
                     line=lines[index]
                     index+=1 
-                    if key=='Scan' :
+                    if key == 'Scan':
                         scan=int(line[4:-6])
                         message+=(line[4:-6].ljust(6) + ' | ')
-                    if key=='Source':
+                    if key == 'Source':
                         message+=(line[4:-6].ljust(12) + ' | ')               
-                    if key== 'Scan status':
+                    if key == 'Scan status':
                         message+=(line[4:-6].ljust(12) + ' | ')
-                    if key=='Scan type':
+                    if key == 'Scan type':
                         message+=(line[4:-6].ljust(12) + ' | ')
                     #if key=='Comment':
-                    #    message+=(line[4:-6].ljust(20) )               
+                    #    message+=(line[4:-6].ljust(20))              
                 start = False
 
                 if source in message:
                     if 'OK' in message:
-                        message += 'SCAN WILL BE ADDED TO REDUCTION'
+                        message += 'SCAN WILL BE REDUCED'
                         print(message)
                         scans.append(scan)
                     else:
-                        message += 'SCAN WILL BE SKIPPED'
+                        message += 'SCAN DISCARDED'
                         print(message)
-                else:
-                    print(message)
+
+if len(scans) == 0:
+    assert False, 'No scans of source %s found in %s!'%(source, obslogsdir)
 
 
 assert False, 'Temporary script stop'
