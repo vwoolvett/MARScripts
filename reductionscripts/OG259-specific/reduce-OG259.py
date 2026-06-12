@@ -15,25 +15,29 @@ doPlot  = True              # Display maps at each scan. If False, only final
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended 2)
+niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True        # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
-smoothby_arcsec = 4.        # Default 8. arcsec
+smoothby_arcsec = 8.        # Default 8. arcsec
 
 # ----- Scans ------
-# If empty, automatically retrieves all scans of source from Obslogs
-# NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
-scans = [27974,27975,27979,27980,27990,28212,28213,28217,28218,28231,28232,28235,28493,28494,28498,28499,28516,28517,28775,28776]
+# If scans is empty, automatically retrieves all scans of the source
+# specified above from the obslogs directory below
+scans = []
+obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/PROJECT-CODE-IN-CAPS'
 
 # Manually exclude bad scans if needed            
-badscans = [27979, 28217, 28498] 
-
-
+badscans = []  #[27979, 28217, 28498]
 
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
+
+
+
+
+
 
 
 
@@ -64,8 +68,63 @@ if system not in ['EQ', 'GAL', 'HO']:
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
-# find scans if not provided (TO-DO)
-#if len(scans) == 0:
+if len(scans) == 0 and not os.path.exists(obslogsdir):
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
+
+# find scans if not provided
+info('Retrieving source scan numbers from ObsLogs...')
+if len(scans) == 0 and os.path.exists(obslogsdir):
+    files = os.listdir(obslogsdir)
+    for file in files:
+        fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
+        f = open(fullfilename,'r')
+        lines = f.readlines()
+        index = 0
+        start = False
+        keys = []
+        for index in range(len(lines)):
+            line = lines[index]
+            if line[0:4]=='<th>':
+                keys.append(line[4:-6])
+                index+=1
+            elif line[0:4]=='<tr>':
+                start=True
+                index+=1    
+            elif line[0:5]=='</tr>':
+                index+=1
+            else:
+                index+=1
+            if start:
+                message=''
+                scan=0 
+                for key in keys:
+                    line=lines[index]
+                    index+=1 
+                    if key == 'Scan':
+                        scan=int(line[4:-6])
+                        message+=(line[4:-6].ljust(6) + ' | ')
+                    if key == 'Source':
+                        message+=(line[4:-6].ljust(12) + ' | ')               
+                    if key == 'Scan status':
+                        message+=(line[4:-6].ljust(12) + ' | ')
+                    if key == 'Scan type':
+                        message+=(line[4:-6].ljust(12) + ' | ')
+                    #if key=='Comment':
+                    #    message+=(line[4:-6].ljust(20))              
+                start = False
+
+                if source in message:
+                    if 'OK' in message:
+                        message += 'SCAN WILL BE REDUCED'
+                        print(message)
+                        scans.append(scan)
+                    else:
+                        message += 'SCAN DISCARDED'
+                        print(message)
+
+# If nothing was found, break script
+if len(scans) == 0:
+    raise ValueError('No scans of source %s found in %s!'%(source, obslogsdir))
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -288,8 +347,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                if scan == 28517:
-                    flagC(3353, flag=2)
+                #if scan == 28517:
+                #    flagC(3353, flag=2)
 
                 # Create map
                 mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
