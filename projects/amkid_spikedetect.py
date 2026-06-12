@@ -255,7 +255,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         if scaniswire:
             warn('=============================================================')
             warn('========= WIRE SCANNER IS CONTAMINATED WITH SPIKES! =========')
-            warn('========= FORCING SPIKE DETECTION DISPLAY, ANALYZE!')
+            warn('========= FORCING SPIKE DETECTION DISPLAY, ANALYZE! =========')
             warn('=============================================================')
             doplots = True
 
