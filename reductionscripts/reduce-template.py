@@ -67,7 +67,7 @@ if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
 if len(scans) == 0 and not os.path.exists(obslogsdir):
-    print('Either enter scans or an existing obslogs directory...')
+    assert False, 'STOPPING SCRIPT: Either enter scans or an existing obslogs directory...'
 
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
