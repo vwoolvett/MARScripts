@@ -253,7 +253,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         # if wirescanner has spikes, then need to recalibrate!
         if scaniswire:
             warn('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
-            assert False, "Wirescanner is contaminated with spikes!"
+            assert False, "Wirescanner is contaminated with spikes! Stopping reduction..."
 
         else:
             info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
