@@ -347,8 +347,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                #if scan == 28517:
-                #    flagC(3353, flag=2)
+                if scan == 28517:
+                    flagC(3353, flag=2)
 
                 # Create map
                 mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
