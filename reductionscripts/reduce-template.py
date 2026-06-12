@@ -23,21 +23,20 @@ smoothby_arcsec = 8.        # Default 8. arcsec
 
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
-# specified above from obslogs directory (input below!)
+# specified above from the obslogs directory below
 scans = []
-
-# at APEX: ~/obslogs
-# at MPIfR: /apex-archive/obslogs/PROJECT-CODE-IN-CAPS
-obslogsdir = '~/obslogs'
+obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/PROJECT-CODE-IN-CAPS'
 
 # Manually exclude bad scans if needed            
 badscans = []
 
-
-
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
+
+
+
+
 
 
 
@@ -70,7 +69,7 @@ if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
 if len(scans) == 0 and not os.path.exists(obslogsdir):
-    assert False, 'STOPPING SCRIPT: Either enter scans or an existing obslogs directory...'
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
 
 # find scans if not provided
 info('Retrieving source scan numbers from ObsLogs...')
@@ -123,11 +122,9 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                         message += 'SCAN DISCARDED'
                         print(message)
 
+# If nothing was found, break script
 if len(scans) == 0:
-    assert False, 'No scans of source %s found in %s!'%(source, obslogsdir)
-
-
-assert False, 'Temporary script stop'
+    raise ValueError('No scans of source %s found in %s!'%(source, obslogsdir))
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
