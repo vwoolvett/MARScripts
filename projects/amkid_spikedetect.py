@@ -189,6 +189,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     #             windowflag[windowidx, kididx_here] = False
 
 
+    # copy original windowflag
     windowflag2 = copy.deepcopy(windowflag)
 
     # NOTE: TAKE 3: COMPARE ADJACENT WINDOWS TOO (WORKS BEST)
@@ -196,7 +197,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     for windowidx in range(len(windows_tstart)):
         flaggedtones_thiswindow = np.sum(windowflag[windowidx, :])
         if debug:
-            print("DEBUG: WIN=%i | NFLAGGED=%i | NTHRESH=%.3f"%(windowidx, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
+            print("DEBUG: WIN=%i | NTONESFLAGGED=%i | NTONESTHRESH=%.3f"%(windowidx+1, flaggedtones_thiswindow, int(crosstones/100. * float(nused))))
 
         # if this window
         should_this_window_be_flagged = (flaggedtones_thiswindow >= int(crosstones/100. * float(nused)))
