@@ -22,9 +22,12 @@ flagJumps    = False        # Flag jumps/spikes in the data:
 smoothby_arcsec = 8.        # Default 8. arcsec
 
 # ----- Scans ------
-# If empty, automatically retrieves all scans of source from specified
-# obslogs dir.
+# If scans is empty, automatically retrieves all scans of the source
+# specified above from obslogs directory (input below!)
 scans = []
+
+# at APEX: ~/obslogs
+# at MPIfR: /apex-archive/obslogs/PROJECT-CODE-IN-CAPS
 obslogsdir = '~/obslogs'
 
 # Manually exclude bad scans if needed            
@@ -99,13 +102,13 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                     index+=1 
                     if key=='Scan' :
                         scan=int(line[4:-6])
-                        message+=(line[4:-6] + ' | ')
+                        message+=(line[4:-6].ljust(6) + ' | ')
                     if key=='Source':
                         message+=(line[4:-6].ljust(12) + ' | ')               
                     if key== 'Scan status':
-                        message+=(line[4:-6] + ' | ')
+                        message+=(line[4:-6].ljust(12) + ' | ')
                     if key=='Scan type':
-                        message+=(line[4:-6].ljust(6) + ' | ')
+                        message+=(line[4:-6].ljust(12) + ' | ')
                     #if key=='Comment':
                     #    message+=(line[4:-6].ljust(20) )               
                 start = False
