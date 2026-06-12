@@ -19,7 +19,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     @type sig:              float
     @param expspikefree:    percentage of the timelines that is expected to be spike-free to determine "usual tone behavior"
     @type expspikefree:     float
-    @param crosstones:      for any time window and a given chain, what percentage of tones must be spiked to consider them as really spiked
+    @param crosstones:      for any time window, what percentage of tones must be spiked to consider them as really spiked
     @type crosstones:       float
     @param ignoreblinds:    whether to ignore (True) or consider (False) blindtones. Useful if blindtones are spiked too.
     @type ignoreblinds:     bool
