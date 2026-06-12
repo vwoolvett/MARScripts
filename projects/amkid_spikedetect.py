@@ -252,9 +252,9 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         
         # if wirescanner has spikes, then need to recalibrate!
         if scaniswire:
-            warn('===========================================================================================')
-            warn('=========                WIRE SCANNER IS CONTAMINATED WITH SPIKES!                =========')
-            warn('===========================================================================================')
+            warn('=======================================================================')
+            warn('=========      WIRE SCANNER IS CONTAMINATED WITH SPIKES!      =========')
+            warn('=======================================================================')
             warn('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
 
         else:
