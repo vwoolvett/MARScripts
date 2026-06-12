@@ -47,8 +47,8 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         return
     
     if scanIsBeamscan(scannum, fe):
-        warn('Running de-spiking on WireScanner. Changing crosstones to 80%...')
-        crosstones = 80
+        warn('Running de-spiking on WireScanner. Changing crosstones to 50%...')
+        crosstones = 50
     
     _ , chains, kidsPerChain = getFebe(fe)
     nkids = len(chains) * kidsPerChain
