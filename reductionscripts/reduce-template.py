@@ -22,9 +22,10 @@ flagJumps    = False        # Flag jumps/spikes in the data:
 smoothby_arcsec = 8.        # Default 8. arcsec
 
 # ----- Scans ------
-# If empty, automatically retrieves all scans of source from Obslogs
-# NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
+# If empty, automatically retrieves all scans of source from specified
+# obslogs dir.
 scans = []
+obslogsdir = '~/obslogs'
 
 # Manually exclude bad scans if needed            
 badscans = []
@@ -65,8 +66,50 @@ if system not in ['EQ', 'GAL', 'HO']:
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
-# find scans if not provided (TO-DO)
-#if len(scans) == 0:
+# find scans if not provided
+if len(scans) == 0 and os.path.exists(obslogsdir):
+    files = os.listdir(obslogsdir)
+    for file in files:
+        f = open(file,'r')
+        lines = f.readlines()
+        index = 0
+        start = False
+        keys = []
+        for index in range(len(lines)):
+            line = lines[index]
+            if line[0:4]=='<th>':
+                keys.append(line[4:-6])
+                index+=1
+            elif line[0:4]=='<tr>':
+                start=True
+                index+=1    
+            elif line[0:5]=='</tr>':
+                index+=1
+            else:
+                index+=1
+            if start:
+                message=''   
+                scan=0 
+                for key in keys:
+                    line=lines[index]
+                    index+=1 
+                    if key=='Scan' :
+                        scan=int(line[4:-6])
+                        message+=(line[4:-6] + ' , ')
+                    if key=='Source':
+                        message+=(line[4:-6].ljust(12) + ' , ')               
+                    if key== 'Scan status':
+                        message+=(line[4:-6] + ' , ')
+                    if key=='Scan type':
+                        message+=(line[4:-6].ljust(6) + ' , ')
+                    if key=='Comment':
+                        message+=(line[4:-6].ljust(20) )               
+                start = False
+                if source in message:
+                    print('Adding scan #%i of source %i'%(scan, source))
+                    scans.append(scan)
+
+assert False, 'Temporary script stop'
 
 # Define myname variable
 myname = str(fe) + "-" + str(source) + "-" + str(system)
