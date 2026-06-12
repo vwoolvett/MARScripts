@@ -189,6 +189,8 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     #             windowflag[windowidx, kididx_here] = False
 
 
+    windowflag2 = copy.deepcopy(windowflag)
+
     # NOTE: TAKE 3: COMPARE ADJACENT WINDOWS TOO (WORKS BEST)
     info('Cross-checking tones...')
     for windowidx in range(len(windows_tstart)):
@@ -215,7 +217,11 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         # otherwise, it's not a spike and we should not flag
         if not should_this_window_be_flagged:
             # Not real spike
-            windowflag[windowidx, :] = False
+            windowflag2[windowidx, :] = False
+
+    # re-create windowflag and save memory
+    windowflag = windowflag2
+    windowflag2 = None
 
     # inizialize data flagging array
     # if blindtones are ignored in process, flag is false for all blindtones so they will not be affected
