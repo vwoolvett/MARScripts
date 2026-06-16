@@ -138,6 +138,9 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
     # If nothing was found, break script
     if len(scans) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+    
+# sort scans
+scans = scans.sort()
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:

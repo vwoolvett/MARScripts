@@ -54,7 +54,7 @@ badscans = []  #[27979, 28217, 28498]
 # Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
 # Coverage_smoothed = Kernel * Coverage
 
-# NOTE 2: redweak still uses smoothBy!
+# NOTE 2: redweak still uses smoothBy! removed smoothing in redweak
 import warnings
 import copy as copy
 import BoaMapping as BOAMAP
@@ -135,30 +135,29 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                     else:
                         message += 'SCAN DISCARDED'
                         print(message)
-
-# If nothing was found, break script
-if len(scans) == 0:
-    raise ValueError('No scans of source %s found in %s!'%(source, obslogsdir))
-
-# Define myname variable
-myname = str(fe) + "-" + str(source) + "-" + str(system)
-if flagJumps:
-    myname += "-flagJumps"
-
-# Create map bounds
-if center[0] > 180:
-    warn('Center X is greater than 180 deg, transforming to -180 to 180 deg...')
-    center[0] -= 360
-
-# map bounds in absolute EQ, GAL or HO coordinates in deg
-xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]
-ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
+    # If nothing was found, break script
+    if len(scans) == 0:
+        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+    
+# sort scans
+scans = scans.sort()
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
 
+# Define standardized "myname" variable for output files
+myname = str(fe) + "-" + str(source) + "-" + str(system)
+if flagJumps:
+    myname += "-flagJumps"
+
+# Create map bounds, for EQ or GAL first
+ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
+xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]  # Bigger number first
+if system =='HO':
+    # Invert X boundaries back to normal
+    xsize = [xsize[1], xsize[0]]
 
 print('''\
 =====================
