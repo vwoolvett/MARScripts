@@ -28,7 +28,7 @@ scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
-badscans = []  #[27979, 28217, 28498]
+badscans = [27973, 27979, 28217, 28498]
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -112,7 +112,7 @@ def findSciTargetScans(source, obslogsdir):
 
                 if source in message:
                     if 'OK' in message:
-                        message += 'SCAN WILL BE DISPLAYED'
+                        message += 'SCAN CONSIDERED'
                         print(message)
                         scanlist.append(scan)
                     else:

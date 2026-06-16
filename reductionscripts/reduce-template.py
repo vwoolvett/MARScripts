@@ -112,7 +112,7 @@ def findSciTargetScans(source, obslogsdir):
 
                 if source in message:
                     if 'OK' in message:
-                        message += 'SCAN WILL BE DISPLAYED'
+                        message += 'SCAN CONSIDERED'
                         print(message)
                         scanlist.append(scan)
                     else:
