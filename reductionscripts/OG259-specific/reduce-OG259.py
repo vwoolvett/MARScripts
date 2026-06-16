@@ -26,11 +26,11 @@ smoothby_arcsec = 8.        # Default 8. arcsec
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
-scans = []
+scans = [27974]  # 27974 is first
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
-badscans = [] # [27979, 27991, 28217, 28498]
+badscans = [27979, 27991, 28217, 28498] 
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -119,6 +119,7 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
     # If nothing was found, break script
     if len(scanlist) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+    scanlist.sort()
     print('')
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     print('')
