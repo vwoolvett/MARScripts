@@ -14,6 +14,8 @@ doPlot  = True              # Display maps at each scan. If False, only final
                             # coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
+# SUGGESTED: run with niters=1, figure out bad scans using showMaps.py and then
+# run with niters=2 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
 niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
@@ -33,8 +35,6 @@ badscans = []
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
-
 
 
 
