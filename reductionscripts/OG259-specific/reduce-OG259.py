@@ -180,7 +180,7 @@ def auxsmoothby(m, Size):
     pixsize = abs(m.WCS['CDELT2'])
     K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
     K2 = K**2
-    print('sum(K) = %.3f'np.sum(K))
+    print('sum(K) = %.3f'%np.sum(K))
     print('sum(K**2) = %.3f'%np.sum(K2))
 
     # Smooth INTENSITY (same as BoA)
