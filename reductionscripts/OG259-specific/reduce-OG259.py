@@ -15,7 +15,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 
 # ----- Reduction parameters -----
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True         # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
@@ -28,7 +28,7 @@ scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
-badscans = [27973, 27979, 28217, 28498]
+badscans = [] #[27991, 27979, 28217, 28498]
 
 # ==============================
 # ===== END OF USER INUPUT =====
