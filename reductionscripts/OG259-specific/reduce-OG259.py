@@ -3,10 +3,10 @@
 # =================================
 
 # --- Source and map parameters ---
-source  = 'OG259'         # As in observing logs
+source  = 'OG259'           # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'              # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center  = [259.3, -1.4]            # Center of map in CHOSEN COORDINATES in deg
+system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center  = [259.3, -1.4]     # Center of map in CHOSEN COORDINATES in deg
 sizex   = 1.5               # Size of map in deg for X direction
 sizey   = 1.5               # Size of map in deg for Y direction
 padding = 0.5               # Padding around the map in deg for grid (default ~ 2x array)
@@ -17,7 +17,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 writeSummary = True         # Write summary of reductions or not
 niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
-flagJumps    = True        # Flag jumps/spikes in the data:
+flagJumps    = True         # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
 smoothby_arcsec = 8.        # Default 8. arcsec
 
@@ -25,7 +25,7 @@ smoothby_arcsec = 8.        # Default 8. arcsec
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
-obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/PROJECT-CODE-IN-CAPS'
+obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT-CODE-IN-CAPS'
 
 # Manually exclude bad scans if needed            
 badscans = []  #[27979, 28217, 28498]
