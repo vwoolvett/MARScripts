@@ -69,7 +69,7 @@ if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
 # define the good functions :)
-def findSciTargetScans(source, obslogsdir):
+def findSciTargetScans(source, obslogsdir, verbose=False):
     scanlist = []
     files = os.listdir(obslogsdir)
     for file in files:
@@ -101,19 +101,18 @@ def findSciTargetScans(source, obslogsdir):
                         scan=int(line[4:-6])
                         message+=(line[4:-6].ljust(6) + ' | ')
                     if key == 'Source':
-                        message+=(line[4:-6].ljust(12) + ' | ')               
-                    if key == 'Scan status':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        message+=(line[4:-6].ljust(12) + ' | ')       
                     if key == 'Scan type':
-                        message+=(line[4:-6].ljust(12) + ' | ')
-                    #if key=='Comment':
-                    #    message+=(line[4:-6].ljust(20))              
+                        message+=(line[4:-6].ljust(12) + ' | ')        
+                    if key == 'Scan status':
+                        message+=(line[4:-6].ljust(12) + ' | ') 
                 start = False
 
-                if source in message:
-                    if 'OK' in message and 'MAP' in message:
+                if source in message.split('|')[1]:
+                    if 'MAP' in message.split('|')[2] and 'OK' in message.split('|')[3]:
                         message += 'SCAN CONSIDERED'
-                        print(message)
+                        if verbose:
+                            print(message)
                         scanlist.append(scan)
                     else:
                         message += 'SCAN DISCARDED'
