@@ -180,6 +180,8 @@ def auxsmoothby(m, Size):
     pixsize = abs(m.WCS['CDELT2'])
     K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
     K2 = K**2
+    print('sum(K) = %.3f'np.sum(K))
+    print('sum(K**2) = %.3f'%np.sum(K2))
 
     # Smooth INTENSITY (same as BoA)
     I1 = fMap.ksmooth(m.Data, K)
@@ -195,8 +197,8 @@ def auxsmoothby(m, Size):
     # new scale per beam for Jy/beam units
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
-    I1 *= scale  # now in Jy/newbeam
-    V1 *= scale**2  # now in Jy/newbeam
+    I1 *= scale  # now in Jy/newbeam such that integrating gives same Jy
+    V1 *= scale**2  # now in Jy/newbeam such that integrating gives same Jy
 
     # Conversion from pixel-based to beam-based
     #factorI = np.sum(K)  # equal to 1
