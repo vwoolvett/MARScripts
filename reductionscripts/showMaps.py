@@ -18,11 +18,15 @@ smoothby_arcsec = 8.        # Default 8. arcsec. Use same smoothing as reduction
 scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
 
-
-
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
+
+
+
+
+
+
 
 
 
