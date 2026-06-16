@@ -126,7 +126,7 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
 
 
 
-def auxsmoothby(m, Size):
+def auxsmoothby_old(m, Size):
     '''
     BoA-like smoothing but with correct variance propagation.
 
@@ -162,6 +162,55 @@ def auxsmoothby(m, Size):
     # Update map with correct Jy/beam scale
     m.Data = I1 * scale
     m.Weight = W1 / scale**2
+    m.Coverage = C1
+    m.BeamSize = newbeam
+
+
+
+def auxsmoothby(m, Size):
+    '''
+    BoA-like smoothing but with correct variance propagation.
+
+    - Data: convolved with K
+    - Weight: propagated via variance (K^2)
+    - Coverage: convolved with K (same as BoA)
+    '''
+    # Build kernel
+    pixsize = abs(m.WCS['CDELT2'])
+    K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+    K2 = K**2
+
+    # Smooth INTENSITY (same as BoA)
+    I1 = fMap.ksmooth(m.Data, K)
+
+    # Correct variance propagation for weights
+    #    V' = K^2 * V
+    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
+    V1 = fMap.ksmooth(V0, K2)
+
+    # Smooth COVERAGE (same as BoA)
+    C1 = fMap.ksmooth(m.Coverage, K)
+    
+    # new scale per beam for Jy/beam units
+    newbeam = np.sqrt(m.BeamSize**2 + Size**2)
+    scale = (newbeam**2 / m.BeamSize**2)
+    I1 *= scale  # now in Jy/newbeam
+    V1 *= scale**2  # now in Jy/newbeam
+
+    # Conversion from pixel-based to beam-based
+    factorI = np.sum(K)  # equal to 1
+    print('FACTOR I: %.3f'%factorI)
+    factorV = np.sum(K2)  # smaller than 1
+    print('FACTOR V: %.3f'%factorV)
+    I1 *= factorI
+    V1 *= factorV
+    
+    # re-create weight map from variance
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
+
+    # Update map
+    m.Data = I1
+    m.Weight = W1
     m.Coverage = C1
     m.BeamSize = newbeam
 
