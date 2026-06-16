@@ -121,7 +121,9 @@ def findSciTargetScans(source, obslogsdir):
     # If nothing was found, break script
     if len(scanlist) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
-    info("\n Number of 'MAP' scans on science target %s: %i\n"%(source, len(scanlist)))
+    print('')
+    info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
+    print('')
     return scanlist
 
 
