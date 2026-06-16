@@ -94,11 +94,10 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                 if source in message.split('|')[1]:
                     if 'MAP' in message.split('|')[2] and 'OK' in message.split('|')[3]:
                         message += 'SCAN CONSIDERED'
-                        if verbose:
-                            print(message)
                         scanlist.append(scan)
                     else:
                         message += 'SCAN DISCARDED'
+                    if verbose:
                         print(message)
     # If nothing was found, break script
     if len(scanlist) == 0:
