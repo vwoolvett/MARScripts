@@ -111,7 +111,7 @@ def findSciTargetScans(source, obslogsdir):
                 start = False
 
                 if source in message:
-                    if 'OK' in message:
+                    if 'OK' in message and 'MAP' in message:
                         message += 'SCAN CONSIDERED'
                         print(message)
                         scanlist.append(scan)
@@ -121,6 +121,7 @@ def findSciTargetScans(source, obslogsdir):
     # If nothing was found, break script
     if len(scanlist) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+    info("\n Number of 'MAP' scans on science target %s: %i\n"%(source, len(scanlist)))
     return scanlist
 
 
