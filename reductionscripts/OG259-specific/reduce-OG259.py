@@ -129,7 +129,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
 
                 if source in message:
                     if 'OK' in message:
-                        message += 'SCAN WILL BE REDUCED'
+                        message += 'SCAN WILL BE DISPLAYED'
                         print(message)
                         scans.append(scan)
                     else:
@@ -140,7 +140,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
     
 # sort scans
-scans = scans.sort()
+scans.sort()
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:

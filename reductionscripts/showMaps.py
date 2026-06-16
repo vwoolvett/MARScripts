@@ -129,7 +129,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
     
 # sort scans
-scans = scans.sort()
+scans.sort()
     
 # define the good functions :)
 def auxsmoothby(m, Size=smoothby_deg):
