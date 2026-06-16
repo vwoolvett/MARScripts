@@ -68,6 +68,20 @@ if system not in ['EQ', 'GAL', 'HO']:
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
+# find project home folder based on where MARS loaded and re-define obslogsdir
+if obslogsdir == '~/obslogs'
+    currdir = os.getcwd()
+    splitted = currdir.split('/')
+    projectidx = None
+    for i in range(len(splitted)):
+        # project code is separated once with dot and thrice with dash
+        if len(splitted[i].split('.'))==2 and len(splitted[i].split('-')==4):
+            projectidx = i
+    if projectidx != None:
+        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
+    else:
+        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
+
 if len(scans) == 0 and not os.path.exists(obslogsdir):
     raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
 
