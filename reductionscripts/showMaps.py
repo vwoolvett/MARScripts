@@ -64,7 +64,7 @@ if obslogsdir == '~/obslogs':
     projectidx = None
     for i in range(len(splitted)):
         # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.'))==2 and len(splitted[i].split('-')==4):
+        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
             projectidx = i
     if projectidx != None:
         obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
