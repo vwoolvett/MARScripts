@@ -13,9 +13,10 @@ flagJumps = False           # Whether the maps to show were de-jumped with
 smoothby_arcsec = 8.        # Default 8. arcsec. Use same smoothing as reduction.
 
 # ----- Scans ------
-# If empty, automatically retrieves all scans of source from Obslogs
-# NOTE: CURRENTLY NOT FUNCTIONAL, PLEASE MANUALLY INPUT SCAN NUMBERS
+# If scans is empty, automatically retrieves all scans of the source
+# specified above from the obslogs directory below
 scans = []
+obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
 
 
 
@@ -91,6 +92,63 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Weight = W1 / scale**2
     m.Coverage = C1
     m.BeamSize = newbeam
+
+if len(scans) == 0 and not os.path.exists(obslogsdir):
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
+
+# find scans if not provided
+info('Retrieving source scan numbers from ObsLogs...')
+if len(scans) == 0 and os.path.exists(obslogsdir):
+    files = os.listdir(obslogsdir)
+    for file in files:
+        fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
+        f = open(fullfilename,'r')
+        lines = f.readlines()
+        index = 0
+        start = False
+        keys = []
+        for index in range(len(lines)):
+            line = lines[index]
+            if line[0:4]=='<th>':
+                keys.append(line[4:-6])
+                index+=1
+            elif line[0:4]=='<tr>':
+                start=True
+                index+=1    
+            elif line[0:5]=='</tr>':
+                index+=1
+            else:
+                index+=1
+            if start:
+                message=''
+                scan=0 
+                for key in keys:
+                    line=lines[index]
+                    index+=1 
+                    if key == 'Scan':
+                        scan=int(line[4:-6])
+                        message+=(line[4:-6].ljust(6) + ' | ')
+                    if key == 'Source':
+                        message+=(line[4:-6].ljust(12) + ' | ')               
+                    if key == 'Scan status':
+                        message+=(line[4:-6].ljust(12) + ' | ')
+                    if key == 'Scan type':
+                        message+=(line[4:-6].ljust(12) + ' | ')
+                    #if key=='Comment':
+                    #    message+=(line[4:-6].ljust(20))              
+                start = False
+
+                if source in message:
+                    if 'OK' in message:
+                        message += 'SCAN WILL BE DISPLAYED'
+                        print(message)
+                        scans.append(scan)
+                    else:
+                        message += 'SCAN DISCARDED'
+                        print(message)
+    # If nothing was found, break script
+    if len(scans) == 0:
+        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
