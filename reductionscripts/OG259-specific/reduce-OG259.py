@@ -199,12 +199,12 @@ def auxsmoothby(m, Size):
     V1 *= scale**2  # now in Jy/newbeam
 
     # Conversion from pixel-based to beam-based
-    factorI = np.sum(K)  # equal to 1
-    print('FACTOR I: %.3f'%factorI)
-    factorV = np.sum(K2)  # smaller than 1
-    print('FACTOR V: %.3f'%factorV)
-    I1 *= factorI
-    V1 *= factorV
+    #factorI = np.sum(K)  # equal to 1
+    #print('FACTOR I: %.3f'%factorI)
+    #factorV = np.sum(K2)  # smaller than 1
+    #print('FACTOR V: %.3f'%factorV)
+    #I1 *= factorI
+    #V1 *= factorV
     
     # re-create weight map from variance
     W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
