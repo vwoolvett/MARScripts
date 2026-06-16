@@ -266,6 +266,9 @@ if flagJumps:
     myname += "-flagJumps"
 
 # Create map bounds, for EQ or GAL first
+if center[0] > 180:
+    warn('Center X is greater than 180 deg, transforming to -180 to 180 deg...')
+    center[0] -= 360
 ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
 xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]  # Bigger number first
 if system =='HO':
