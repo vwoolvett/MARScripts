@@ -197,7 +197,7 @@ def auxsmoothby(m, Size):
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
     #V1 = fMap.ksmooth(V0, K2) * factor4var  # re-normalize
     R0 = np.sqrt(V0)
-    R1 = fmap.ksmooth(R0, K)  # convolve RMS map?
+    R1 = fMap.ksmooth(R0, K)  # convolve RMS map?
     V1 = R1**2
 
     # Smooth COVERAGE (same as BoA)
