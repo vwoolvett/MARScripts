@@ -3,12 +3,12 @@
 # =================================
 
 # --- Source and map parameters ---
-source    = 'SrcName'       # As in observing logs
+source    = 'OG259'       # As in observing logs
 fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
-system    = 'EQ'            # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
-iter      = 2               # Which iteration of the reduction to show (usual 1-2)
-show      = 'noise'         # Show Noise (noise), Signal (sig), or SNR (snr)
-flagJumps = False           # Whether the maps to show were de-jumped with
+system    = 'GAL'            # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
+iter      = 1               # Which iteration of the reduction to show (usual 1-2)
+show      = 'sig'         # Show Noise (noise), Signal (sig), or SNR (snr)
+flagJumps = True           # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
 smoothby_arcsec = 8.        # Default 8. arcsec. Use same smoothing as reduction.
 

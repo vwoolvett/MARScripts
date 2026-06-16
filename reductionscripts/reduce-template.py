@@ -25,7 +25,7 @@ smoothby_arcsec = 8.        # Default 8. arcsec
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
-obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
+obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
 badscans = []
@@ -69,7 +69,7 @@ if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
 # find project home folder based on where MARS loaded and re-define obslogsdir
-if obslogsdir == '~/obslogs'
+if obslogsdir == '~/obslogs':
     currdir = os.getcwd()
     splitted = currdir.split('/')
     projectidx = None
