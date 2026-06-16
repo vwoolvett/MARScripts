@@ -77,53 +77,53 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 # find scans if not provided
 info('Retrieving source scan numbers from ObsLogs...')
 if len(scans) == 0 and os.path.exists(obslogsdir):
-    files = os.listdir(obslogsdir)
-    for file in files:
-        fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
-        f = open(fullfilename,'r')
-        lines = f.readlines()
-        index = 0
-        start = False
-        keys = []
-        for index in range(len(lines)):
-            line = lines[index]
-            if line[0:4]=='<th>':
-                keys.append(line[4:-6])
-                index+=1
-            elif line[0:4]=='<tr>':
-                start=True
-                index+=1    
-            elif line[0:5]=='</tr>':
-                index+=1
+    myfiles = os.listdir(obslogsdir)
+    for file in myfiles:
+        myfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
+        myf = open(myfilename,'r')
+        mylines = myf.readlines()
+        myindex = 0
+        mystart = False
+        mykeys = []
+        for myindex in range(len(mylines)):
+            myline = mylines[myindex]
+            if myline[0:4]=='<th>':
+                mykeys.append(myline[4:-6])
+                myindex+=1
+            elif myline[0:4]=='<tr>':
+                mystart=True
+                myindex+=1    
+            elif myline[0:5]=='</tr>':
+                myindex+=1
             else:
-                index+=1
-            if start:
-                message=''
-                scan=0 
-                for key in keys:
-                    line=lines[index]
-                    index+=1 
-                    if key == 'Scan':
-                        scan=int(line[4:-6])
-                        message+=(line[4:-6].ljust(6) + ' | ')
-                    if key == 'Source':
-                        message+=(line[4:-6].ljust(12) + ' | ')               
-                    if key == 'Scan status':
-                        message+=(line[4:-6].ljust(12) + ' | ')
-                    if key == 'Scan type':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                myindex+=1
+            if mystart:
+                mymessage=''
+                myscan=0 
+                for mykey in mykeys:
+                    myline=mylines[myindex]
+                    myindex+=1 
+                    if mykey == 'Scan':
+                        myscan=int(myline[4:-6])
+                        mymessage+=(myline[4:-6].ljust(6) + ' | ')
+                    if mykey == 'Source':
+                        mymessage+=(myline[4:-6].ljust(12) + ' | ')               
+                    if mykey == 'Scan status':
+                        mymessage+=(myline[4:-6].ljust(12) + ' | ')
+                    if mykey == 'Scan type':
+                        mymessage+=(myline[4:-6].ljust(12) + ' | ')
                     #if key=='Comment':
                     #    message+=(line[4:-6].ljust(20))              
-                start = False
+                mystart = False
 
-                if source in message:
-                    if 'OK' in message:
-                        message += 'SCAN WILL BE DISPLAYED'
-                        print(message)
-                        scans.append(scan)
+                if source in mymessage:
+                    if 'OK' in mymessage:
+                        mymessage += 'SCAN WILL BE DISPLAYED'
+                        print(mymessage)
+                        scans.append(myscan)
                     else:
-                        message += 'SCAN DISCARDED'
-                        print(message)
+                        mymessage += 'SCAN DISCARDED'
+                        print(mymessage)
     # If nothing was found, break script
     if len(scans) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
