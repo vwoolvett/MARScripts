@@ -21,7 +21,7 @@ niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True         # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
-smoothby_arcsec = 8.        # Default 8. arcsec
+smoothby_arcsec = 16.        # Default 8. arcsec
 
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
@@ -183,12 +183,10 @@ def auxsmoothby(m, Size):
     K2 = K**2
     sumK2 = np.sum(K2)
     factor4var = sumK2 / sumK**2
-    factor4rms = factor4var**0.5
 
     print('sum(K) = %.3f'%sumK)
     print('sum(K**2) = %.3f'%sumK2)
     print('factor4var = %.3f'%factor4var)
-    print('factor4rms = %.3f'%factor4rms)
 
     # Smooth INTENSITY (same as BoA)
     I1 = fMap.ksmooth(m.Data, K)
@@ -196,7 +194,7 @@ def auxsmoothby(m, Size):
     # Correct variance propagation for weights
     #    V' = K^2 * V
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = fMap.ksmooth(V0, K2) * factor4var
+    V1 = fMap.ksmooth(V0, K2) * factor4var  # re-normalize
 
     # Smooth COVERAGE (same as BoA)
     C1 = fMap.ksmooth(m.Coverage, K)
@@ -204,8 +202,8 @@ def auxsmoothby(m, Size):
     # new scale per beam for Jy/beam units
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
-    I1 *= scale  # now in Jy/newbeam such that integrating gives same Jy
-    V1 *= scale**2  # now in Jy/newbeam such that integrating gives same Jy
+    I1 *= scale  # now in Jy/newbeam
+    V1 *= scale**2  # now in Jy^2/newbeam^2
 
     # Conversion from pixel-based to beam-based
     #factorI = np.sum(K)  # equal to 1
