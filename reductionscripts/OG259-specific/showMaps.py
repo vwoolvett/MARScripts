@@ -43,40 +43,17 @@ import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
-# Define myname variable
-myname = str(fe) + "-" + str(source) + "-" + str(system)
-if flagJumps:
-    myname += "-flagJumps"
+# variable checks
+if fe not in ['LFA', 'HFA']:
+    raise ValueError("fe must be either 'LFA' or 'HFA'.")
+if system not in ['EQ', 'GAL', 'HO']:
+    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
+if iter < 1 or iter > 3:
+    raise ValueError("iter must be 1, 2, or 3.")
 
-# display message
-msg = '''\
-Show next map:      Enter
-Quit:               q
-'''
-
-# smoothby to deg
-smoothby_deg = smoothby_arcsec / 3600.
-
-# find project home folder based on where MARS loaded and re-define obslogsdir
-if obslogsdir == '~/obslogs':
-    currdir = os.getcwd()
-    splitted = currdir.split('/')
-    projectidx = None
-    for i in range(len(splitted)):
-        # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
-            projectidx = i
-    if projectidx != None:
-        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
-    else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
-
-if len(scans) == 0 and not os.path.exists(obslogsdir):
-    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
-
-# find scans if not provided
-info('Retrieving source scan numbers from ObsLogs...')
-if len(scans) == 0 and os.path.exists(obslogsdir):
+# define the good functions :)
+def findSciTargetScans(source, obslogsdir):
+    scanlist = []
     files = os.listdir(obslogsdir)
     for file in files:
         fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
@@ -120,18 +97,17 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                     if 'OK' in message:
                         message += 'SCAN WILL BE DISPLAYED'
                         print(message)
-                        scans.append(scan)
+                        scanlist.append(scan)
                     else:
                         message += 'SCAN DISCARDED'
                         print(message)
     # If nothing was found, break script
-    if len(scans) == 0:
+    if len(scanlist) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
-    
-# sort scans
-scans.sort()
-    
-# define the good functions :)
+    return scanlist
+
+
+
 def auxsmoothby(m, Size=smoothby_deg):
     '''
     BoA-like smoothing but with correct variance propagation.
@@ -171,6 +147,50 @@ def auxsmoothby(m, Size=smoothby_deg):
     m.Coverage = C1
     m.BeamSize = newbeam
 
+
+
+# find project home folder based on where MARS loaded and re-define obslogsdir
+if obslogsdir == '~/obslogs':
+    currdir = os.getcwd()
+    splitted = currdir.split('/')
+    projectidx = None
+    for i in range(len(splitted)):
+        # project code is separated once with dot and thrice with dash
+        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
+            projectidx = i
+    if projectidx != None:
+        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
+    else:
+        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
+
+if len(scans) == 0 and not os.path.exists(obslogsdir):
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
+
+# find scans if not provided
+if len(scans) == 0 and os.path.exists(obslogsdir):
+    info('Retrieving source scan numbers from ObsLogs...')
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
+    
+# sort scans
+scans.sort()
+
+# Define myname variable
+myname = str(fe) + "-" + str(source) + "-" + str(system)
+if flagJumps:
+    myname += "-flagJumps"
+
+# smoothby to deg
+smoothby_deg = smoothby_arcsec / 3600.
+
+# display message
+msg = '''\
+Show next map:      Enter
+Quit:               q
+'''
+
+# =============================
+# Beginning of map display loop
+# =============================
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for i,scan in enumerate(scans):

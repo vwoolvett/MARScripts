@@ -68,26 +68,9 @@ if system not in ['EQ', 'GAL', 'HO']:
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 
-# find project home folder based on where MARS loaded and re-define obslogsdir
-if obslogsdir == '~/obslogs':
-    currdir = os.getcwd()
-    splitted = currdir.split('/')
-    projectidx = None
-    for i in range(len(splitted)):
-        # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
-            projectidx = i
-    if projectidx != None:
-        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
-    else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
-
-if len(scans) == 0 and not os.path.exists(obslogsdir):
-    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
-
-# find scans if not provided
-info('Retrieving source scan numbers from ObsLogs...')
-if len(scans) == 0 and os.path.exists(obslogsdir):
+# define the good functions :)
+def findSciTargetScans(source, obslogsdir):
+    scanlist = []
     files = os.listdir(obslogsdir)
     for file in files:
         fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
@@ -131,70 +114,17 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                     if 'OK' in message:
                         message += 'SCAN WILL BE DISPLAYED'
                         print(message)
-                        scans.append(scan)
+                        scanlist.append(scan)
                     else:
                         message += 'SCAN DISCARDED'
                         print(message)
     # If nothing was found, break script
-    if len(scans) == 0:
+    if len(scanlist) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
-    
-# sort scans
-scans.sort()
+    return scanlist
 
-# Remove bad scans from the list of scans to be reduced
-for badscan in badscans:
-    if badscan in scans:
-        scans.remove(badscan)
 
-# Define standardized "myname" variable for output files
-myname = str(fe) + "-" + str(source) + "-" + str(system)
-if flagJumps:
-    myname += "-flagJumps"
 
-# Create map bounds, for EQ or GAL first
-ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
-xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]  # Bigger number first
-if system =='HO':
-    # Invert X boundaries back to normal
-    xsize = [xsize[1], xsize[0]]
-
-print('''\
-=====================
-Reduction parameters:
-=====================
-Source:             %s
-Frontend:           %s
-Coordinate system:  %s
-Map center:         %s, %s deg
-Map size (x,y):     %s, %s deg
-Padding:            %s deg
-Map Boundaries:     %s, %s deg in x; %s, %s deg in y
-Iterations:         %i
-Sigmaclip level:    %s
-Flag jumps:         %s
-Smoothing:          %s arcsec'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
-     xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
-     smoothby_arcsec))
-
-# Set noPlot
-if not doPlot:
-    noPlot = True
-else:
-    noPlot = False
-
-# Create directory for reduced files if it doesn't exist
-if os.path.exists("ReducedFiles") == False:
-    os.makedirs("ReducedFiles")
-
-# Create directory for reduced files if it doesn't exist
-if writeSummary and os.path.exists("Summaries") == False:
-    os.makedirs("Summaries")
-
-# smoothby to deg
-smoothby_deg = smoothby_arcsec / 3600.
-
-# define the good functions :)
 def auxsmoothby(m, Size=smoothby_deg):
     '''
     BoA-like smoothing but with correct variance propagation.
@@ -296,6 +226,84 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         rmsMap = 0
         dataset = 0
 
+
+
+# find project home folder based on where MARS loaded and re-define obslogsdir
+if obslogsdir == '~/obslogs':
+    currdir = os.getcwd()
+    splitted = currdir.split('/')
+    projectidx = None
+    for i in range(len(splitted)):
+        # project code is separated once with dot and thrice with dash
+        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
+            projectidx = i
+    if projectidx != None:
+        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
+    else:
+        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
+
+if len(scans) == 0 and not os.path.exists(obslogsdir):
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
+
+# find scans if not provided
+if len(scans) == 0 and os.path.exists(obslogsdir):
+    info('Retrieving source scan numbers from ObsLogs...')
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
+    
+# sort scans
+scans.sort()
+
+# Remove bad scans from the list of scans to be reduced
+for badscan in badscans:
+    if badscan in scans:
+        scans.remove(badscan)
+
+# Define standardized "myname" variable for output files
+myname = str(fe) + "-" + str(source) + "-" + str(system)
+if flagJumps:
+    myname += "-flagJumps"
+
+# Create map bounds, for EQ or GAL first
+ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
+xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]  # Bigger number first
+if system =='HO':
+    # Invert X boundaries back to normal
+    xsize = [xsize[1], xsize[0]]
+
+# Set noPlot
+if not doPlot:
+    noPlot = True
+else:
+    noPlot = False
+
+# Create directory for reduced files if it doesn't exist
+if os.path.exists("ReducedFiles") == False:
+    os.makedirs("ReducedFiles")
+
+# Create directory for reduced files if it doesn't exist
+if writeSummary and os.path.exists("Summaries") == False:
+    os.makedirs("Summaries")
+
+# smoothby to deg
+smoothby_deg = smoothby_arcsec / 3600.
+
+print('''\
+=====================
+Reduction parameters:
+=====================
+Source:             %s
+Frontend:           %s
+Coordinate system:  %s
+Map center:         %s, %s deg
+Map size (x,y):     %s, %s deg
+Padding:            %s deg
+Map Boundaries:     %s, %s deg in x; %s, %s deg in y
+Iterations:         %i
+Sigmaclip level:    %s
+Flag jumps:         %s
+Smoothing:          %s arcsec'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
+     xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
+     smoothby_arcsec))
 
 # ===========================
 # Beginning of reduction loop
