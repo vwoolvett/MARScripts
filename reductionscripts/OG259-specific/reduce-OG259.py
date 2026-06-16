@@ -179,9 +179,16 @@ def auxsmoothby(m, Size):
     # Build kernel
     pixsize = abs(m.WCS['CDELT2'])
     K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+    sumK = np.sum(K)
     K2 = K**2
-    print('sum(K) = %.3f'%np.sum(K))
-    print('sum(K**2) = %.3f'%np.sum(K2))
+    sumK2 = np.sum(K2)
+    factor4var = sumK2 / sumK**2
+    factor4rms = factor4var**0.5
+
+    print('sum(K) = %.3f'%sumK)
+    print('sum(K**2) = %.3f'%sumK2)
+    print('factor4var = %.3f'%factor4var)
+    print('factor4rms = %.3f'%factor4rms)
 
     # Smooth INTENSITY (same as BoA)
     I1 = fMap.ksmooth(m.Data, K)
@@ -189,7 +196,7 @@ def auxsmoothby(m, Size):
     # Correct variance propagation for weights
     #    V' = K^2 * V
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = fMap.ksmooth(V0, K2)
+    V1 = fMap.ksmooth(V0, K2) * factor4var
 
     # Smooth COVERAGE (same as BoA)
     C1 = fMap.ksmooth(m.Coverage, K)
