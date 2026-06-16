@@ -125,7 +125,7 @@ def findSciTargetScans(source, obslogsdir):
 
 
 
-def auxsmoothby(m, Size=smoothby_deg):
+def auxsmoothby(m, Size):
     '''
     BoA-like smoothing but with correct variance propagation.
 
