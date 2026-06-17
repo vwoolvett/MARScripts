@@ -110,13 +110,14 @@ with warnings.catch_warnings():
         # Extract file name of corresponding map
         mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter) + ".data"
         mycoadded_fullfname = "ReducedFiles/" + mycoadded_fname
+        globlist = glob(mycoadded_fullfname)
 
         # Try to retrieve it
-        try:
+        if len(globlist) != 0:
             info('Loading map in file:')
             print(mycoadded_fullfname)
             ms = restoreFile(mycoadded_fullfname)
-        except:
+        else:
             print('File %s not found!'%mycoadded_fullfname)
             continue
         print('')
