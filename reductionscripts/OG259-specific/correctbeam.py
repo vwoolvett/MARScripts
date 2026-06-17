@@ -153,6 +153,12 @@ ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
 # All that's left to do is correct the written beam size
 ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
 
+print('CURRENT BEAM:           %.3f "'%UNCORRECTED_CONVOLVED_FWHM)
+print('SMOOTHING WAS:          %.3f "'%smoothby_arcsec)
+print('ESTIMATED NATIVE BEAM:  %.3f "'%UNCORRECTED_NATIVE_FWHM)
+print('NATIVE AMKID BEAM:      %.3f "'%CORRECT_NATIVE_FWHM)
+print('FINAL BEAM IS:          %.3f "'%CORRECT_CONVOLVED_FWHM)
+
 # now export to fits
 if os.path.exists('BeamCorrected') == False:
     os.makedirs("BeamCorrected")
