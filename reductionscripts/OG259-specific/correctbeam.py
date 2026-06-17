@@ -114,8 +114,7 @@ except:
     print('File %s not found!'%mycoadded_fullfname)
 
 # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
-UNCORRECTED_CONVOLVED_FWHM = float(ms.BeamSize)
-print(type(UNCORRECTED_CONVOLVED_FWHM))
+UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
 
 # If map was smoothed
 if smoothby_arcsec > 0.0:
@@ -157,11 +156,11 @@ ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
 # All that's left to do is correct the written beam size
 ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
 
-print('CURRENT BEAM:           %.3f "'%UNCORRECTED_CONVOLVED_FWHM*3600.)
-print('SMOOTHING WAS:          %.3f "'%smoothby_deg*3600.)
-print('ESTIMATED NATIVE BEAM:  %.3f "'%UNCORRECTED_NATIVE_FWHM*3600.)
-print('NATIVE AMKID BEAM:      %.3f "'%CORRECT_NATIVE_FWHM*3600.)
-print('FINAL BEAM IS:          %.3f "'%CORRECT_CONVOLVED_FWHM*3600.)
+print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
+print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
+print('ESTIMATED NATIVE BEAM:  %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
+print('NATIVE AMKID BEAM:      %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
+print('FINAL BEAM IS:          %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
 
 # now export to fits
 if os.path.exists('BeamCorrected') == False:
