@@ -167,7 +167,10 @@ with warnings.catch_warnings():
     print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
     print('ESTIMATED NATIVE BEAM:  %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
     print('NATIVE AMKID BEAM:      %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
-    print('FINAL BEAM IS:          %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
+    print('')
+    print('IMAGE WAS RESCALED BY: x%.3f'%(correct_scale/uncorrected_scale))
+    print('AND FINAL BEAM IS:      %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
+    print('')
 
     # now export to fits
     if os.path.exists('BeamCorrected') == False:
