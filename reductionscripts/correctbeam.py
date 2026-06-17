@@ -105,7 +105,7 @@ if flagJumps:
     myname += "-flagJumps"
 
 # Extract file name of corresponding map
-mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
+mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter) + ".data"
 mycoadded_fullfname = "ReducedFiles/" + mycoadded_fname
 
 with warnings.catch_warnings():
