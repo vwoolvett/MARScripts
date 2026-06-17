@@ -114,7 +114,7 @@ except:
     print('File %s not found!'%mycoadded_fullfname)
 
 # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
-UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
+UNCORRECTED_CONVOLVED_FWHM = float(ms.BeamSize)
 print(type(UNCORRECTED_CONVOLVED_FWHM))
 
 # If map was smoothed
