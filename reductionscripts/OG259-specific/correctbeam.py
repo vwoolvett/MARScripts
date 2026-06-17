@@ -36,8 +36,8 @@ if fe not in ['LFA', 'HFA']:
     raise ValueError("fe must be either 'LFA' or 'HFA'.")
 if system not in ['EQ', 'GAL', 'HO']:
     raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
-if iter < 1 or iter > 3:
-    raise ValueError("iter must be 1, 2, or 3.")
+if niters < 1 or niters > 3:
+    raise ValueError("niters must be 1, 2, or 3.")
 
 def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
         """
