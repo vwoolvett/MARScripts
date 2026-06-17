@@ -115,7 +115,7 @@ except:
 
 # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
 UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
-print(UNCORRECTED_CONVOLVED_FWHM)
+print(type(UNCORRECTED_CONVOLVED_FWHM))
 
 # If map was smoothed
 if smoothby_arcsec > 0.0:
