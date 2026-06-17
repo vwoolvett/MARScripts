@@ -17,7 +17,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 # SUGGESTED: run with niters=1, figure out bad scans using showMaps.py and then
 # run with niters=2 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
-niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True         # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
@@ -26,7 +26,7 @@ smoothby_arcsec = 8.        # Default 8. arcsec
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
-scans = [27974]  # 27974 is first
+scans = []  # 27974 is first
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
