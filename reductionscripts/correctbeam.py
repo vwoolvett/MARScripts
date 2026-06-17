@@ -114,11 +114,13 @@ with warnings.catch_warnings():
 
         # Try to retrieve it
         if len(globlist) != 0:
+            print('')
             info('Loading map in file:')
             print(mycoadded_fullfname)
             ms = restoreFile(mycoadded_fullfname)
         else:
-            print('File %s not found!'%mycoadded_fullfname)
+            print('')
+            warn('File %s not found!'%mycoadded_fullfname)
             continue
         print('')
 
@@ -169,7 +171,6 @@ with warnings.catch_warnings():
         print('')
         print('IMAGE WAS RESCALED BY: x%.3f'%(correct_scale/uncorrected_scale))
         print('AND FINAL BEAM IS:      %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-        print('')
 
         # now export to fits
         if os.path.exists('BeamCorrected') == False:
