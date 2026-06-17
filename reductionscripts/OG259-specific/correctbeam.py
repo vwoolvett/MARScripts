@@ -124,16 +124,19 @@ else:
     # Will leave map untouched but change the written beam
     smoothby_arcsec = 0.0
 
+# define smoothing in deg
+smoothby_deg = smoothby_arcsec / 3600.
+
 # Recover native beam of map before smoothing (if any)
-UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_arcsec**2)
+UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_deg**2)
 
 # The correct native FWHM is AMKID's.
-CORRECT_NATIVE_FWHM = AMKID_beamsize
+CORRECT_NATIVE_FWHM = AMKID_beamsize / 3600.
 # If UNCORRECTED_NATIVE_FWHM == CORRECT_NATIVE_FWHM, then everything was done correctly
 # And nothing changes here onwards.
 
 # Compute AMKID's convolved beam after smoothing (if any)
-CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_arcsec**2)  # = AMKID's native if smooth=0
+CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_deg**2)  # = AMKID's native if smooth=0
 
 # Undo wrong convolution rescaling (if any)
 # (native^2 + smoothing^2) / native^2 was multiplied to 
@@ -153,11 +156,11 @@ ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
 # All that's left to do is correct the written beam size
 ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
 
-print('CURRENT BEAM:           %.3f "'%UNCORRECTED_CONVOLVED_FWHM)
-print('SMOOTHING WAS:          %.3f "'%smoothby_arcsec)
-print('ESTIMATED NATIVE BEAM:  %.3f "'%UNCORRECTED_NATIVE_FWHM)
-print('NATIVE AMKID BEAM:      %.3f "'%CORRECT_NATIVE_FWHM)
-print('FINAL BEAM IS:          %.3f "'%CORRECT_CONVOLVED_FWHM)
+print('CURRENT BEAM:           %.3f "'%UNCORRECTED_CONVOLVED_FWHM*3600.)
+print('SMOOTHING WAS:          %.3f "'%smoothby_deg*3600.)
+print('ESTIMATED NATIVE BEAM:  %.3f "'%UNCORRECTED_NATIVE_FWHM*3600.)
+print('NATIVE AMKID BEAM:      %.3f "'%CORRECT_NATIVE_FWHM*3600.)
+print('FINAL BEAM IS:          %.3f "'%CORRECT_CONVOLVED_FWHM*3600.)
 
 # now export to fits
 if os.path.exists('BeamCorrected') == False:
