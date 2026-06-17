@@ -10,7 +10,7 @@
 source    = 'OG259'       # As in observing logs
 fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
 system    = 'GAL'            # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
-iter      = 2               # Which iteration is the map to be corrected
+iter      = 1               # Which iteration is the map to be corrected
 flagJumps = True           # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
 smoothby_arcsec = 8.        # By how much was the map smoothed?
