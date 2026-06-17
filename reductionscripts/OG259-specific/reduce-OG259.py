@@ -185,48 +185,6 @@ def auxsmoothby(m, Size):
 
 
 
-def auxsmoothby_test(m, Size):
-    '''
-    BoA-like smoothing but with correct variance propagation.
-
-    - Data: convolved with K
-    - Weight: propagated via variance (K^2)
-    - Coverage: convolved with K (same as BoA)
-    '''
-    # Build kernel
-    pixsize = abs(m.WCS['CDELT2'])
-    K0 = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
-    K_norm = K**2
-
-    # Smooth INTENSITY (same as BoA)
-    #   I' = K * I / np.sum(K)
-    I1 = fMap.ksmooth(m.Data, K)
-
-    # Correct variance propagation for weights: variances add linearly
-    #    V' = K^2 * V / np.sum(K**2)
-    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = fMap.ksmooth(V0, K2)
-
-    # Smooth COVERAGE (same as BoA)
-    C1 = fMap.ksmooth(m.Coverage, K)
-    
-    # new scale per beam for Jy/beam units
-    newbeam = np.sqrt(m.BeamSize**2 + Size**2)
-    scale = (newbeam**2 / m.BeamSize**2)
-    I1 *= scale  # now in Jy/newbeam
-    V1 *= scale**2  # now in Jy^2/newbeam^2
-    
-    # re-create weight map from variance
-    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
-
-    # Update map
-    m.Data = I1
-    m.Weight = W1
-    m.Coverage = C1
-    m.BeamSize = newbeam
-
-
-
 def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
         """
         DES: store the current map (2D array with WCS info) to a FITS file

@@ -135,34 +135,51 @@ def auxsmoothby(m, Size):
     - Weight: propagated via variance (K^2)
     - Coverage: convolved with K (same as BoA)
     '''
-    # Build kernel
+    # Build kernel (not normalized)
     pixsize = abs(m.WCS['CDELT2'])
-    K = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
-    K_norm = K / np.sum(K)
+    K0 = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+
+    # Normalize kernel
+    K = K0 / np.sum(K0)
+
+    # Create elementwise-squared kernel for variance
+    K2 = K**2
 
     # Smooth INTENSITY (same as BoA)
-    I1 = fMap.ksmooth(m.Data, K_norm)
+    #   I' = K * I     =     (K0/sum(K0_i)) * I
+    # and ksmooth does
+    #   I' = (K * I) / sum(K_i), but since sum(K_i)=1
+    # then ksmooth does effectively
+    #   I' = K * I, all good
+    I1 = fMap.ksmooth(m.Data, K)
 
-    # Correct variance propagation for weights
-    #    V' = K^2 * V
+    # Correct variance propagation for weights:
+    #   V' = K2 * V     =     (K0/sum(K0_i))^2 * V
+    # but ksmooth does
+    #   V' = (K2 * V) / sum(K2_i), and now sum(K2_i)!=1
+    # then ksmooth does effectively
+    #   V' = K2/sum(K2_i) * V
+    # so an additional multiplication by sum(K2_i) is needed
+    # to get back from ksmooth:
+    #   V' = K2/sum(K2_i) * V * sum(K2_i) = K2 * V
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = fMap.ksmooth(V0, K_norm**2)
-    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
+    V1 = fMap.ksmooth(V0, K2) * np.sum(K2)
 
     # Smooth COVERAGE (same as BoA)
-    C1 = fMap.ksmooth(m.Coverage, K_norm)
+    C1 = fMap.ksmooth(m.Coverage, K)
     
     # new scale per beam for Jy/beam units
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
     scale = (newbeam**2 / m.BeamSize**2)
+    I1 *= scale  # now in Jy/newbeam
+    V1 *= scale**2  # now in Jy^2/newbeam^2
 
-    # Convert weight map from pixel-based to beam-based
-    beam_factor2 = np.sum(K_norm**2)
-    W1 /= beam_factor2
+    # create new weight map
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
 
     # Update map with correct Jy/beam scale
-    m.Data = I1 * scale
-    m.Weight = W1 / scale**2
+    m.Data = I1
+    m.Weight = W1
     m.Coverage = C1
     m.BeamSize = newbeam
 
