@@ -4,16 +4,16 @@
 
 # SCRIPT TO CORRECT THE BEAM SIZE AND RE-SCALING IN A CO-ADDED MAP
 # AND EXPORT IT INTO "./BeamCorrected" directory as FITS
-# TODO: extract AMKID_beamsize from average of beammaps!
+# TODO: extract AMKID_beamsize from average of beammaps instead!
 
 # --- Source and map parameters ---
-source    = 'OG259'       # As in observing logs
+source    = 'OG259'         # As in observing logs
 fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
-system    = 'GAL'            # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
-iter      = 1               # Which iteration is the map to be corrected
-flagJumps = True           # Whether the maps to show were de-jumped with
+system    = 'GAL'           # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
+niters    = 3               # Up to which iteration try to correct. Just leave at 3.
+flagJumps = True            # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
-smoothby_arcsec = 8.        # By how much was the map smoothed?
+smoothby_arcsec = 8.        # By how much were the maps smoothed?
 AMKID_beamsize  = 17.       # Nominal native-res beam FWHM of AMKID
 
 # ==============================
@@ -104,80 +104,78 @@ myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
-# Extract file name of corresponding map
-mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter) + ".data"
-mycoadded_fullfname = "ReducedFiles/" + mycoadded_fname
-
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
+    for iter in range(1, niters+1):
+        # Extract file name of corresponding map
+        mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter) + ".data"
+        mycoadded_fullfname = "ReducedFiles/" + mycoadded_fname
 
-    # Try to retrieve it
-    try:
-        info('Loading map in file:')
-        print(mycoadded_fullfname)
-        ms = restoreFile(mycoadded_fullfname)
-    except:
-        print('File %s not found!'%mycoadded_fullfname)
-    print('')
+        # Try to retrieve it
+        try:
+            info('Loading map in file:')
+            print(mycoadded_fullfname)
+            ms = restoreFile(mycoadded_fullfname)
+        except:
+            print('File %s not found!'%mycoadded_fullfname)
+            continue
+        print('')
 
-    # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
-    UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
+        # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
+        UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
 
-    # If map was smoothed
-    if smoothby_arcsec > 0.0:
-        # Continue
-        pass
-    else:
-        # Will leave map untouched but change the written beam
-        smoothby_arcsec = 0.0
+        # If map was not smoothed
+        if smoothby_arcsec <= 0.0:
+            # Will leave map untouched but change the written beam
+            smoothby_arcsec = 0.0
 
-    # define smoothing in deg
-    smoothby_deg = smoothby_arcsec / 3600.
+        # define smoothing in deg
+        smoothby_deg = smoothby_arcsec / 3600.
 
-    # Recover native beam of map before smoothing (if any)
-    UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_deg**2)
+        # Recover native beam of map before smoothing (if any)
+        UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_deg**2)
 
-    # The correct native FWHM is AMKID's.
-    CORRECT_NATIVE_FWHM = AMKID_beamsize / 3600.
-    # If UNCORRECTED_NATIVE_FWHM == CORRECT_NATIVE_FWHM, then everything was done correctly
-    # And nothing changes here onwards.
+        # The correct native FWHM is AMKID's.
+        CORRECT_NATIVE_FWHM = AMKID_beamsize / 3600.
+        # If UNCORRECTED_NATIVE_FWHM == CORRECT_NATIVE_FWHM, then everything was done correctly
+        # And nothing changes here onwards.
 
-    # Compute AMKID's convolved beam after smoothing (if any)
-    CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_deg**2)  # = AMKID's native if smooth=0
+        # Compute AMKID's convolved beam after smoothing (if any)
+        CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_deg**2)  # = AMKID's native if smooth=0
 
-    # Undo wrong convolution rescaling (if any)
-    # (native^2 + smoothing^2) / native^2 was multiplied to 
-    # convolved intensity map and its square to the variance = 1/Weight map.
-    uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
-    ms.Data /= uncorrected_scale  # undo uncorrected scale
-    ms.Weight /= (1./uncorrected_scale**2)  # undo uncorrected scale^2
+        # Undo wrong convolution rescaling (if any)
+        # (native^2 + smoothing^2) / native^2 was multiplied to 
+        # convolved intensity map and its square to the variance = 1/Weight map.
+        uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
+        ms.Data /= uncorrected_scale  # undo uncorrected scale
+        ms.Weight /= (1./uncorrected_scale**2)  # undo uncorrected scale^2
 
-    # Redo correct convolution rescaling (if any)
-    correct_scale = (CORRECT_CONVOLVED_FWHM**2 / CORRECT_NATIVE_FWHM**2)  # =1 if smooth=0
-    ms.Data *= correct_scale  # redo correct scale
-    ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
+        # Redo correct convolution rescaling (if any)
+        correct_scale = (CORRECT_CONVOLVED_FWHM**2 / CORRECT_NATIVE_FWHM**2)  # =1 if smooth=0
+        ms.Data *= correct_scale  # redo correct scale
+        ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
 
-    # =================================================================
-    # Now the map is in the correct AMKID^2 + SMOOTHING^2 Jy/beam units.
-    # =================================================================
-    # All that's left to do is correct the written beam size
-    ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
+        # =================================================================
+        # Now the map is in the correct AMKID^2 + SMOOTHING^2 Jy/beam units.
+        # =================================================================
+        # All that's left to do is correct the written beam size
+        ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
 
-    print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
-    print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
-    print('ESTIMATED NATIVE BEAM:  %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
-    print('NATIVE AMKID BEAM:      %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
-    print('')
-    print('IMAGE WAS RESCALED BY: x%.3f'%(correct_scale/uncorrected_scale))
-    print('AND FINAL BEAM IS:      %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-    print('')
+        print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
+        print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
+        print('ESTIMATED NATIVE BEAM:  %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
+        print('NATIVE AMKID BEAM:      %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
+        print('')
+        print('IMAGE WAS RESCALED BY: x%.3f'%(correct_scale/uncorrected_scale))
+        print('AND FINAL BEAM IS:      %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
+        print('')
 
-    # now export to fits
-    if os.path.exists('BeamCorrected') == False:
-        os.makedirs("BeamCorrected")
+        # now export to fits
+        if os.path.exists('BeamCorrected') == False:
+            os.makedirs("BeamCorrected")
 
-    outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
-    auxwriteFits(ms, outfile=outname, overwrite=1)
+        outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
+        auxwriteFits(ms, outfile=outname, overwrite=1)
 
-    # free memory
-    ms = None
+        # free memory
+        ms = None
