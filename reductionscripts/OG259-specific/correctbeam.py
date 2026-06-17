@@ -125,7 +125,7 @@ else:
     smoothby_arcsec = 0.0
 
 # Recover native beam of map before smoothing (if any)
-UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM^2 - smoothby_arcsec^2)
+UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_arcsec**2)
 
 # The correct native FWHM is AMKID's.
 CORRECT_NATIVE_FWHM = AMKID_beamsize
@@ -133,7 +133,7 @@ CORRECT_NATIVE_FWHM = AMKID_beamsize
 # And nothing changes here onwards.
 
 # Compute AMKID's convolved beam after smoothing (if any)
-CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM^2 + smoothby_arcsec^2)  # = AMKID's native if smooth=0
+CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_arcsec**2)  # = AMKID's native if smooth=0
 
 # Undo wrong convolution rescaling (if any)
 # (native^2 + smoothing^2) / native^2 was multiplied to 
