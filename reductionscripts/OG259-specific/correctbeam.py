@@ -4,6 +4,7 @@
 
 # SCRIPT TO CORRECT THE BEAM SIZE AND RE-SCALING IN A CO-ADDED MAP
 # AND EXPORT IT INTO "./BeamCorrected" directory as FITS
+# TODO: extract AMKID_beamsize from average of beammaps!
 
 # --- Source and map parameters ---
 source    = 'OG259'       # As in observing logs
@@ -107,67 +108,73 @@ if flagJumps:
 mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
 mycoadded_fullfname = "ReducedFiles/" + mycoadded_fname
 
-# Try to retrieve it
-try:
-    ms = restoreFile(mycoadded_fullfname)
-except:
-    print('File %s not found!'%mycoadded_fullfname)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
 
-# Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
-UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
+    # Try to retrieve it
+    try:
+        info('Loading map in file:')
+        print(mycoadded_fullfname)
+        ms = restoreFile(mycoadded_fullfname)
+    except:
+        print('File %s not found!'%mycoadded_fullfname)
+    print('')
 
-# If map was smoothed
-if smoothby_arcsec > 0.0:
-    # Continue
-    pass
-else:
-    # Will leave map untouched but change the written beam
-    smoothby_arcsec = 0.0
+    # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
+    UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
 
-# define smoothing in deg
-smoothby_deg = smoothby_arcsec / 3600.
+    # If map was smoothed
+    if smoothby_arcsec > 0.0:
+        # Continue
+        pass
+    else:
+        # Will leave map untouched but change the written beam
+        smoothby_arcsec = 0.0
 
-# Recover native beam of map before smoothing (if any)
-UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_deg**2)
+    # define smoothing in deg
+    smoothby_deg = smoothby_arcsec / 3600.
 
-# The correct native FWHM is AMKID's.
-CORRECT_NATIVE_FWHM = AMKID_beamsize / 3600.
-# If UNCORRECTED_NATIVE_FWHM == CORRECT_NATIVE_FWHM, then everything was done correctly
-# And nothing changes here onwards.
+    # Recover native beam of map before smoothing (if any)
+    UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_deg**2)
 
-# Compute AMKID's convolved beam after smoothing (if any)
-CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_deg**2)  # = AMKID's native if smooth=0
+    # The correct native FWHM is AMKID's.
+    CORRECT_NATIVE_FWHM = AMKID_beamsize / 3600.
+    # If UNCORRECTED_NATIVE_FWHM == CORRECT_NATIVE_FWHM, then everything was done correctly
+    # And nothing changes here onwards.
 
-# Undo wrong convolution rescaling (if any)
-# (native^2 + smoothing^2) / native^2 was multiplied to 
-# convolved intensity map and its square to the variance = 1/Weight map.
-uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
-ms.Data /= uncorrected_scale  # undo uncorrected scale
-ms.Weight /= (1./uncorrected_scale**2)  # undo uncorrected scale^2
+    # Compute AMKID's convolved beam after smoothing (if any)
+    CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_deg**2)  # = AMKID's native if smooth=0
 
-# Redo correct convolution rescaling (if any)
-correct_scale = (CORRECT_CONVOLVED_FWHM**2 / CORRECT_NATIVE_FWHM**2)  # =1 if smooth=0
-ms.Data *= correct_scale  # redo correct scale
-ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
+    # Undo wrong convolution rescaling (if any)
+    # (native^2 + smoothing^2) / native^2 was multiplied to 
+    # convolved intensity map and its square to the variance = 1/Weight map.
+    uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
+    ms.Data /= uncorrected_scale  # undo uncorrected scale
+    ms.Weight /= (1./uncorrected_scale**2)  # undo uncorrected scale^2
 
-# =================================================================
-# Now the map is in the correct AMKID^2 + SMOOTHING^2 Jy/beam units.
-# =================================================================
-# All that's left to do is correct the written beam size
-ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
+    # Redo correct convolution rescaling (if any)
+    correct_scale = (CORRECT_CONVOLVED_FWHM**2 / CORRECT_NATIVE_FWHM**2)  # =1 if smooth=0
+    ms.Data *= correct_scale  # redo correct scale
+    ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
 
-print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
-print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
-print('ESTIMATED NATIVE BEAM:  %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
-print('NATIVE AMKID BEAM:      %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
-print('FINAL BEAM IS:          %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
+    # =================================================================
+    # Now the map is in the correct AMKID^2 + SMOOTHING^2 Jy/beam units.
+    # =================================================================
+    # All that's left to do is correct the written beam size
+    ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
 
-# now export to fits
-if os.path.exists('BeamCorrected') == False:
-    os.makedirs("BeamCorrected")
+    print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
+    print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
+    print('ESTIMATED NATIVE BEAM:  %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
+    print('NATIVE AMKID BEAM:      %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
+    print('FINAL BEAM IS:          %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
 
-outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
-auxwriteFits(ms, outfile=outname, overwrite=1)
+    # now export to fits
+    if os.path.exists('BeamCorrected') == False:
+        os.makedirs("BeamCorrected")
 
-# free memory
-ms = None
+    outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
+    auxwriteFits(ms, outfile=outname, overwrite=1)
+
+    # free memory
+    ms = None
