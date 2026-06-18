@@ -91,6 +91,9 @@ with warnings.catch_warnings():
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
         auxwriteFits(ms, outfile=outname, overwrite=1)
         print('')
+        info('Beam-corrected FITS written:')
+        print(outname)
+        print('')
         print('')
         print('')
 
