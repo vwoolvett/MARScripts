@@ -147,4 +147,4 @@ with warnings.catch_warnings():
 
 print('')
 print(correctionsummary)
-info('Check BeamCorrected/ directory for beam-corrected FITS!')
+info('Check "BeamCorrected/" directory for beam-corrected FITS!')
