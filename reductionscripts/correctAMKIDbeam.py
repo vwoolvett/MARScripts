@@ -125,10 +125,13 @@ with warnings.catch_warnings():
         print('Current beam:                    %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
         print('Smoothing was:                   %.3f "'%(smoothby_deg*3600.))
         print('Unsmoothed beam:                 %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
-        print('AMKID native beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.) + ' (%s)'%from_where)
+        print('AMKID median beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.) + ' (%s)'%from_where)
         print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
         print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
+        print('------------------------------------------------------------')
         print('Fluxes were %.1f'%(percentofreal) + r'% of the expected flux')
+        print('------------------------------------------------------------')
+        print('')
 
         # now export to fits
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
