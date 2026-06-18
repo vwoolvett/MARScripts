@@ -104,23 +104,33 @@ with warnings.catch_warnings():
         # Undo wrong convolution rescaling (if any)
         # (native^2 + smoothing^2) / native^2 was multiplied to 
         # convolved intensity map and its square to the variance = 1/Weight map.
-        uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
-        ms.Data /= uncorrected_scale  # undo uncorrected scale
-        ms.Weight /= (1./uncorrected_scale**2)  # undo uncorrected scale^2
-
         # Redo correct convolution rescaling (if any)
+        uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
         correct_scale = (CORRECT_CONVOLVED_FWHM**2 / CORRECT_NATIVE_FWHM**2)  # =1 if smooth=0
-        ms.Data *= correct_scale  # redo correct scale
-        ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
+        imagecorrfactor = correct_scale / uncorrected_scale  # =1 if no smoothing, then only beam in header changes
+
+        # apply factor
+        ms.Data *= imagecorrfactor
+        ms.Weight /= imagecorrfactor**2  # apply correction factor squared to variance map
 
         # =================================================================
         # Now the map is in the correct AMKID^2 + SMOOTHING^2 Jy/beam units.
         # =================================================================
         # All that's left to do is correct the written beam size
         ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
-        fluxfactor = UNCORRECTED_CONVOLVED_FWHM/CORRECT_CONVOLVED_FWHM  # corrects header beam on integration
-        fluxfactor *= correct_scale/uncorrected_scale  # corrects image
-        percentofreal =  1./fluxfactor * 100.
+
+        # Compute changes to fluxes:
+        # Flux of a source is sum_apperture(Jyb_i * pixarea / beamarea)
+        # so  Fakeflux = sum_apperture(Jyb_original_i)  * pixarea / uncorr_convolved_beam
+        # and Realflux = sum_apperture(Jyb_corrected_i) * pixarea / correct_convolved_beam
+        # where Jyb_corrected_i = imagecorrfactor * Jyb_original_i
+        # so fluxfactor = Realflux / Fakeflux = imagecorrfactor * uncorr_convolved_beam/correct_convolved_beam
+        # or fluxfactor = Realflux / Fakeflux = imagecorrfactor * uncorr_convolved_FWHM^2/correct_convolved_FWHM^2
+        fluxfactor = imagecorrfactor * UNCORRECTED_CONVOLVED_FWHM**2/CORRECT_CONVOLVED_FWHM**2
+
+        # RealFlux = FakeFlux * fluxfactor -> FakeFlux = (1/fluxfactor) * RealFlux = fraction * RealFlux
+        fractionofreal = 1./fluxfactor
+        percentofreal =  fractionofreal * 100.
 
         # create summary for first iteration, will always be there...
         if iter==1:
@@ -130,8 +140,8 @@ with warnings.catch_warnings():
             correctionsummary += '\nSmoothing was:                              %s "'%(str(np.round(smoothby_deg*3600., 3)).ljust(6))
             correctionsummary += '\nUnsmoothed beam:                            %s "'%(str(np.round(UNCORRECTED_NATIVE_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\nAMKID median beam:                          %s "'%(str(np.round(CORRECT_NATIVE_FWHM*3600., 3)).ljust(6)) + ' (%s)'%from_where
-            correctionsummary += '\nSky map (image) was rescaled by:            %sx '%(str(np.round(correct_scale/uncorrected_scale, 3)).ljust(5))
-            correctionsummary += '\nVariance map (1 / Weight) was rescaled by:  %sx '%(str(np.round((correct_scale/uncorrected_scale)**2, 3)).ljust(5))
+            correctionsummary += '\nSky map (image) was rescaled by:            %sx '%(str(np.round(imagecorrfactor, 3)).ljust(5))
+            correctionsummary += '\nVariance map (1 / Weight) was rescaled by:  %sx '%(str(np.round(imagecorrfactor**2, 3)).ljust(5))
             correctionsummary += '\nCorrected beam after smoothing:             %s "'%(str(np.round(CORRECT_CONVOLVED_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\n------------------------------------------------------------'
             correctionsummary += '\nFluxes were %.1f'%(percentofreal) + r'% of the expected flux'
