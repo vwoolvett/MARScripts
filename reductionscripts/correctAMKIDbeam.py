@@ -22,7 +22,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
     # determine real native beam of AMKID (ideally from beammaps)
-    AMKID_beamsize  = 17.5       # arcsec
+    AMKID_beamsize  = 17.  # arcsec
 
 
     for iter in range(1, niters+1):
@@ -82,8 +82,8 @@ with warnings.catch_warnings():
         # =================================================================
         # All that's left to do is correct the written beam size
         ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
-        fluxfactor = correct_scale/uncorrected_scale  # corrects image
-        fluxfactor *= UNCORRECTED_CONVOLVED_FWHM/CORRECT_CONVOLVED_FWHM  # corrects header beam on integration
+        fluxfactor = UNCORRECTED_CONVOLVED_FWHM/CORRECT_CONVOLVED_FWHM  # corrects header beam on integration
+        fluxfactor *= correct_scale/uncorrected_scale  # corrects image
         percentualchange = (fluxfactor - 1.)*100.
         idem_sign = '+' if np.sign(percentualchange)>=0 else '-'
 
