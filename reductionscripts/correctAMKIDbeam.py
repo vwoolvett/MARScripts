@@ -94,7 +94,7 @@ with warnings.catch_warnings():
         print('')
         print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
         print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-        print('Fluxes should change by:       %s %.3f \%'%(idem_sign, np.abs(percentualchange)))
+        print('Fluxes should change by:       %s %.3f'%(idem_sign, np.abs(percentualchange)) + r'%')
 
         # now export to fits
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
