@@ -528,12 +528,4 @@ print('############################')
 # Beam corrections
 if correctbeam:
     print('\n\n\n')
-    print('=======================================================================')
-    info('Beginning SKY, RMS, and SNR map corrections for iteration maps')
-    print('=======================================================================')
     execfile('correctAMKIDbeam.py')
-
-    info('Check BeamCorrected/ directory for beam-corrected FITS!')============')
-    execfile('correctAMKIDbeam.py')
-
-    info('Check BeamCorrected/ directory for beam-corrected FITS!')
