@@ -418,7 +418,7 @@ with warnings.catch_warnings():
                     nativebeam = m.BeamSize
                     auxsmoothby(m, smoothby_deg)
                     newbeam = m.BeamSize
-                    print('Native beam:     %.3f "'%(nativebeam*3600))
+                    print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
                     print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
                     print('New beam:        %.3f "'%(newbeam*3600))
 
@@ -455,7 +455,7 @@ with warnings.catch_warnings():
                     nativebeam = m.BeamSize
                     auxsmoothby(m, smoothby_deg)
                     newbeam = m.BeamSize
-                    print('Native beam:     %.3f "'%(nativebeam*3600))
+                    print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
                     print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
                     print('New beam:        %.3f "'%(newbeam*3600))
 
