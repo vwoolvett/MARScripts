@@ -40,8 +40,8 @@ with warnings.catch_warnings():
         else:
             print('')
             warn('File %s not found!'%mycoadded_fullfname)
+            print('')
             continue
-        print('')
 
         # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
         UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
@@ -91,7 +91,6 @@ with warnings.catch_warnings():
         print('Smoothing was:                   %.3f "'%(smoothby_deg*3600.))
         print('Unsmoothed beam:                 %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
         print('AMKID native beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
-        print('')
         print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
         print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
         print('Fluxes should change by:        %s%.1f '%(idem_sign, np.abs(percentualchange)) + r'%')
