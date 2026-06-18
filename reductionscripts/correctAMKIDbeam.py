@@ -124,7 +124,7 @@ with warnings.catch_warnings():
 
         # create summary for first iteration, will always be there...
         if iter==1:
-            correctionsummary = 'Summary of corrections (iteration %i):'%iter
+            correctionsummary = 'Summary of corrections (should be same for all iterations):'
             correctionsummary += '\n------------------------------------------------------------'
             correctionsummary += '\nBeam read from files:            %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.)
             correctionsummary += '\nSmoothing was:                   %.3f "'%(smoothby_deg*3600.)
