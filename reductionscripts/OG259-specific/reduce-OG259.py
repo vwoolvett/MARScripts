@@ -366,8 +366,8 @@ Sigmaclip level:    %s
 Flag jumps:         %s
 Smoothing:          %s arcsec
 Number of scans     %s'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
-     left, right, down, up, niters, clip, flagJumps,
-     smoothby_arcsec, len(scans)))
+                           xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
+                           smoothby_arcsec, len(scans)))
 
 # ===========================
 # Beginning of reduction loop
