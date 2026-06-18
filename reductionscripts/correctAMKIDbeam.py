@@ -42,7 +42,7 @@ with warnings.catch_warnings():
             raise ValueError # stop trying
         
         # read and extract average beam size
-        beammap_fname_full = 'CalFiles' + beammap_fname
+        beammap_fname_full = 'CalFiles/' + beammap_fname
         beamdict = readBeamMapDict(infile=beammap_fname_full, fe=fe)  # fe defined at reduction
 
         # median of geometric average FWHM of all kids
