@@ -421,7 +421,6 @@ with warnings.catch_warnings():
                     print('Native beam:     %.3f "'%(nativebeam*3600))
                     print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
                     print('New beam:        %.3f "'%(newbeam*3600))
-                    print('')
 
                 # For this scan, add non-noisy area and median noise info to summary
                 if writeSummary:
@@ -459,7 +458,6 @@ with warnings.catch_warnings():
                     print('Native beam:     %.3f "'%(nativebeam*3600))
                     print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
                     print('New beam:        %.3f "'%(newbeam*3600))
-                    print('')
 
 
             if np.all(np.isnan(m.Data)):
@@ -467,6 +465,7 @@ with warnings.catch_warnings():
                 break
 
             info('Coadding...')
+            print('')
             if ms and m:
                 # both are smoothed
                 ms = mapsumfast([ms,m])  
