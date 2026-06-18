@@ -284,15 +284,49 @@ myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
-# Create map bounds, for EQ or GAL first
-if center[0] > 180:
-    warn('Center X is greater than 180 deg, transforming to -180 to 180 deg...')
-    center[0] -= 360
-ysize = [center[1] - sizey/2 - padding, center[1] + sizey/2 + padding]
-xsize = [center[0] + sizex/2 + padding, center[0] - sizex/2 - padding]  # Bigger number first
+# Create map bounds
+biggerX = center[0] + sizex/2 + padding
+smallerX = center[0] - sizex/2 - padding
+biggerY = center[1] + sizey/2 + padding
+smallerY = center[1] - sizey/2 - padding
+
+# These can't happen
+if biggerY > 90:
+    raise ValueError('The upper border of the map has Y coordinate > +90 degrees!')
+if smallerY < -90:
+    raise ValueError('The lower border of the map has Y coordinate < -90 degrees!')
+
+# If the left boundary is, say, 185 deg GLON
+# For APEX that actually is 185 - 360 = -175 deg GLON
+sysreframe = False
+if biggerX > 180:
+    biggerX -= 360
+    sysreframe = True
+# And if mapsize was, for example, 10 degrees in X, then
+# right boundary should be 175, which is smaller than 180.
+if smallerX > 180:
+    smallerX -=360
+    sysreframe = True
+
+# infomration
+if sysreframe:
+    warn('Map X boundaries were transformed from 0:360 deg to -180:180 deg')
+
+# End result (width in X of 10 deg example):
+# Case 1: left = 150, right = 140 is left untouched
+# Case 1: left = 185, right = 175 -> left = -175, right = 175
+# Case 3: left = 200, right = 190 -> left = -160, right = -170 which is still good
+
+# Define boundary list for functions
+ysize = [smallerY, biggerY]
+# For EQ or GAL biggerX is to the left because X angle
+# follows right-hand rule with thumb pointing to EQ or GAL north pole
+xsize = [biggerX, smallerX]
+
+# For HO smallerX is to the left because X angle
+# follows left-hand rule with thumb pointing to zenith (eastward in ground)
 if system =='HO':
-    # Invert X boundaries back to normal
-    xsize = [xsize[1], xsize[0]]
+    xsize = [smallerX, biggerX]
 
 # Set noPlot
 if not doPlot:
@@ -327,7 +361,7 @@ Sigmaclip level:    %s
 Flag jumps:         %s
 Smoothing:          %s arcsec
 Number of scans     %s'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
-     xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
+     left, right, down, up, niters, clip, flagJumps,
      smoothby_arcsec, len(scans)))
 
 # ===========================
