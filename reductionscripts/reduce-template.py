@@ -526,3 +526,8 @@ if correctbeam:
     info('Beginning SKY, RMS, and SNR map corrections for iteration maps')
     print('=======================================================================')
     execfile('correctAMKIDbeam.py')
+
+    info('Reduction finished. Chech BeamCorrected/ directory for beam-corrected maps')
+
+else:
+    info('Reduction finished.')
