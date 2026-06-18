@@ -530,4 +530,3 @@ if correctbeam:
     execfile('correctAMKIDbeam.py')
 
     info('Check BeamCorrected/ directory for beam-corrected FITS')
-    
