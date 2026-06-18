@@ -16,14 +16,14 @@ print('=======================================================================')
 
 # Create dir if missing
 if os.path.exists('BeamCorrected') == False:
-            os.makedirs("BeamCorrected")
+    os.makedirs("BeamCorrected")
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
     # determine real native beam of AMKID (ideally from beammaps)
     AMKID_beamsize  = 17.  # arcsec
-
+    from_where = 'Nominal value'
 
     for iter in range(1, niters+1):
         # Extract file name of corresponding map
@@ -84,16 +84,17 @@ with warnings.catch_warnings():
         ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
         fluxfactor = UNCORRECTED_CONVOLVED_FWHM/CORRECT_CONVOLVED_FWHM  # corrects header beam on integration
         fluxfactor *= correct_scale/uncorrected_scale  # corrects image
-        percentualchange = (fluxfactor - 1.)*100.
-        idem_sign = '+' if np.sign(percentualchange)>=0 else '-'
+        missingfraction = 1. - 1./fluxfactor
+        missingpercent = missingfraction*100
+        idem_sign = '+' if np.sign(missingpercent)>=0 else '-'
 
         print('Current beam:                    %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
         print('Smoothing was:                   %.3f "'%(smoothby_deg*3600.))
         print('Unsmoothed beam:                 %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
-        print('AMKID native beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
+        print('AMKID native beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.) + ' (%s)'%from_where)
         print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
         print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-        print('Fluxes should change by:        %s%.1f '%(idem_sign, np.abs(percentualchange)) + r'%')
+        print('Fluxes were %s%.1f'%(idem_sign, np.abs(missingpercent)) + r'% smaller than expected')
 
         # now export to fits
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
