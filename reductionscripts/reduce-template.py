@@ -405,6 +405,7 @@ with warnings.catch_warnings():
                 mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,limitsZ=[-0.8,1.5],noPlot=noPlot)
                 # NOTE: this has a smooth parameter, but is default 0
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
+                # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
             
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
                 data.Map.dumpMap(scanname)
@@ -520,9 +521,9 @@ with warnings.catch_warnings():
         auxwriteFits(ms, outfile=outname, overwrite=1)
 
 print('\n\n\n')
-print('============================')
+print('############################')
 info('Reduction finished.')
-print('============================')
+print('############################')
 
 # Beam corrections
 if correctbeam:
@@ -532,4 +533,4 @@ if correctbeam:
     print('=======================================================================')
     execfile('correctAMKIDbeam.py')
 
-    info('Check BeamCorrected/ directory for beam-corrected FITS')
+    info('Check BeamCorrected/ directory for beam-corrected FITS!')

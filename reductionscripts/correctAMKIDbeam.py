@@ -10,6 +10,10 @@ import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
+# Create dir if missing
+if os.path.exists('BeamCorrected') == False:
+            os.makedirs("BeamCorrected")
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
@@ -75,22 +79,17 @@ with warnings.catch_warnings():
         # All that's left to do is correct the written beam size
         ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
 
-        print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
-        print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
-        print('UNSMOOTHED BEAM:        %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
-        print('REAL NATIVE AMKID BEAM: %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
+        print('Current beam:                    %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
+        print('Smoothing was:                   %.3f "'%(smoothby_deg*3600.))
+        print('Unsmoothed beam:                 %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
+        print('AMKID native beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
         print('')
-        print('IMAGE WAS RESCALED BY: x%.3f'%(correct_scale/uncorrected_scale))
-        print('AND FINAL BEAM IS:      %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-        print('')
+        print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
+        print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
 
         # now export to fits
-        if os.path.exists('BeamCorrected') == False:
-            os.makedirs("BeamCorrected")
-
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
         auxwriteFits(ms, outfile=outname, overwrite=1)
-        print('')
         info('Beam-corrected FITS written to:')
         print(outname)
         print('')
