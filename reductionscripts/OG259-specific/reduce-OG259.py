@@ -519,6 +519,8 @@ with warnings.catch_warnings():
         outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
         auxwriteFits(ms, outfile=outname, overwrite=1)
 
+info('Reduction finished.')
+
 # Beam corrections
 if correctbeam:
     print('\n\n\n\n\n')
@@ -527,7 +529,4 @@ if correctbeam:
     print('=======================================================================')
     execfile('correctAMKIDbeam.py')
 
-    info('Reduction finished. Chech BeamCorrected/ directory for beam-corrected maps')
-
-else:
-    info('Reduction finished.')
+    info('Check BeamCorrected/ directory for beam-corrected FITS')
