@@ -14,7 +14,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
     # determine real native beam of AMKID (ideally from beammaps)
-    AMKID_beamsize  = 17.       # arcsec
+    AMKID_beamsize  = 18.       # arcsec
 
 
     for iter in range(1, niters+1):
