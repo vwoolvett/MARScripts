@@ -122,16 +122,19 @@ with warnings.catch_warnings():
         fluxfactor *= correct_scale/uncorrected_scale  # corrects image
         percentofreal =  1./fluxfactor * 100.
 
-        print('Current beam:                    %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
-        print('Smoothing was:                   %.3f "'%(smoothby_deg*3600.))
-        print('Unsmoothed beam:                 %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
-        print('AMKID median beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.) + ' (%s)'%from_where)
-        print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
-        print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-        print('------------------------------------------------------------')
-        print('Fluxes were %.1f'%(percentofreal) + r'% of the expected flux')
-        print('------------------------------------------------------------')
-        print('')
+        # create summary for first iteration, will always be there...
+        if iter==1:
+            correctionsummary = 'Summary of corrections (iteration %i):'%iter
+            correctionsummary += '\n------------------------------------------------------------'
+            correctionsummary += '\nBeam read from files:            %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.)
+            correctionsummary += '\nSmoothing was:                   %.3f "'%(smoothby_deg*3600.)
+            correctionsummary += '\nUnsmoothed beam:                 %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.)
+            correctionsummary += '\nAMKID median beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.) + ' (%s)'%from_where
+            correctionsummary += '\nImage was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale)
+            correctionsummary += '\nCorrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.)
+            correctionsummary += '\n------------------------------------------------------------'
+            correctionsummary += '\nFluxes were %.1f'%(percentofreal) + r'% of the expected flux'
+            correctionsummary += '\n------------------------------------------------------------'
 
         # now export to fits
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
@@ -144,4 +147,5 @@ with warnings.catch_warnings():
         # free memory
         ms = None
 
+print(correctionsummary)
 info('Check BeamCorrected/ directory for beam-corrected FITS!')
