@@ -27,7 +27,7 @@ with warnings.catch_warnings():
 
     info('Attempting to extract AMKID beam size from beammap info...')
     # Try and read nominal beam size from merged beammap
-    try:
+    if True:
         # find beam_map reduced file
         beammap_fnames = []
         for filename in os.listdir('CalFiles'):
@@ -57,7 +57,7 @@ with warnings.catch_warnings():
         info('Beam size is %.3f "'%AMKID_beamsize)
         
 
-    except:
+    else:
         warn('Beam size extraction was not possible. Using nominal value of %.3f "'%AMKID_beamsize)
         pass
 
