@@ -84,9 +84,8 @@ with warnings.catch_warnings():
         ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
         fluxfactor = UNCORRECTED_CONVOLVED_FWHM/CORRECT_CONVOLVED_FWHM  # corrects header beam on integration
         fluxfactor *= correct_scale/uncorrected_scale  # corrects image
-        missingfraction = 1. - 1./fluxfactor
-        missingpercent = missingfraction*100
-        idem_sign = '+' if np.sign(missingpercent)>=0 else '-'
+        percentofreal =  1./fluxfactor * 100.
+        idem_sign = '+' if np.sign(percentofreal)>=0 else '-'
 
         print('Current beam:                    %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
         print('Smoothing was:                   %.3f "'%(smoothby_deg*3600.))
@@ -94,7 +93,7 @@ with warnings.catch_warnings():
         print('AMKID native beam:               %.3f "'%(CORRECT_NATIVE_FWHM*3600.) + ' (%s)'%from_where)
         print('Image was rescaled by:           %.3fx'%(correct_scale/uncorrected_scale))
         print('Corrected beam after smoothing:  %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
-        print('Fluxes were %s%.1f'%(idem_sign, np.abs(missingpercent)) + r'% smaller than expected')
+        print('Fluxes were %s%.1f'%(idem_sign, np.abs(percentofreal)) + r'% of the expected flux')
 
         # now export to fits
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
