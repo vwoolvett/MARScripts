@@ -54,7 +54,9 @@ badscans = []
 # Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
 # Coverage_smoothed = Kernel * Coverage
 
-# NOTE 2: redweak still uses smoothBy! removed smoothing in redweak
+# NOTE 2: smoothBy does handle the sky convolution correctly, it's just the weights that are not
+# correct after convolution
+
 import warnings
 import copy as copy
 import BoaMapping as BOAMAP
@@ -131,7 +133,7 @@ def auxsmoothby(m, Size):
     '''
     BoA-like smoothing but with correct variance propagation.
 
-    - Data: convolved with K
+    - Data: convolved with K (same as BoA)
     - Weight: propagated via variance (K^2)
     - Coverage: convolved with K (same as BoA)
     '''
@@ -186,64 +188,64 @@ def auxsmoothby(m, Size):
 
 
 def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
-        """
-        DES: store the current map (2D array with WCS info) to a FITS file
-        INP: (str)   outfile: output file name (default boaMap.fits)
-             (bool) overwrite: overwrite existing file -
-                              default = 0: do not overwrite existing file
-             (f list) limitsX/Y: optional map limits (in world coordinates)
-             (string) intensityUnit: optional unit of the intensity (default: "Jy/beam")
-        """
-        from mars import BoaFits
+    """
+    DES: store the current map (2D array with WCS info) to a FITS file
+    INP: (str)   outfile: output file name (default boaMap.fits)
+         (bool) overwrite: overwrite existing file -
+                          default = 0: do not overwrite existing file
+         (f list) limitsX/Y: optional map limits (in world coordinates)
+         (string) intensityUnit: optional unit of the intensity (default: "Jy/beam")
+    """
+    from mars import BoaFits
 
-        if os.path.exists(outfile):
-            if not overwrite:
-                print('File %s exists' % outfile)
-                return
-        if not data:
-            data = data.Map
-        try:
-            dataset = BoaFits.createDataset("!" + outfile)
-        except Exception, data:
-            print('Could not open file %s: %s' % (outfile, data))
+    if os.path.exists(outfile):
+        if not overwrite:
+            print('File %s exists' % outfile)
             return
+    if not data:
+        data = data.Map
+    try:
+        dataset = BoaFits.createDataset("!" + outfile)
+    except Exception, data:
+        print('Could not open file %s: %s' % (outfile, data))
+        return
 
         
-        localMap = copy.deepcopy(data)
+    localMap = copy.deepcopy(data)
         
-        try:
-            # RMS map creation
-            rmsMap = copy.deepcopy(localMap)  # Signal
-            rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
+    try:
+        # RMS map creation
+        rmsMap = copy.deepcopy(localMap)  # Signal
+        rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
 
-            # SNR map creation
-            snrMap = copy.deepcopy(localMap)  # Signal
-            snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+        # SNR map creation
+        snrMap = copy.deepcopy(localMap)  # Signal
+        snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-            if clip > 0:
-                mediannoise = np.nanmedian(rmsMap.Data)
-                mask = np.where(rmsMap.Data > clip * mediannoise)
-                localMap.Data[mask] = np.NaN
-                rmsMap.Data[mask] = np.NaN
-                snrMap.Data[mask] = np.NaN
+        if clip > 0:
+            mediannoise = np.nanmedian(rmsMap.Data)
+            mask = np.where(rmsMap.Data > clip * mediannoise)
+            localMap.Data[mask] = np.NaN
+            rmsMap.Data[mask] = np.NaN
+            snrMap.Data[mask] = np.NaN
  
-            #write FLux plane                                                            
-            localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
-            #write RMS plane
-            rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
-            #write SNR plane
-            snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
-            dataset.close()
+        #write FLux plane                                                            
+        localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
+        #write RMS plane
+        rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
+        #write SNR plane
+        snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
+        dataset.close()
             
-        except Exception, data:
-            print('Could not write data to file %s: %s' % (outfile, data))
-            return
+    except Exception, data:
+        print('Could not write data to file %s: %s' % (outfile, data))
+        return
 
         
-        localMap = 0  # free memory
-        snrMap = 0
-        rmsMap = 0
-        dataset = 0
+    localMap = 0  # free memory
+    snrMap = 0
+    rmsMap = 0
+    dataset = 0
 
 
 
@@ -323,9 +325,10 @@ Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Smoothing:          %s arcsec'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
+Smoothing:          %s arcsec
+Number of scans     %s'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
      xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
-     smoothby_arcsec))
+     smoothby_arcsec, len(scans)))
 
 # ===========================
 # Beginning of reduction loop
@@ -366,7 +369,7 @@ with warnings.catch_warnings():
             # Initialize map for this scan
             m = None
 
-            # Check if reduction exists
+            # Check if reduction does not exist
             if len(globlist) ==  0:
                 print('')
                 print('')
@@ -375,7 +378,11 @@ with warnings.catch_warnings():
 
                 # Reduce it
                 redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
-            
+                # NOTE: redweak's summary is everything about the timelines, nothing about map.
+                # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
+                # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
+                # and pointing corrections in smoothed maps. This is fine.
+
                 # Immediately rename summary and move to new folder
                 if writeSummary:
                     # VWO: made it iteration-specific
@@ -393,18 +400,28 @@ with warnings.catch_warnings():
                 #if scan == 28517:
                 #    flagC(3353, flag=2)
 
-                # Create map
-                mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,noPlot=noPlot)
+                # Create map in chosen system and chosen box
+                # where pixsize = BEAM_FWHM / oversamp
+                mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,limitsZ=[-0.8,1.5],noPlot=noPlot)
+                # NOTE: this has a smooth parameter, but is default 0
+                # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
             
-                # Save unsmoothed map
+                # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
                 data.Map.dumpMap(scanname)
 
-                # Create BoA map
+                # Assing BoA map to variable m
                 m = restoreFile(scanname)
 
-                # Smooth if necessary
+                # Smooth if necessary with the correct handling of Weight map using our new function.
                 if smoothby_deg > 0.0:
+                    info('Smoothing map before co-adding...')
+                    nativebeam = m.BeamSize
                     auxsmoothby(m, smoothby_deg)
+                    newbeam = m.BeamSize
+                    print('Native beam:     %.3f "'%(nativebeam*3600))
+                    print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
+                    print('New beam:        %.3f "'%(newbeam*3600))
+                    print('')
 
                 # For this scan, add non-noisy area and median noise info to summary
                 if writeSummary:
@@ -430,12 +447,19 @@ with warnings.catch_warnings():
             
             else:
                 # Retrieve BoA map
-                info('Reduction for scan %i (iteration %i) found'%(scan, iter))
+                info('Reduction for scan %i (iteration %i) found. Loading...'%(scan, iter))
                 m = restoreFile(scanname)
 
                 # Smooth if necessary
                 if smoothby_deg > 0.0:
+                    info('Smoothing map before co-adding...')
+                    nativebeam = m.BeamSize
                     auxsmoothby(m, smoothby_deg)
+                    newbeam = m.BeamSize
+                    print('Native beam:     %.3f "'%(nativebeam*3600))
+                    print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
+                    print('New beam:        %.3f "'%(newbeam*3600))
+                    print('')
 
 
             if np.all(np.isnan(m.Data)):
@@ -457,7 +481,7 @@ with warnings.catch_warnings():
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN )  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
                 # plotting
-                snrMap.display(aspect=1,limitsZ=[-4,12])
+                snrMap.display(aspect=1,limitsZ=[-4, 12])
 
         # Iteration complete, now create final coadded maps and display
         # final SNR map + noise contours with optional clipping of high noise pixels.
