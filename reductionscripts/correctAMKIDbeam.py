@@ -141,11 +141,10 @@ with warnings.catch_warnings():
         auxwriteFits(ms, outfile=outname, overwrite=1)
         info('Beam-corrected FITS written to:')
         print(outname)
-        print('')
-        print('')
 
         # free memory
         ms = None
 
+print('')
 print(correctionsummary)
 info('Check BeamCorrected/ directory for beam-corrected FITS!')
