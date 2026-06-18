@@ -69,6 +69,8 @@ if system not in ['EQ', 'GAL', 'HO']:
     raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
+if sizex + 2*padding > 360 or sizey + 2*padding > 180:
+    raise ValueError("Your map is bigger than the sky...")
 
 # define the good functions :)
 def findSciTargetScans(source, obslogsdir, verbose=False):
@@ -292,30 +294,33 @@ smallerY = center[1] - sizey/2 - padding
 
 # These can't happen
 if biggerY > 90:
-    raise ValueError('The upper border of the map has Y coordinate > +90 degrees!')
+    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y coordinate > +90 degrees! are you sure this is intended?')
 if smallerY < -90:
-    raise ValueError('The lower border of the map has Y coordinate < -90 degrees!')
+    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y coordinate < -90 degrees! are you sure this is intended?')
 
-# If the left boundary is, say, 185 deg GLON
-# For APEX that actually is 185 - 360 = -175 deg GLON
+# Check X reframing.
+# Example with an X width of 10 deg:
+# Case 1: left = 150, right = 140 is left untouched
+# Case 1: left = 185, right = 175 -> frame was 0:360, now left = -175, right = 175
+# Case 3: left = 200, right = 190 -> frame was 0:360, now left = -160, right = -170
+# Case 4 : same as before but one of the boundaries ended up < -180: add 360
 sysreframe = False
 if biggerX > 180:
     biggerX -= 360
     sysreframe = True
-# And if mapsize was, for example, 10 degrees in X, then
-# right boundary should be 175, which is smaller than 180.
+if biggerX < -180:
+    biggerX += 360
+    sysreframe = True
 if smallerX > 180:
     smallerX -=360
     sysreframe = True
+if smallerX < -180:
+    smallerX +=360
+    sysreframe = True
 
-# infomration
+# information
 if sysreframe:
-    warn('Map X boundaries were transformed from 0:360 deg to -180:180 deg')
-
-# End result (width in X of 10 deg example):
-# Case 1: left = 150, right = 140 is left untouched
-# Case 1: left = 185, right = 175 -> left = -175, right = 175
-# Case 3: left = 200, right = 190 -> left = -160, right = -170 which is still good
+    warn('Map X boundaries were wrapped into the range [-180, 180] deg')
 
 # Define boundary list for functions
 ysize = [smallerY, biggerY]
