@@ -102,7 +102,6 @@ with warnings.catch_warnings():
         print(outname)
         print('')
         print('')
-        print('')
 
         # free memory
         ms = None
