@@ -21,9 +21,45 @@ if os.path.exists('BeamCorrected') == False:
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
-    # determine real native beam of AMKID (ideally from beammaps)
+    # determine nominal AMKID beam size
     AMKID_beamsize  = 17.  # arcsec
     from_where = 'Nominal value'
+
+    info('Attempting to extract AMKID beam size from beammap info...')
+    # Try and read nominal beam size from merged beammap
+    try:
+        # find beam_map reduced file
+        beammap_fnames = []
+        for filename in os.listdir('CalFiles'):
+            if 'beam_map' in filename and 'merged' in filename:
+                beammap_fnames.append(filename)
+        if len(beammap_fnames) > 1:
+            # use last?
+            beammap_fname = beammap_fnames[-1]
+        elif len(beammap_fnames) == 1:
+            beammap_fname = beammap_fnames[0]
+        else:
+            raise ValueError # stop trying
+        
+        # read and extract average beam size
+        beammap_fname_full = 'CalFiles' + beammap_fname
+        beamdict = readBeamMapDict(infile=beammap_fname_full, fe=fe)  # fe defined at reduction
+
+        # median of geometric average FWHM of all kids
+        # produces same beam area in case beam is ellyptical
+        AMKID_beamsize = np.nanmedian(np.array([(beamdict[kid]['xfwhm']*beamdict[kid]['yfwhm'])**0.5 for kid in beamdict.keys()]))
+
+        # succesfully got a beammap estimate
+        from_where = 'Extracted from beam map: %s'%beammap_fname_full
+
+        info('Success extracting beam size from:')
+        print()
+        info('Beam size is %.3f "'%AMKID_beamsize)
+        
+
+    except:
+        warn('Beam size extraction was not possible. Using nominal value of %.3f "'%AMKID_beamsize)
+        pass
 
     for iter in range(1, niters+1):
         # Extract file name of corresponding map
