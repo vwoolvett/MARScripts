@@ -53,7 +53,7 @@ with warnings.catch_warnings():
         from_where = 'Extracted from beam map: %s'%beammap_fname_full
 
         info('Success extracting beam size from:')
-        print()
+        print(beammap_fname_full)
         info('Beam size is %.3f "'%AMKID_beamsize)
         
 
