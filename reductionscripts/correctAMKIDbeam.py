@@ -22,12 +22,12 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
     # determine nominal AMKID beam size
-    AMKID_beamsize  = 17.  # arcsec
+    AMKID_beamsize  = 16.5  # arcsec
     from_where = 'Nominal value'
 
     info('Attempting to extract AMKID beam size from beammap info...')
     # Try and read nominal beam size from merged beammap
-    if True:
+    try:
         # find beam_map reduced file
         beammap_fnames = []
         for filename in os.listdir('CalFiles'):
@@ -57,7 +57,7 @@ with warnings.catch_warnings():
         info('Beam size is %.3f "'%AMKID_beamsize)
         
 
-    else:
+    except:
         warn('Beam size extraction was not possible. Using nominal value of %.3f "'%AMKID_beamsize)
         pass
 
