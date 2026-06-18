@@ -131,7 +131,7 @@ with warnings.catch_warnings():
             correctionsummary += '\nUnsmoothed beam:                            %s "'%(str(np.round(UNCORRECTED_NATIVE_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\nAMKID median beam:                          %s "'%(str(np.round(CORRECT_NATIVE_FWHM*3600., 3)).ljust(6)) + ' (%s)'%from_where
             correctionsummary += '\nSky map (image) was rescaled by:            %sx '%(str(np.round(correct_scale/uncorrected_scale, 3)).ljust(5))
-            correctionsummary += '\nVariance map (/Weight) was rescaled by:     %sx '%(str(np.round((correct_scale/uncorrected_scale)**2, 3)).ljust(5))
+            correctionsummary += '\nVariance map (1 / Weight) was rescaled by:  %sx '%(str(np.round((correct_scale/uncorrected_scale)**2, 3)).ljust(5))
             correctionsummary += '\nCorrected beam after smoothing:             %s "'%(str(np.round(CORRECT_CONVOLVED_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\n------------------------------------------------------------'
             correctionsummary += '\nFluxes were %.1f'%(percentofreal) + r'% of the expected flux'
