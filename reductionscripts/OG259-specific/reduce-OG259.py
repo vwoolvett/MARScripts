@@ -519,11 +519,14 @@ with warnings.catch_warnings():
         outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
         auxwriteFits(ms, outfile=outname, overwrite=1)
 
+print('\n\n\n')
+print('============================')
 info('Reduction finished.')
+print('============================')
 
 # Beam corrections
 if correctbeam:
-    print('\n\n\n\n\n')
+    print('\n\n\n')
     print('=======================================================================')
     info('Beginning SKY, RMS, and SNR map corrections for iteration maps')
     print('=======================================================================')
