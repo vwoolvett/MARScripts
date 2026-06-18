@@ -1,0 +1,98 @@
+# SCRIPT TO CORRECT THE BEAM SIZE AND RE-SCALING IN CO-ADDED MAPS
+# AND EXPORT THEM AS FITS INTO "./BeamCorrected" directory
+# INTENDED TO BE RAN AUTOMATICALLY AFTER REDUCTION SCRIPT
+# NO USER INPUT NEEDED
+# TODO: extract AMKID_beamsize from average of beammaps instead!
+
+# ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+import warnings
+import copy as copy
+import BoaMapping as BOAMAP
+from mars.fortran import fMap
+
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
+
+    # determine real native beam of AMKID (ideally from beammaps)
+    AMKID_beamsize  = 17.       # arcsec
+
+
+    for iter in range(1, niters+1):
+        # Extract file name of corresponding map
+        mycoadded_fname = str(myname) + "-coadded-flux-iter" + str(iter) + ".data"
+        mycoadded_fullfname = "ReducedFiles/" + mycoadded_fname
+        globlist = glob(mycoadded_fullfname)
+
+        # Try to retrieve it
+        if len(globlist) != 0:
+            print('')
+            info('Loading map in file:')
+            print(mycoadded_fullfname)
+            ms = restoreFile(mycoadded_fullfname)
+        else:
+            print('')
+            warn('File %s not found!'%mycoadded_fullfname)
+            continue
+        print('')
+
+        # Extract uncorrected, convolved beam FWHM. Might be actually convolved or not.
+        UNCORRECTED_CONVOLVED_FWHM = ms.BeamSize
+
+        # If map was not smoothed
+        if smoothby_arcsec <= 0.0:
+            # Will leave map untouched but change the written beam
+            smoothby_arcsec = 0.0
+
+        # define smoothing in deg
+        smoothby_deg = smoothby_arcsec / 3600.
+
+        # Recover native beam of map before smoothing (if any)
+        UNCORRECTED_NATIVE_FWHM = np.sqrt(UNCORRECTED_CONVOLVED_FWHM**2 - smoothby_deg**2)
+
+        # The correct native FWHM is AMKID's.
+        CORRECT_NATIVE_FWHM = AMKID_beamsize / 3600.
+        # If UNCORRECTED_NATIVE_FWHM == CORRECT_NATIVE_FWHM, then everything was done correctly
+        # And nothing changes here onwards.
+
+        # Compute AMKID's convolved beam after smoothing (if any)
+        CORRECT_CONVOLVED_FWHM = np.sqrt(CORRECT_NATIVE_FWHM**2 + smoothby_deg**2)  # = AMKID's native if smooth=0
+
+        # Undo wrong convolution rescaling (if any)
+        # (native^2 + smoothing^2) / native^2 was multiplied to 
+        # convolved intensity map and its square to the variance = 1/Weight map.
+        uncorrected_scale = (UNCORRECTED_CONVOLVED_FWHM**2 / UNCORRECTED_NATIVE_FWHM**2)  # =1 if smooth=0
+        ms.Data /= uncorrected_scale  # undo uncorrected scale
+        ms.Weight /= (1./uncorrected_scale**2)  # undo uncorrected scale^2
+
+        # Redo correct convolution rescaling (if any)
+        correct_scale = (CORRECT_CONVOLVED_FWHM**2 / CORRECT_NATIVE_FWHM**2)  # =1 if smooth=0
+        ms.Data *= correct_scale  # redo correct scale
+        ms.Weight *= (1./correct_scale**2)  # redo correct scale^2
+
+        # =================================================================
+        # Now the map is in the correct AMKID^2 + SMOOTHING^2 Jy/beam units.
+        # =================================================================
+        # All that's left to do is correct the written beam size
+        ms.BeamSize = CORRECT_CONVOLVED_FWHM  # = AMKID's native if smooth=0
+
+        print('CURRENT BEAM:           %.3f "'%(UNCORRECTED_CONVOLVED_FWHM*3600.))
+        print('SMOOTHING WAS:          %.3f "'%(smoothby_deg*3600.))
+        print('UNSMOOTHED BEAM:        %.3f "'%(UNCORRECTED_NATIVE_FWHM*3600.))
+        print('REAL NATIVE AMKID BEAM: %.3f "'%(CORRECT_NATIVE_FWHM*3600.))
+        print('')
+        print('IMAGE WAS RESCALED BY: x%.3f'%(correct_scale/uncorrected_scale))
+        print('AND FINAL BEAM IS:      %.3f "'%(CORRECT_CONVOLVED_FWHM*3600.))
+        print('')
+
+        # now export to fits
+        if os.path.exists('BeamCorrected') == False:
+            os.makedirs("BeamCorrected")
+
+        outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
+        auxwriteFits(ms, outfile=outname, overwrite=1)
+        print('')
+        print('')
+        print('')
+
+        # free memory
+        ms = None

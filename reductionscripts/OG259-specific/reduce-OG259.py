@@ -22,6 +22,7 @@ clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = True         # Flag jumps/spikes in the data:
                             # recommended to set to True for 'weak' sources in LFA
 smoothby_arcsec = 8.        # Default 8. arcsec
+correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
@@ -518,3 +519,11 @@ with warnings.catch_warnings():
 
         outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
         auxwriteFits(ms, outfile=outname, overwrite=1)
+
+# Beam corrections
+if correctbeam:
+    print('\n\n\n\n\n')
+    print('=======================================================================')
+    info('Beginning SKY, RMS, and SNR map corrections for iteration maps')
+    print('=======================================================================')
+    execfile('correctAMKIDbeam.py')
