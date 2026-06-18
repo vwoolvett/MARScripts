@@ -144,7 +144,7 @@ with warnings.catch_warnings():
             correctionsummary += '\nVariance map (1 / Weight) was rescaled by:  %sx '%(str(np.round(imagecorrfactor**2, 3)).ljust(5))
             correctionsummary += '\nCorrected beam after smoothing:             %s "'%(str(np.round(CORRECT_CONVOLVED_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\n------------------------------------------------------------'
-            correctionsummary += '\nFluxes were %.1f'%(percentofreal) + r'% of the expected flux'
+            correctionsummary += '\nFluxes before correction were %.1f'%(percentofreal) + r'% of the expected flux'
             correctionsummary += '\n------------------------------------------------------------'
 
         # now export to fits
