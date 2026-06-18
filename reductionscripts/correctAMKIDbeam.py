@@ -126,13 +126,13 @@ with warnings.catch_warnings():
         if iter==1:
             correctionsummary = 'Summary of corrections (should be same for all iterations):'
             correctionsummary += '\n------------------------------------------------------------'
-            correctionsummary += '\nBeam read from files:                       %.3f "'%((UNCORRECTED_CONVOLVED_FWHM*3600.).ljust(6))
-            correctionsummary += '\nSmoothing was:                              %.3f "'%((smoothby_deg*3600.).ljust(6))
-            correctionsummary += '\nUnsmoothed beam:                            %.3f "'%((UNCORRECTED_NATIVE_FWHM*3600.).ljust(6))
-            correctionsummary += '\nAMKID median beam:                          %.3f "'%((CORRECT_NATIVE_FWHM*3600.).ljust(6)) + ' (%s)'%from_where
-            correctionsummary += '\nSky map (image) was rescaled by:            %.3fx '%((correct_scale/uncorrected_scale).ljust(6))
-            correctionsummary += '\nVariance map (/Weight) was rescaled by:     %.3fx '%(((correct_scale/uncorrected_scale)**2).ljust(6))
-            correctionsummary += '\nCorrected beam after smoothing:             %.3f "'%((CORRECT_CONVOLVED_FWHM*3600.).ljust(6))
+            correctionsummary += '\nBeam read from files:                       %s "'%(str(np.round(UNCORRECTED_CONVOLVED_FWHM*3600., 3)).ljust(6))
+            correctionsummary += '\nSmoothing was:                              %s "'%(str(np.round(smoothby_deg*3600., 3)).ljust(6))
+            correctionsummary += '\nUnsmoothed beam:                            %s "'%(str(np.round(UNCORRECTED_NATIVE_FWHM*3600., 3)).ljust(6))
+            correctionsummary += '\nAMKID median beam:                          %s "'%(str(np.round(CORRECT_NATIVE_FWHM*3600., 3)).ljust(6)) + ' (%s)'%from_where
+            correctionsummary += '\nSky map (image) was rescaled by:            %sx '%(str(np.round(correct_scale/uncorrected_scale, 3)).ljust(5))
+            correctionsummary += '\nVariance map (/Weight) was rescaled by:     %sx '%(str(np.round((correct_scale/uncorrected_scale)**2, 3)).ljust(5))
+            correctionsummary += '\nCorrected beam after smoothing:             %s "'%(str(np.round(CORRECT_CONVOLVED_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\n------------------------------------------------------------'
             correctionsummary += '\nFluxes were %.1f'%(percentofreal) + r'% of the expected flux'
             correctionsummary += '\n------------------------------------------------------------'
