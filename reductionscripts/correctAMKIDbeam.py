@@ -10,6 +10,10 @@ import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
+print('=======================================================================')
+info('Beginning SKY, RMS, and SNR map corrections for iteration maps')
+print('=======================================================================')
+
 # Create dir if missing
 if os.path.exists('BeamCorrected') == False:
             os.makedirs("BeamCorrected")
@@ -98,3 +102,5 @@ with warnings.catch_warnings():
 
         # free memory
         ms = None
+
+info('Check BeamCorrected/ directory for beam-corrected FITS!')
