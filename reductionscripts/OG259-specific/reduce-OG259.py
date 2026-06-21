@@ -251,6 +251,7 @@ if sizex + 2*padding > 360 or sizey + 2*padding > 180:
     raise ValueError("Your map is bigger than the sky...")
 
 # Create map bounds
+info('Creating map boundaries...')
 biggerX = center[0] + sizex/2 + padding
 smallerX = center[0] - sizex/2 - padding
 biggerY = center[1] + sizey/2 + padding
@@ -284,7 +285,7 @@ if smallerX < -180:
 
 # information
 if sysreframe:
-    warn('Map X boundaries were wrapped into the range [-180, 180] deg')
+    info('Map X boundaries were wrapped into the range [-180, 180] deg')
 
 # Define boundary list for functions
 ysize = [smallerY, biggerY]
@@ -326,7 +327,7 @@ scans.sort()
 for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
-        info('Scan %i manually removed'%badscan)
+        info('Scan %i in bad scans manually removed'%badscan)
 
 # Define standardized "myname" variable for output files
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -350,6 +351,7 @@ if writeSummary and os.path.exists("Summaries") == False:
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
 
+print('')
 print('''\
 =====================
 Reduction parameters:
