@@ -43,14 +43,6 @@ import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
-# variable checks
-if fe not in ['LFA', 'HFA']:
-    raise ValueError("fe must be either 'LFA' or 'HFA'.")
-if system not in ['EQ', 'GAL', 'HO']:
-    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
-if iter < 1 or iter > 3:
-    raise ValueError("iter must be 1, 2, or 3.")
-
 # define the good functions :)
 def findSciTargetScans(source, obslogsdir, verbose=False):
     scanlist = []
@@ -99,13 +91,8 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                         message += 'SCAN DISCARDED'
                     if verbose:
                         print(message)
-    # If nothing was found, break script
-    if len(scanlist) == 0:
-        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
     scanlist.sort()
-    print('')
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
-    print('')
     return scanlist
 
 
@@ -114,7 +101,7 @@ def auxsmoothby(m, Size):
     '''
     BoA-like smoothing but with correct variance propagation.
 
-    - Data: convolved with K
+    - Data: convolved with K (same as BoA)
     - Weight: propagated via variance (K^2)
     - Coverage: convolved with K (same as BoA)
     '''
@@ -168,6 +155,14 @@ def auxsmoothby(m, Size):
 
 
 
+# variable checks
+if fe not in ['LFA', 'HFA']:
+    raise ValueError("fe must be either 'LFA' or 'HFA'.")
+if system not in ['EQ', 'GAL', 'HO']:
+    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
+if iter < 1 or iter > 3:
+    raise ValueError("iter must be 1, 2, or 3.")
+
 # find project home folder based on where MARS loaded and re-define obslogsdir
 if obslogsdir == '~/obslogs':
     currdir = os.getcwd()
@@ -189,7 +184,9 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
     scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
-    
+    if len(scans) == 0:
+        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+
 # sort scans
 scans.sort()
 
