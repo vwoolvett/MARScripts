@@ -62,16 +62,6 @@ import copy as copy
 import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
-# variable checks
-if fe not in ['LFA', 'HFA']:
-    raise ValueError("fe must be either 'LFA' or 'HFA'.")
-if system not in ['EQ', 'GAL', 'HO']:
-    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
-if niters < 1 or niters > 3:
-    raise ValueError("niters must be 1, 2, or 3.")
-if sizex + 2*padding > 360 or sizey + 2*padding > 180:
-    raise ValueError("Your map is bigger than the sky...")
-
 # define the good functions :)
 def findSciTargetScans(source, obslogsdir, verbose=False):
     scanlist = []
@@ -124,7 +114,6 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
     if len(scanlist) == 0:
         raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
     scanlist.sort()
-    print('')
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     print('')
     return scanlist
@@ -251,40 +240,15 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
 
 
 
-# find project home folder based on where MARS loaded and re-define obslogsdir
-if obslogsdir == '~/obslogs':
-    currdir = os.getcwd()
-    splitted = currdir.split('/')
-    projectidx = None
-    for i in range(len(splitted)):
-        # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
-            projectidx = i
-    if projectidx != None:
-        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
-    else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
-
-if len(scans) == 0 and not os.path.exists(obslogsdir):
-    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
-
-# find scans if not provided
-if len(scans) == 0 and os.path.exists(obslogsdir):
-    info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
-    
-# sort scans
-scans.sort()
-
-# Remove bad scans from the list of scans to be reduced
-for badscan in badscans:
-    if badscan in scans:
-        scans.remove(badscan)
-
-# Define standardized "myname" variable for output files
-myname = str(fe) + "-" + str(source) + "-" + str(system)
-if flagJumps:
-    myname += "-flagJumps"
+# variable checks
+if fe not in ['LFA', 'HFA']:
+    raise ValueError("fe must be either 'LFA' or 'HFA'.")
+if system not in ['EQ', 'GAL', 'HO']:
+    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
+if niters < 1 or niters > 3:
+    raise ValueError("niters must be 1, 2, or 3.")
+if sizex + 2*padding > 360 or sizey + 2*padding > 180:
+    raise ValueError("Your map is bigger than the sky...")
 
 # Create map bounds
 biggerX = center[0] + sizex/2 + padding
@@ -332,6 +296,42 @@ xsize = [biggerX, smallerX]
 # follows left-hand rule with thumb pointing to zenith (eastward in ground)
 if system =='HO':
     xsize = [smallerX, biggerX]
+
+# find project home folder based on where MARS loaded and re-define obslogsdir
+if obslogsdir == '~/obslogs':
+    currdir = os.getcwd()
+    splitted = currdir.split('/')
+    projectidx = None
+    for i in range(len(splitted)):
+        # project code is separated once with dot and thrice with dash
+        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
+            projectidx = i
+    if projectidx != None:
+        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
+    else:
+        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
+
+if len(scans) == 0 and not os.path.exists(obslogsdir):
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
+
+# find scans if not provided
+if len(scans) == 0 and os.path.exists(obslogsdir):
+    info('Retrieving source scan numbers from ObsLogs...')
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
+    
+# sort scans
+scans.sort()
+
+# Remove bad scans from the list of scans to be reduced
+for badscan in badscans:
+    if badscan in scans:
+        scans.remove(badscan)
+        info('Scan %i manually removed'%badscan)
+
+# Define standardized "myname" variable for output files
+myname = str(fe) + "-" + str(source) + "-" + str(system)
+if flagJumps:
+    myname += "-flagJumps"
 
 # Set noPlot
 if not doPlot:
