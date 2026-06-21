@@ -110,9 +110,6 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                         message += 'SCAN DISCARDED'
                     if verbose:
                         print(message)
-    # If nothing was found, break script
-    if len(scanlist) == 0:
-        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
     scanlist.sort()
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     return scanlist
@@ -230,9 +227,9 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
     except Exception, data:
         print('Could not write data to file %s: %s' % (outfile, data))
         return
-
-        
-    localMap = 0  # free memory
+    
+    # free memory
+    localMap = 0
     snrMap = 0
     rmsMap = 0
     dataset = 0
@@ -318,7 +315,9 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
     scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
-    
+    if len(scans) == 0:
+        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+
 # sort scans
 scans.sort()
 
@@ -327,6 +326,10 @@ for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
         info('Scan %i in bad scans manually removed'%badscan)
+
+# Check removing bads did not leave scans empty
+if len(scans) == 0:
+    raise ValueError('There are no good scans after removing bad scans list...')
 
 # Define standardized "myname" variable for output files
 myname = str(fe) + "-" + str(source) + "-" + str(system)
