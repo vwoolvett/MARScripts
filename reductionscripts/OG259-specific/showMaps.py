@@ -162,6 +162,8 @@ if system not in ['EQ', 'GAL', 'HO']:
     raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
 if iter < 1 or iter > 3:
     raise ValueError("iter must be 1, 2, or 3.")
+if show not in ['sig', 'rms', 'snr']:
+    raise ValueError("show must be 'sig', 'rms', or 'snr'.")
 
 # find project home folder based on where MARS loaded and re-define obslogsdir
 if obslogsdir == '~/obslogs':
@@ -235,28 +237,26 @@ with warnings.catch_warnings():
             info('Displaying Signal map...')
             m.display(aspect=1,limitsZ=[-0.2,0.5])
 
-        else:
-            if show =='noise':
-                info('Displaying Noise map...')
-                # RMS map creation
-                rmsMap = copy.deepcopy(m)  # Signal
-                rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+        elif show == 'rms':
+            info('Displaying Noise map...')
+            # RMS map creation
+            rmsMap = copy.deepcopy(m)  # Signal
+            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
 
-                # median noise
-                mediannoise = np.nanmedian(rmsMap.Data)
+            # median noise
+            mediannoise = np.nanmedian(rmsMap.Data)
 
-                # plotting
-                rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise])
+            # plotting
+            rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise])
             
+        else:
+            info('Displaying Signal-to-Noise map...')
+            # SNR map creation
+            snrMap = copy.deepcopy(m)  # Signal
+            snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-            else:
-                info('Displaying Signal-to-Noise map...')
-                # SNR map creation
-                snrMap = copy.deepcopy(m)  # Signal
-                snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
-
-                # plotting
-                snrMap.display(aspect=1,limitsZ=[-4,12])
+            # plotting
+            snrMap.display(aspect=1,limitsZ=[-4,12])
 
         usrinput = raw_input(msg)
         if str.upper(str(usrinput)) == 'Q':
