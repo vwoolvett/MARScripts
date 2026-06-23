@@ -31,7 +31,7 @@ scans = []  # 27974 is first
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
-badscans = [27979, 27991, 28217, 28498] 
+badscans = [27979, 27991, 28217, 28498, 33735] # 33735 not readable 
 
 # ==============================
 # ===== END OF USER INUPUT =====
