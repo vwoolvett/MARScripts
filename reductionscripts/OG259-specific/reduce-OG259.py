@@ -440,8 +440,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                #if scan == 28517:
-                #    flagC(3353, flag=2)
+                if scan == 28517:
+                    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
@@ -453,13 +453,17 @@ with warnings.catch_warnings():
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
                 data.Map.dumpMap(scanname)
 
-                # Assing BoA map to variable m
+                # Assign BoA map to variable m
                 m = restoreFile(scanname)
 
                 # For this scan, add non-noisy area and median noise info to summary
                 if writeSummary:
+                    # copy map and smooth with same kernel as final file
+                    m_smooth = copy.deepcopy(m)
+                    auxsmoothby(m_smooth, smoothby_deg)
+
                     # Create smoothed noise map
-                    rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
+                    rmsArray = np.where(m_smooth.Weight > 0.0, 1.0 / np.sqrt(m_smooth.Weight), np.NaN)
 
                     # Statistics and write
                     minnoise = np.nanmin(rmsArray)
@@ -477,6 +481,8 @@ with warnings.catch_warnings():
                     f = open(outname,'w')
                     f.write(myline)
                     f.close()
+
+                    m_smooth = None  # free memory
             
             else:
                 # Retrieve BoA map
@@ -494,38 +500,38 @@ with warnings.catch_warnings():
             elif not ms:
                 ms = copy.deepcopy(m)
 
-            # ==============================
-            # NO SMOOTHING AT ALL UP TO HERE
-            # ==============================
-
             if doPlot:
                 # Never overwrite ms (coadded map) with a smoothed version
                 # While still co-adding scans
                 ms_toplot = copy.deepcopy(ms)
                 if smoothby_deg > 0.0:
-                    info('Smoothing copy of co-added map up to scan %i by %.1f "...'%(scan, smoothby_arcsec))
+                    info('Smoothing copy of co-added map up to scan %i by %.1f"...'%(scan, smoothby_arcsec))
                     nativebeam = ms_toplot.BeamSize
                     auxsmoothby(ms_toplot, smoothby_deg)
                     newbeam = ms_toplot.BeamSize
-                    print('Unsmoothed beam: %.3f "     New beam: %.3f "'%(nativebeam*3600, newbeam*3600))
+                    print('Unsmoothed beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
                 # SNR map creation
                 snrMap = copy.deepcopy(ms_toplot)  # Signal
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
                 snrMap.display(aspect=1,limitsZ=[-4, 12])
+                ms_toplot = None  # free memory
 
             # Space between co-adding scans
             print('')
 
+        # ======================================
+        # NO SMOOTHING AT ALL UP TO HERE IN "ms"
+        # ======================================
         # Iteration complete. Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
-            info('Smoothing co-added map for iteration %i by %.1f "...'%(iter, smoothby_arcsec))
+            info('Smoothing co-added map for iteration %i by %.1f"...'%(iter, smoothby_arcsec))
             nativebeam = ms.BeamSize
             auxsmoothby(ms, smoothby_deg)
             newbeam = ms.BeamSize
-            print('Unsmoothed beam: %.3f "     New beam: %.3f "'%(nativebeam*3600, newbeam*3600))
+            print('Unsmoothed beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
 
         # RMS map creation
         rmsMap = copy.deepcopy(ms)  # Signal
