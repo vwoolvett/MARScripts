@@ -405,7 +405,7 @@ with warnings.catch_warnings():
         # Initialize co-added map
         ms = None
 
-        for i,scan in enumerate(scans):
+        for i, scan in enumerate(scans):
             scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
             globlist = glob(scanname)
 
@@ -456,16 +456,6 @@ with warnings.catch_warnings():
                 # Assing BoA map to variable m
                 m = restoreFile(scanname)
 
-                # Smooth if necessary with the correct handling of Weight map using our new function.
-                if smoothby_deg > 0.0:
-                    info('Smoothing map before co-adding...')
-                    nativebeam = m.BeamSize
-                    auxsmoothby(m, smoothby_deg)
-                    newbeam = m.BeamSize
-                    print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
-                    print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
-                    print('New beam:        %.3f "'%(newbeam*3600))
-
                 # For this scan, add non-noisy area and median noise info to summary
                 if writeSummary:
                     # Create smoothed noise map
@@ -475,7 +465,7 @@ with warnings.catch_warnings():
                     minnoise = np.nanmin(rmsArray)
                     mask = (rmsArray > 5*minnoise)
                     rmsArray[mask] = np.NaN
-                    pixelsize = np.abs(m.WCS['CDELT2'])  # taken from smoothed map
+                    pixelsize = np.abs(m.WCS['CDELT2'])
                     nrpix = np.sum(~np.isnan(rmsArray))
                     area = nrpix * pixelsize**2
                     noise = np.nanmedian(rmsArray)
@@ -493,41 +483,54 @@ with warnings.catch_warnings():
                 info('Reduction for scan %i (iteration %i) found. Loading...'%(scan, iter))
                 m = restoreFile(scanname)
 
-                # Smooth if necessary
-                if smoothby_deg > 0.0:
-                    info('Smoothing map before co-adding...')
-                    nativebeam = m.BeamSize
-                    auxsmoothby(m, smoothby_deg)
-                    newbeam = m.BeamSize
-                    print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
-                    print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
-                    print('New beam:        %.3f "'%(newbeam*3600))
-
-
             if np.all(np.isnan(m.Data)):
                 warn('Map data is all NaNs! Ensure that the map bounds are correct.')
                 break
 
             info('Coadding...')
-            print('')
             if ms and m:
-                # both are smoothed
                 ms = mapsumfast([ms,m])  
         
             elif not ms:
-                # is already smoothed
                 ms = copy.deepcopy(m)
 
-            if doPlot:
-                # SNR map creation
-                snrMap = copy.deepcopy(ms)  # Signal
-                snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN )  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+            # ==============================
+            # NO SMOOTHING AT ALL UP TO HERE
+            # ==============================
 
+            if doPlot:
+                # Never overwrite ms (coadded map) with a smoothed version
+                # While still co-adding scans
+                ms_toplot = copy.deepcopy(ms)
+                if smoothby_deg > 0.0:
+                    info('Smoothing copy of co-added map up to scan %i for display...'%scan)
+                    nativebeam = ms_toplot.BeamSize
+                    auxsmoothby(ms_toplot, smoothby_deg)
+                    newbeam = ms_toplot.BeamSize
+                    print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
+                    print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
+                    print('New beam:        %.3f "'%(newbeam*3600))
+                # SNR map creation
+                snrMap = copy.deepcopy(ms_toplot)  # Signal
+                # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+                snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
                 snrMap.display(aspect=1,limitsZ=[-4, 12])
 
-        # Iteration complete, now create final coadded maps and display
-        # final SNR map + noise contours with optional clipping of high noise pixels.
+            # Space between co-adding scans
+            print('')
+
+        # Iteration complete. Now create final iter maps and FITS.
+        # First, smooth co-added if required:
+        if smoothby_deg > 0.0:
+            info('Smoothing co-added map for iteration %i...'%iter)
+            nativebeam = ms.BeamSize
+            auxsmoothby(ms, smoothby_deg)
+            newbeam = ms.BeamSize
+            print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
+            print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
+            print('New beam:        %.3f "'%(newbeam*3600))
+
         # RMS map creation
         rmsMap = copy.deepcopy(ms)  # Signal
         rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
@@ -548,11 +551,11 @@ with warnings.catch_warnings():
         minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
         meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
 
-        # plotting (these are already smoothed if used)
+        # plotting
         snrMap.display(aspect=1,limitsZ=[-4,12])
         rmsMap.display(aspect=1,limitsZ=[0, 1.5*mediannoise],doContour=1,levels=[1.5*mediannoise],overplot=1)
 
-        # Save smoothed (if used) full-iteration map
+        # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
         ms.dumpMap(outname)
 
