@@ -440,8 +440,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                if scan == 28517:
-                    flagC(3353, flag=2)
+                #if scan == 28517:
+                #    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
@@ -503,13 +503,11 @@ with warnings.catch_warnings():
                 # While still co-adding scans
                 ms_toplot = copy.deepcopy(ms)
                 if smoothby_deg > 0.0:
-                    info('Smoothing copy of co-added map up to scan %i for display...'%scan)
+                    info('Smoothing copy of co-added map up to scan %i by %.1f "...'%(scan, smoothby_arcsec))
                     nativebeam = ms_toplot.BeamSize
                     auxsmoothby(ms_toplot, smoothby_deg)
                     newbeam = ms_toplot.BeamSize
-                    print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
-                    print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
-                    print('New beam:        %.3f "'%(newbeam*3600))
+                    print('Unsmoothed beam: %.3f "     New beam: %.3f "'%(nativebeam*3600, newbeam*3600))
                 # SNR map creation
                 snrMap = copy.deepcopy(ms_toplot)  # Signal
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
@@ -523,13 +521,11 @@ with warnings.catch_warnings():
         # Iteration complete. Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
-            info('Smoothing co-added map for iteration %i...'%iter)
+            info('Smoothing co-added map for iteration %i by %.1f "...'%(iter, smoothby_arcsec))
             nativebeam = ms.BeamSize
             auxsmoothby(ms, smoothby_deg)
             newbeam = ms.BeamSize
-            print('Unsmoothed beam: %.3f "'%(nativebeam*3600))
-            print('Smoothing by:    %.3f "'%(smoothby_deg*3600))
-            print('New beam:        %.3f "'%(newbeam*3600))
+            print('Unsmoothed beam: %.3f "     New beam: %.3f "'%(nativebeam*3600, newbeam*3600))
 
         # RMS map creation
         rmsMap = copy.deepcopy(ms)  # Signal
