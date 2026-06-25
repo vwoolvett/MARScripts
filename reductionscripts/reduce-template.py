@@ -14,13 +14,13 @@ doPlot  = True              # Display maps at each scan. If False, only final
                             # coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
-# SUGGESTED: run with niters=1, figure out bad scans using showMaps.py and then
-# run with niters=2 ignoring bad scans
+# SUGGESTED: run all scans with niters=1, figure out bad scans using showMaps.py and then
+# run with niters=2 or 3 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
 niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 5.           # Sigma clipping level for masking high noise pixels
 flagJumps    = False        # Flag jumps/spikes in the data:
-                            # recommended to set to True for 'weak' sources in LFA
+                            # recommended to set to True for LFA
 smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
