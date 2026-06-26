@@ -520,7 +520,7 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                snrMap.display(aspect=1,limitsZ=[-3, +3])
+                snrMap.display(aspect=1,limitsZ=[-3, +10])
                 del snrMap  # free memory
 
             del m  # free memory
