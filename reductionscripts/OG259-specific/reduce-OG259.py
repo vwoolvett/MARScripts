@@ -517,8 +517,13 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 50))
-                maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 50))
+                minsnr = np.nanpercentile(snrMap.Data[snrMap.Data<0], 90)
+                print(minsnr)
+                minsnr = min(-5, minsnr)
+                maxsnr = np.nanpercentile(snrMap.Data[snrMap.Data>0], 90)
+                print(maxsnr)
+                maxsnr = max(5, maxsnr)
+                maximorum = max(abs(minsnr), abs(maxsnr))
                 snrMap.display(aspect=1,limitsZ=[minsnr, maxsnr])
                 del snrMap  # free memory
 
