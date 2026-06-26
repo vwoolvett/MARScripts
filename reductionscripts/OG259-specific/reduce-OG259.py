@@ -59,8 +59,6 @@ badscans = [27979, 27991, 28217, 28498]
 
 import warnings
 import copy as copy
-import BoaMapping as BOAMAP
-from mars.fortran import fMap
 
 # define the good functions :)
 def findSciTargetScans(source, obslogsdir, verbose=False):
@@ -126,7 +124,7 @@ def auxsmoothby(m, Size):
     '''
     # Build kernel (not normalized)
     pixsize = abs(m.WCS['CDELT2'])
-    K0 = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+    K0 = BoaMapping.Kernel(pixsize, Size).Data.astype(float)
 
     # Normalize kernel
     K = K0 / np.sum(K0)
@@ -140,7 +138,7 @@ def auxsmoothby(m, Size):
     #   I' = (K * I) / sum(K_i), but since sum(K_i)=1
     # then ksmooth does effectively
     #   I' = K * I, all good
-    I1 = fMap.ksmooth(m.Data, K)
+    I1 = mars.fortran.fMap.ksmooth(m.Data, K)
 
     # Correct variance propagation for weights:
     #   V' = K2 * V     =     (K0/sum(K0_i))^2 * V
@@ -152,10 +150,10 @@ def auxsmoothby(m, Size):
     # to get back from ksmooth:
     #   V' = K2/sum(K2_i) * V * sum(K2_i) = K2 * V
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = fMap.ksmooth(V0, K2) * np.sum(K2)
+    V1 = mars.fortran.fMap.ksmooth(V0, K2) * np.sum(K2)
 
     # Smooth COVERAGE (same as BoA)
-    C1 = fMap.ksmooth(m.Coverage, K)
+    C1 = mars.fortran.fMap.ksmooth(m.Coverage, K)
     
     # new scale per beam for Jy/beam units
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
@@ -174,7 +172,7 @@ def auxsmoothby(m, Size):
 
 
 
-def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
+def auxwriteFits(data=None,outfile='BoaMapping.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
     """
     DES: store the current map (2D array with WCS info) to a FITS file
     INP: (str)   outfile: output file name (default boaMap.fits)
