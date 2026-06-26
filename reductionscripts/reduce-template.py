@@ -18,7 +18,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 # run with niters=2 or 3 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
 niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
-clip         = 3.           # Sigma clipping level for masking high noise pixels
+clip         = 3.           # Sigma clipping level (>1.5) on noise map: masked where noisemap > clip * mediannoise
 flagJumps    = True         # Flag jumps/spikes in the data:
                             # recommended to set to True for LFA
 smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
@@ -215,6 +215,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
             localMap.Data[mask] = np.NaN
             rmsMap.Data[mask] = np.NaN
             snrMap.Data[mask] = np.NaN
+            del mask  # free memory
  
         #write FLux plane                                                            
         localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
@@ -225,14 +226,17 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         dataset.close()
             
     except Exception, data:
+        try:
+            dataset.close()
+        except:
+            pass
         print('Could not write data to file %s: %s' % (outfile, data))
         return
     
-    # free memory
-    localMap = 0
-    snrMap = 0
-    rmsMap = 0
-    dataset = 0
+    del localMap  # free memory
+    del snrMap  # free memory
+    del rmsMap  # free memory
+    del dataset  # free memory
 
 
 
@@ -243,6 +247,8 @@ if system not in ['EQ', 'GAL', 'HO']:
     raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
+if clip <= 1.5:
+    raise ValueError("clip must be greater than 1.5.")
 if sizex + 2*padding > 360 or sizey + 2*padding > 180:
     raise ValueError("Your map is bigger than the sky...")
 
@@ -401,6 +407,8 @@ with warnings.catch_warnings():
                 subtract = True
                 mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
 
+            del coadded  # free memory
+
   
         # Initialize co-added map
         ms = None
@@ -483,7 +491,9 @@ with warnings.catch_warnings():
                     f.write(myline)
                     f.close()
 
-                    m_smooth = None  # free memory
+                    del m_smooth  # free memory
+                    del rmsArray  # free memory
+                    del mask  # free memory
             
             else:
                 # Retrieve BoA map
@@ -491,8 +501,8 @@ with warnings.catch_warnings():
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
-                warn('Map data is all NaNs! Ensure that the map bounds are correct.')
-                break
+                raise ValueError("Scan %i produced an all-NaN map. This almost always indicates "+\
+                                 "incorrect map bounds or coordinate system. Aborting reduction."% scan)
 
             info('Coadding...')
             if ms and m:
@@ -507,22 +517,28 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                snrMap.display(aspect=1,limitsZ=[-4, 12])
+                snrMap.display(aspect=1,limitsZ=[-3, 5])
+                
+                del snrMap  # free memory
+
+            del m  # free memory
 
             # Space between co-adding scans
             print('')
 
-        # ======================================
-        # NO SMOOTHING AT ALL UP TO HERE IN "ms"
-        # ======================================
-        # Iteration complete. Now create final iter maps and FITS.
+        # ==========================================================
+        # ITERATION COMPLETE, NO SMOOTHING AT ALL UP TO HERE IN "ms"
+        # ==========================================================
+        del mymodel  # free memory
+
+        # Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
             info('Smoothing co-added map for iteration %i by %.1f"...'%(iter, smoothby_arcsec))
             nativebeam = ms.BeamSize
             auxsmoothby(ms, smoothby_deg)
             newbeam = ms.BeamSize
-            print('Unsmoothed beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
+            print('Original beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
 
         # RMS map creation
         rmsMap = copy.deepcopy(ms)  # Signal
@@ -532,21 +548,15 @@ with warnings.catch_warnings():
         snrMap = copy.deepcopy(ms)  # Signal
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-        # clipping high noise pixels if clip > 0
-        mediannoise = np.nanmedian(rmsMap.Data)
-    
-        if clip > 0:
-            mask = np.where(rmsMap.Data > clip * mediannoise)
-            ms.Data[mask] = np.NaN
-            snrMap.Data[mask] = np.NaN
-            rmsMap.Data[mask] = np.NaN
-
-        minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
-        meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<1.5*mediannoise])
+        # Compute statistics, let auxwriteFits handle clipping
+        mediannoise = np.nanmedian(rmsMap.Data)  # on full map
+        # within user-defined sensitive central square:
+        minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
 
         # plotting
-        snrMap.display(aspect=1,limitsZ=[-4,12])
-        rmsMap.display(aspect=1,limitsZ=[0, 1.5*mediannoise],doContour=1,levels=[1.5*mediannoise],overplot=1)
+        snrMap.display(aspect=1,limitsZ=[-3, 5])
+        rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
@@ -557,7 +567,12 @@ with warnings.catch_warnings():
         print("############################################################")
 
         outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
-        auxwriteFits(ms, outfile=outname, overwrite=1)
+        auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
+        
+        del ms  # free memory
+        del rmsMap  # free memory
+        del snrMap  # free memory
+
 
 print('\n\n\n')
 print('############################')
