@@ -212,7 +212,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         if clip > 0:
-            info('Clipping map to %.1f*medianRMS (inner contour on display)...')
+            info('Clipping map to %.1f*medianRMS (inner contour on display)...'%clip)
             mediannoise = np.nanmedian(rmsMap.Data)
             mask = np.where(rmsMap.Data > clip * mediannoise)
             localMap.Data[mask] = np.NaN
