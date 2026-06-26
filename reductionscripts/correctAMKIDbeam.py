@@ -149,7 +149,7 @@ with warnings.catch_warnings():
 
         # now export to fits
         outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
-        auxwriteFits(ms, outfile=outname, overwrite=1)
+        auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         info('Beam-corrected FITS written to:')
         print(outname)
 
