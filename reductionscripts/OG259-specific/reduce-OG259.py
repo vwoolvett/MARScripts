@@ -552,16 +552,22 @@ with warnings.catch_warnings():
 
         # Compute statistics, let auxwriteFits handle clipping
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        # within user-defined sensitive central square:
-        minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-        meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        if clip != -1:
+            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        else:
+            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<2*mediannoise])
+            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
 
         # plotting
         minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
         maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
         maxabs = max(abs(minsnr), abs(maxsnr))
         snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs])
-        rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+        if clip != -1:
+            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+        else:
+            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
