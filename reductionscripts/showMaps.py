@@ -213,6 +213,7 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for i,scan in enumerate(scans):
         scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
+        print('')
         info('Retrieving reduction for scan %s (iter %i) ...'%(scan, iter))
 
         # check if reduction exists
