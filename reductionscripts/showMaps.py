@@ -236,7 +236,8 @@ with warnings.catch_warnings():
     
         if show == 'sig':
             info('Displaying Signal map...')
-            m.display(aspect=1,limitsZ=[-0.2,0.5])
+            std = np.nanstd(m.Data)
+            m.display(aspect=1,limitsZ=[-3*std,+10*std])
 
         elif show == 'rms':
             info('Displaying Noise map...')
@@ -257,7 +258,7 @@ with warnings.catch_warnings():
             snrMap.Data *= np.sqrt(snrMap.Weight)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
             # plotting
-            snrMap.display(aspect=1,limitsZ=[-4,12])
+            snrMap.display(aspect=1,limitsZ=[-3, 10])
 
         usrinput = raw_input(msg)
         if str.upper(str(usrinput)) == 'Q':
