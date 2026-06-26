@@ -517,14 +517,8 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                minsnr = np.nanpercentile(snrMap.Data[snrMap.Data<0], 90)
-                print(minsnr)
-                minsnr = min(-5, minsnr)
-                maxsnr = np.nanpercentile(snrMap.Data[snrMap.Data>0], 90)
-                print(maxsnr)
-                maxsnr = max(5, maxsnr)
-                maximorum = max(abs(minsnr), abs(maxsnr))
-                snrMap.display(aspect=1,limitsZ=[minsnr, maxsnr])
+                maxabs = max(abs(np.nanpercentile(snrMap.Data[snrMap.Data<0], 90)), abs(np.nanpercentile(snrMap.Data[snrMap.Data>0], 90)))
+                snrMap.display(aspect=1,limitsZ=[-maxabs, +maxabs])
                 del snrMap  # free memory
 
             del m  # free memory
@@ -561,9 +555,10 @@ with warnings.catch_warnings():
         meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
 
         # plotting
-        minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 50))
-        maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 50))
-        snrMap.display(aspect=1,limitsZ=[minsnr, maxsnr])
+        minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
+        maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
+        maxabs = max(abs(minsnr), abs(maxsnr))
+        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs])
         rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
