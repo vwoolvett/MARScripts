@@ -189,6 +189,8 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         if not overwrite:
             print('File %s exists' % outfile)
             return
+    info('Exporting map to fits file:')
+    print(outfile)
     if not data:
         data = data.Map
     try:
@@ -210,6 +212,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         if clip > 0:
+            info('Clipping map to %.1f*medianRMS (inner contour on display)...')
             mediannoise = np.nanmedian(rmsMap.Data)
             mask = np.where(rmsMap.Data > clip * mediannoise)
             localMap.Data[mask] = np.NaN
@@ -517,9 +520,7 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 50))
-                maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 50))
-                snrMap.display(aspect=1,limitsZ=[minsnr, maxsnr])
+                snrMap.display(aspect=1,limitsZ=[-3, +10])
                 del snrMap  # free memory
 
             del m  # free memory
@@ -556,9 +557,10 @@ with warnings.catch_warnings():
         meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
 
         # plotting
-        minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 50))
-        maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 50))
-        snrMap.display(aspect=1,limitsZ=[minsnr, maxsnr])
+        minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
+        maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
+        maxabs = max(abs(minsnr), abs(maxsnr))
+        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs])
         rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
