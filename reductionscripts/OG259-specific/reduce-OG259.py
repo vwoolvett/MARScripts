@@ -458,6 +458,7 @@ with warnings.catch_warnings():
 
                 # For this scan, add non-noisy area and median noise info to summary
                 if writeSummary:
+                    info('Smoothing copy of map for summary at final resolution...')
                     # copy map and smooth with same kernel as final file
                     m_smooth = copy.deepcopy(m)
                     auxsmoothby(m_smooth, smoothby_deg)
@@ -501,22 +502,12 @@ with warnings.catch_warnings():
                 ms = copy.deepcopy(m)
 
             if doPlot:
-                # Never overwrite ms (coadded map) with a smoothed version
-                # While still co-adding scans
-                ms_toplot = copy.deepcopy(ms)
-                if smoothby_deg > 0.0:
-                    info('Smoothing copy of co-added map up to scan %i by %.1f"...'%(scan, smoothby_arcsec))
-                    nativebeam = ms_toplot.BeamSize
-                    auxsmoothby(ms_toplot, smoothby_deg)
-                    newbeam = ms_toplot.BeamSize
-                    print('Unsmoothed beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
                 # SNR map creation
-                snrMap = copy.deepcopy(ms_toplot)  # Signal
+                snrMap = copy.deepcopy(ms)  # Signal
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
                 snrMap.display(aspect=1,limitsZ=[-4, 12])
-                ms_toplot = None  # free memory
 
             # Space between co-adding scans
             print('')

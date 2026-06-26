@@ -10,7 +10,7 @@ iter      = 1               # Which iteration of the reduction to show (usual 1-
 show      = 'snr'           # Show Noise (noise), Signal (sig), or SNR (snr)
 flagJumps = True            # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
-smoothby_arcsec = 8.        # Default 8. arcsec. Use same smoothing as reduction.
+smoothby_arcsec = 0.        # Default 0 arcsec. Smoothing before showing takes more time.
 
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
