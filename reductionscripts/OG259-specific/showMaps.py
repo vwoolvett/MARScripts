@@ -7,7 +7,7 @@ source    = 'OG259'         # As in observing logs
 fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
 system    = 'GAL'           # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
 iter      = 1               # Which iteration of the reduction to show (usual 1-2)
-show      = 'sig'           # Show Signal-SKY (sig), Noise (rms), or SNR (snr)
+show      = 'snr'           # Show Noise (noise), Signal (sig), or SNR (snr)
 flagJumps = True            # Whether the maps to show were de-jumped with
                             # 'flagJumps = True' at reduction
 smoothby_arcsec = 0.        # Default 0 arcsec. Smoothing before showing takes more time.
@@ -40,6 +40,8 @@ obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-C
 # ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 import warnings
 import copy as copy
+import BoaMapping as BOAMAP
+from mars.fortran import fMap
 
 # define the good functions :)
 def findSciTargetScans(source, obslogsdir, verbose=False):
@@ -105,7 +107,7 @@ def auxsmoothby(m, Size):
     '''
     # Build kernel (not normalized)
     pixsize = abs(m.WCS['CDELT2'])
-    K0 = BoaMapping.Kernel(pixsize, Size).Data.astype(float)
+    K0 = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
 
     # Normalize kernel
     K = K0 / np.sum(K0)
@@ -119,7 +121,7 @@ def auxsmoothby(m, Size):
     #   I' = (K * I) / sum(K_i), but since sum(K_i)=1
     # then ksmooth does effectively
     #   I' = K * I, all good
-    I1 = mars.fortran.fMap.ksmooth(m.Data, K)
+    I1 = fMap.ksmooth(m.Data, K)
 
     # Correct variance propagation for weights:
     #   V' = K2 * V     =     (K0/sum(K0_i))^2 * V
@@ -131,10 +133,10 @@ def auxsmoothby(m, Size):
     # to get back from ksmooth:
     #   V' = K2/sum(K2_i) * V * sum(K2_i) = K2 * V
     V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
-    V1 = mars.fortran.fMap.ksmooth(V0, K2) * np.sum(K2)
+    V1 = fMap.ksmooth(V0, K2) * np.sum(K2)
 
     # Smooth COVERAGE (same as BoA)
-    C1 = mars.fortran.fMap.ksmooth(m.Coverage, K)
+    C1 = fMap.ksmooth(m.Coverage, K)
     
     # new scale per beam for Jy/beam units
     newbeam = np.sqrt(m.BeamSize**2 + Size**2)
