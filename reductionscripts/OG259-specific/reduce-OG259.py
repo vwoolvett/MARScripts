@@ -125,6 +125,7 @@ def findSciTargetScans(source, obslogsdir, verbose=True):
                         print(message)
         if c==0 and len(keys)!=0:
             print(keys)
+            c+=1
     scanlist.sort()
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     return scanlist
