@@ -7,7 +7,7 @@
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
 # Prompts upon running script as observer give more information on what to do.
-observer = True             # True or False
+observer = False            # True or False -> PROJECT DONE
 
 # PIs should set to observer = False and assess with "showMaps.py" (see comments therein)
 # which scans to actually discard via the "bad_scans" variable in this reduction script. Then
@@ -28,7 +28,7 @@ doPlot  = True              # Display co-added map after each scan is included. 
 # Manually exclude bad scans if needed            
 badscans = [23070]
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
-niters          = 2         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
                             # noisemap > clip * mediannoise, else no clipping
 flagJumps       = True      # Flag jumps/spikes in the data:
