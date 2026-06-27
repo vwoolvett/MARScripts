@@ -3,7 +3,7 @@
 # =================================
 
 # --- Source and map parameters ---
-source  = 'Falkor'          # As in observing logsa
+source  = 'Falkor'          # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
 system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO'
 center  = [274.1, -1.2]     # Center of map in CHOSEN COORDINATES in deg
