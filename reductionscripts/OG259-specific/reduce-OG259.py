@@ -67,7 +67,6 @@ from mars.fortran import fMap
 def findSciTargetScans(source, obslogsdir, verbose=False):
     scanlist = []
     files = os.listdir(obslogsdir)
-    c=0
     for file in files:
         fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
         f = open(fullfilename,'r')
@@ -99,22 +98,26 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                     if key == 'Source':
                         message+=(line[4:-6].ljust(12) + ' | ')       
                     if key == 'Scan type':
-                        message+=(line[4:-6].ljust(12) + ' | ')        
+                        message+=(line[4:-6].ljust(12) + ' | ')  
+                    if key == 'Observ. mode':
+                        message+=(line[4:-6].ljust(12) + ' | ')
+                    if key == 'Scan duration':
+                        message+=(line[4:-6].ljust(12) + ' | ')
                     if key == 'Scan status':
-                        message+=(line[4:-6].ljust(12) + ' | ') 
+                        message+=(line[4:-6].ljust(12) + ' | ')
                 start = False
 
                 if source in message.split('|')[1]:
-                    if 'MAP' in message.split('|')[2] and 'OK' in message.split('|')[3]:
-                        message += 'SCAN CONSIDERED'
-                        scanlist.append(scan)
+                    if 'OTF' in message.split('|')[3] and 'OK' in message.split('|')[5]:
+                        if  '-999' not in message.split('|')[4]:
+                            message += 'SCAN CONSIDERED'
+                            scanlist.append(scan)
+                        else:
+                            message += 'SCAN ONGOING'
                     else:
                         message += 'SCAN DISCARDED'
                     if verbose:
                         print(message)
-        if c==0 and len(keys)!=0:
-            print(keys)
-            c+=1
     scanlist.sort()
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     return scanlist
@@ -456,8 +459,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                if scan == 28517:
-                    flagC(3353, flag=2)
+                #if scan == 28517:
+                #    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
