@@ -524,8 +524,8 @@ with warnings.catch_warnings():
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
-                raise ValueError("Scan %i produced an all-NaN map. This almost always indicates "+\
-                                 "incorrect map bounds or coordinate system. Aborting reduction."% scan)
+                raise ValueError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
+                                 "incorrect map bounds or coordinate system. Aborting reduction.")
 
             info('Coadding...')
             if ms and m:
