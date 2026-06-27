@@ -67,6 +67,7 @@ from mars.fortran import fMap
 def findSciTargetScans(source, obslogsdir, verbose=True):
     scanlist = []
     files = os.listdir(obslogsdir)
+    c=0
     for file in files:
         fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
         f = open(fullfilename,'r')
@@ -122,6 +123,8 @@ def findSciTargetScans(source, obslogsdir, verbose=True):
 
                     if verbose:
                         print(message)
+        if c==0 and len(keys)!=0:
+            print(keys)
     scanlist.sort()
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     return scanlist
