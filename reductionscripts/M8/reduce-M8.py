@@ -3,12 +3,12 @@
 # =================================
 
 # --- Source and map parameters ---
-source  = 'OG259'           # As in observing logs
+source  = 'M8'              # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center  = [259.3, -1.4]     # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.5               # Size of map in deg for X direction
-sizey   = 1.5               # Size of map in deg for Y direction
+system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center  = [270.9, -24.38]   # Center of map in CHOSEN COORDINATES in deg
+sizex   = 1.0               # Size of map in deg for X direction
+sizey   = 0.67              # Size of map in deg for Y direction
 padding = 0.5               # Padding around the map in deg for grid (default ~2x array)
 doPlot  = True              # Display maps at each scan. If False, only final
                             # coadded map per iteration will be displayed.
@@ -18,9 +18,9 @@ doPlot  = True              # Display maps at each scan. If False, only final
 # run with niters=2 or 3 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
 niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
-clip         = 3.           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
+clip         = -1           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
                             # noisemap > clip * mediannoise, else no clipping
-flagJumps    = True         # Flag jumps/spikes in the data:
+flagJumps    = False        # Flag jumps/spikes in the data:
                             # recommended to set to True for LFA
 smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
@@ -28,11 +28,11 @@ correctbeam     = True      # Whether to correct beam bookkeeping in final itera
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
-scans = []  # 27974 is first
+scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
-badscans = [27979, 27991, 28217, 28498, 34849]
+badscans = []
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -471,8 +471,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                if scan == 28517:
-                    flagC(3353, flag=2)
+                #if scan == 28517:
+                #    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
