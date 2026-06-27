@@ -108,7 +108,10 @@ def findSciTargetScans(source, obslogsdir, verbose=True):
                         status = (line[4:-6].ljust(12) + ' | ')    # 5
                     if key == 'Comment':
                         comment = (line[4:-6] + ' | ')             # last
-                    message += scan + src + scantype + mode + duration + status
+                    try:
+                        message += scan + src + scantype + mode + duration + status
+                    except:
+                        pass
 
                 start = False
 
