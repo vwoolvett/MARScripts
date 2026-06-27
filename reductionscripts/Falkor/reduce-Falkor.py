@@ -638,7 +638,7 @@ with warnings.catch_warnings():
             meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
 
         # plotting
-        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to 10 '%(source, fe, iter, scan, smoothby_arcsec)
+        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
