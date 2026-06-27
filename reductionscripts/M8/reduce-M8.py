@@ -294,6 +294,7 @@ if sizex + 2*padding > 360 or sizey + 2*padding > 180:
 if observer == True:
     doPlot = False          # Observer wants to check map of scan at reduction, not coadded until that scan.
                             # That is implemented separately below.
+    writeSummary = False    # No need.
     niters = 1              # Source model is the most accurate when Iteration 1 scans are complete.
     clip = -1               # full map, no clipping
     flagJumps = True        # be as conservative as possible
@@ -389,12 +390,6 @@ if len(scans) == 0:
 myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
-
-# Set noPlot
-#if doPlot == False:
-#    noPlot = True
-#else:
-#    noPlot = False
 
 # Create directory for reduced files if it doesn't exist
 if os.path.exists("ReducedFiles") == False:
@@ -605,7 +600,7 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                caption = '%s - %s - Coadded map up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, scan)
+                caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, iter, scan)
                 snrMap.display(aspect=1,limitsZ=[-3, +10], caption=caption)
                 del snrMap  # free memory
 
@@ -643,10 +638,8 @@ with warnings.catch_warnings():
             meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
 
         # plotting
-        minsnr = min(-3, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
-        maxsnr = max(10, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
-        caption = '%s - %s - Coadded map up to scan %i | SNR (smoothed by %.1f"): arb. scale '%(source, fe, scan, smoothby_arcsec)
-        snrMap.display(aspect=1,limitsZ=[minsnr, maxsnr], caption=caption)
+        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to 10 '%(source, fe, iter, scan, smoothby_arcsec)
+        snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
