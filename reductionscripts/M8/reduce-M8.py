@@ -557,17 +557,18 @@ with warnings.catch_warnings():
                     caption = '%s - %s - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, scan)
                     m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
                     print('')
-                    msg  = "-----------------------------------------------------------------------\n"
-                    msg += "- Check map and answer whether it looks fine, regardless of sensitivity\n"
-                    msg += "- Consider phase setting (> ~80% good) and sensitivity (mJy sqrt(s))"+"\n"
-                    msg += "  for re-calibration!                                                  \n"
-                    msg += "-----------------------------------------------------------------------\n"
-                    msg += "Map OK:                                             <Enter>\n"
-                    msg += "Map not OK:                                  no/n + <Enter>\n\n"
+                    msg  = "-------------------------------------------------------------------------\n"
+                    msg += "-> Check map and answer whether it looks fine, regardless of sensitivity.\n"
+                    msg += "   ** black patches (NaN values) are OK but please mention in obslogs ** \n"
+                    msg += "                                                                         \n"
+                    msg += "-> Consider phase setting (> ~80% good) and sensitivity (mJy sqrt(s))"+" \n"
+                    msg += "   for re-calibration!                                                   \n"
+                    msg += "-------------------------------------------------------------------------\n"
+                    msg += "Map OK:                      <Enter>\n"
+                    msg += "Map NOT OK:         no/n + <Enter>\n\n"
                     msg += "Observer input:"
                     obs_input = raw_input(msg)
                     obs_input = str(obs_input)
-                    print('')
 
                     if str.upper(obs_input) in ['NO', 'N']:
                         print("-----------------------------------------------------------------------")
