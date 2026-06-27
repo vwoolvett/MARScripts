@@ -94,28 +94,32 @@ def findSciTargetScans(source, obslogsdir, verbose=True):
                     index+=1 
                     if key == 'Scan':
                         scan=int(line[4:-6])
-                        message+=(line[4:-6].ljust(6) + ' | ')
+                        message+=(line[4:-6].ljust(6) + ' | ')  # 0
                     if key == 'Source':
-                        message+=(line[4:-6].ljust(12) + ' | ')       
+                        message+=(line[4:-6].ljust(12) + ' | ') # 1     
                     if key == 'Scan type':
-                        message+=(line[4:-6].ljust(12) + ' | ')  
+                        message+=(line[4:-6].ljust(12) + ' | ') # 2
                     if key == 'Observ. mode':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        message+=(line[4:-6].ljust(12) + ' | ') # 3
                     if key == 'Scan duration':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        message+=(line[4:-6].ljust(12) + ' | ') # 4
                     if key == 'Scan status':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        message+=(line[4:-6].ljust(12) + ' | ') # 5
+                    if key == 'Comment':
+                        message+=(line[4:-6] + ' | ')           # 6
                 start = False
 
                 if source in message.split('|')[1]:
-                    if 'OTF' in message.split('|')[3] and 'OK' in message.split('|')[5]:
-                        if  '-999' not in message.split('|')[4]:
+                    if  '-999' not in message.split('|')[4]:
+                        if 'OTF' in message.split('|')[3] and 'OK' in message.split('|')[5]\
+                            and 'WARM' not in str.upper(message.split('|')[6]):
                             message += 'SCAN CONSIDERED'
                             scanlist.append(scan)
                         else:
-                            message += 'SCAN ONGOING'
+                            message += 'SCAN DISCARDED'
                     else:
-                        message += 'SCAN DISCARDED'
+                        message += 'SCAN ONGOING'
+
                     if verbose:
                         print(message)
     scanlist.sort()
