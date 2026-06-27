@@ -64,7 +64,7 @@ import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
 # define the good functions :)
-def findSciTargetScans(source, obslogsdir, verbose=False):
+def findSciTargetScans(source, obslogsdir, verbose=True):
     scanlist = []
     files = os.listdir(obslogsdir)
     for file in files:
