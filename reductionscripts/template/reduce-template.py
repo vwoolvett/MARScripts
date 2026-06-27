@@ -1,29 +1,38 @@
 # =================================
-# ==== BEGINNING OF USER INPUT ====
+# ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @27.06.2026
 # =================================
-# Currently LFA-only
+# NOTE: for exceptional cases, additional flagging is executed after redweak (ctrl+f here).
+# Consult Axel or Vicente if you see anomalies in data after reducing as PI.
+
+# ------ OBSERVER or PI mode -------
+# If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
+# Prompts upon running script as observer give more information on what to do.
+observer = True             # True or False
+
+# PIs should set to observer = False and assess with "showMaps.py" (see comments therein)
+# which scans to actually discard via the "bad_scans" variable in this reduction script. Then
+# run it until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
 source  = 'SrcName'         # As in observing logs
-fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
+fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA' - CURRENTLY LFA ONLY!!!
 system  = 'HO'              # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
 center  = [0, 0]            # Center of map in CHOSEN COORDINATES in deg
 sizex   = 1.0               # Size of map in deg for X direction
 sizey   = 1.0               # Size of map in deg for Y direction
 padding = 0.5               # Padding around the map in deg for grid (default ~2x array)
-doPlot  = True              # Display maps at each scan. If False, only final
+doPlot  = True              # Display co-added map after each scan is included. If False, only final
                             # coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
-# SUGGESTED: run all scans with niters=1, figure out bad scans using showMaps.py and then
-# run with niters=2 or 3 ignoring bad scans
-writeSummary = True         # Write summary of reductions or not
-niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
-clip         = -1           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
+writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
+niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+clip            = -1        # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
                             # noisemap > clip * mediannoise, else no clipping
-flagJumps    = False        # Flag jumps/spikes in the data:
-                            # recommended to set to True for LFA
+flagJumps       = True      # Flag jumps/spikes in the data:
+                            # recommended to set to True while we figure out what the spikes are...
 smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
+writefits       = True      # Write FITS of final iteration maps. True or False.
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
 # ----- Scans ------
@@ -38,6 +47,8 @@ badscans = []
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
+
+
 
 
 
@@ -74,7 +85,7 @@ import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
 # define the good functions :)
-def findSciTargetScans(source, obslogsdir, verbose=True):
+def findSciTargetScans(source, obslogsdir, verbose=False):
     scanlist = []
     files = os.listdir(obslogsdir)
     c=0
@@ -285,6 +296,18 @@ if clip < 1.5 and clip!=-1:
 if sizex + 2*padding > 360 or sizey + 2*padding > 180:
     raise ValueError("Your map is bigger than the sky...")
 
+# -------------------------
+# --- OBSERVER OVERRIDE ---
+# -------------------------
+if observer == True:
+    doPlot = False          # Observer wants to check map of scan at reduction, not coadded until that scan.
+                            # That is implemented separately below.
+    niters = 1              # Source model is the most accurate when Iteration 1 scans are complete.
+    clip = -1               # full map, no clipping
+    flagJumps = True        # be as conservative as possible
+    writefits = False       # save time, don't clog directory
+    correctbeam = False     # save time, don't clog directory
+
 # Create map bounds
 info('Creating map boundaries...')
 biggerX = center[0] + sizex/2 + padding
@@ -305,16 +328,16 @@ if smallerY < -90:
 # Case 3: left = 200, right = 190 -> frame was 0:360, now left = -160, right = -170
 # Case 4 : same as before but one of the boundaries ended up < -180: add 360
 sysreframe = False
-if biggerX > 180 and system!='EQ':
+if biggerX > 180 and system != 'EQ':
     biggerX -= 360
     sysreframe = True
-if biggerX < -180 and system!='EQ':
+if biggerX < -180 and system != 'EQ':
     biggerX += 360
     sysreframe = True
-if smallerX > 180 and system!='EQ':
+if smallerX > 180 and system != 'EQ':
     smallerX -=360
     sysreframe = True
-if smallerX < -180 and system!='EQ':
+if smallerX < -180 and system != 'EQ':
     smallerX +=360
     sysreframe = True
 
@@ -368,7 +391,7 @@ for badscan in badscans:
 
 # Check removing bads did not leave scans empty
 if len(scans) == 0:
-    raise ValueError('There are no good scans after removing bad scans list...')
+    raise ValueError('There are no good scans after removing bad scans list.')
 
 # Define standardized "myname" variable for output files
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -376,10 +399,10 @@ if flagJumps:
     myname += "-flagJumps"
 
 # Set noPlot
-if not doPlot:
-    noPlot = True
-else:
-    noPlot = False
+#if doPlot == False:
+#    noPlot = True
+#else:
+#    noPlot = False
 
 # Create directory for reduced files if it doesn't exist
 if os.path.exists("ReducedFiles") == False:
@@ -397,6 +420,7 @@ print('''\
 =====================
 Reduction parameters:
 =====================
+Observer:           %s
 Source:             %s
 Frontend:           %s
 Coordinate system:  %s
@@ -408,9 +432,10 @@ Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
 Smoothing:          %s arcsec
-Number of scans     %s'''%(source, fe, system, center[0], center[1], sizex, sizey, padding,
-                           xsize[0], xsize[1], ysize[0], ysize[1], niters, clip, flagJumps,
-                           smoothby_arcsec, len(scans)))
+Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], sizex, sizey,
+                           padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
+                           clip if clip != -1 else 'No clipping',
+                           flagJumps, smoothby_arcsec, len(scans)))
 
 # ===========================
 # Beginning of reduction loop
@@ -461,7 +486,8 @@ with warnings.catch_warnings():
                 info('Reducing scan %s (iteration %i)...'%(scan, iter))
 
                 # Reduce it
-                redweak(scan,fe=fe,size=-1,model=mymodel,subtract=subtract,doPlot=doPlot,extremeFilter=False,writeSummary=writeSummary,flagJumps=flagJumps)
+                redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False
+                        writeSummary=writeSummary, flagJumps=flagJumps)
                 # NOTE: redweak's summary is everything about the timelines, nothing about map.
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
@@ -486,7 +512,7 @@ with warnings.catch_warnings():
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
-                mapping(oversamp=4,system=system,sizeX=xsize,sizeY=ysize,limitsZ=[-0.8,1.5],noPlot=noPlot)
+                mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize, limitsZ=[-0.8,1.5], noPlot=True)
                 # NOTE: this has a smooth parameter, but is default 0
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
                 # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
@@ -527,6 +553,24 @@ with warnings.catch_warnings():
                     del m_smooth  # free memory
                     del rmsArray  # free memory
                     del mask  # free memory
+
+                #------------------------------------
+                # --- OBSERVER PAUSE AT REDUCTION ---
+                # -----------------------------------
+                if observer == True:
+                    # Show this scan's map, should be last finished scan, unsmoothed just as in redweak
+                    rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
+                    mediannoise = np.nanmedian(rmsArray)
+                    meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
+                    del rmsArray  # free memory
+                    m.display(aspect=1, limitsZ=[-3*meannoise, +3*meannoise])
+                    msg  = "------------------------------------------------------------\n"
+                    msg += "Output of redweak for scan %i (%s system, no smoothing).\n\n"%(scan, system)
+                    msg += "Map OK:                                              <Enter>\n"
+                    msg += "Map not OK:                                      q + <Enter>\n\n"
+                    msg += "Observer input:"
+                    obs_input = raw_input(msg)
+                    obs_input = str(obs_input)
             
             else:
                 # Retrieve BoA map
@@ -536,6 +580,7 @@ with warnings.catch_warnings():
             if np.all(np.isnan(m.Data)):
                 raise ValueError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
                                  "incorrect map bounds or coordinate system. Aborting reduction.")
+
 
             info('Coadding...')
             if ms and m:
@@ -607,8 +652,9 @@ with warnings.catch_warnings():
         print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
         print("############################################################")
 
-        outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
-        auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
+        if writefits:
+            outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
+            auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         
         del ms  # free memory
         del rmsMap  # free memory
