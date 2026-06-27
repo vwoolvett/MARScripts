@@ -486,7 +486,7 @@ with warnings.catch_warnings():
                 info('Reducing scan %s (iteration %i)...'%(scan, iter))
 
                 # Reduce it
-                redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False
+                redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
                         writeSummary=writeSummary, flagJumps=flagJumps)
                 # NOTE: redweak's summary is everything about the timelines, nothing about map.
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
