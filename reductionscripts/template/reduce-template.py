@@ -557,11 +557,11 @@ with warnings.catch_warnings():
                     caption = '%s - %s - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, scan)
                     m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
                     print('')
-                    msg  = "-----------------------------------------------------------------------\n"
-                    msg += "- Check map and answer whether it looks fine, regardless of sensitivity\n"
-                    msg += "- Consider phase setting (> ~80% good) and sensitivity (mJy sqrt(s))"+"\n"
-                    msg += "  for re-calibration!                                                  \n"
-                    msg += "-----------------------------------------------------------------------\n"
+                    msg  = "------------------------------------------------------------------------\n"
+                    msg += "- Check map and answer whether it looks fine, regardless of sensitivity.\n"
+                    msg += "- Consider phase setting (> ~80% good) and sensitivity (mJy sqrt(s))"+" \n"
+                    msg += "  for re-calibration!                                                   \n"
+                    msg += "------------------------------------------------------------------------\n"
                     msg += "Map OK:                                             <Enter>\n"
                     msg += "Map not OK:                                  no/n + <Enter>\n\n"
                     msg += "Observer input:"
@@ -570,7 +570,7 @@ with warnings.catch_warnings():
                     print('')
 
                     if str.upper(obs_input) in ['NO', 'N']:
-                        print("-----------------------------------------------------------------------")
+                        print("------------------------------------------------------------------------")
                         info('Removing reduction of scan %i in file: %s'%(scan, scanname))
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
@@ -578,7 +578,7 @@ with warnings.catch_warnings():
                                            "\n*** Remember to add this scan to 'badscans' list in"+\
                                            "\nreduction script before executing again ***'")
                     else:
-                        print("-----------------------------------------------------------------------")
+                        print("------------------------------------------------------------------------")
                         info('Scan %i OK'%scan)
             
             else:
