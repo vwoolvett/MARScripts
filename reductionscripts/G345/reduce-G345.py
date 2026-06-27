@@ -21,8 +21,8 @@ center  = [345.3, 1.7]      # Center of map in CHOSEN COORDINATES in deg
 sizex   = 2.2               # Size of map in deg for X direction
 sizey   = 2.2               # Size of map in deg for Y direction
 padding = 0.6               # Padding around the map in deg for grid (default ~2x array)
-doPlot  = True              # Display co-added map after each scan is included. If False, only final
-                            # coadded map per iteration will be displayed.
+doPlot  = True              # Display co-added map after each scan is included. If False, only
+                            # final coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
@@ -58,8 +58,6 @@ badscans = [32439, 33340, 33568, 34066, 34685, 34693, 34950]
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
-
 
 
 
@@ -566,11 +564,17 @@ with warnings.catch_warnings():
                     m.display(aspect=1, limitsZ=[-3*meannoise, +3*meannoise])
                     msg  = "------------------------------------------------------------\n"
                     msg += "Output of redweak for scan %i (%s system, no smoothing).\n\n"%(scan, system)
-                    msg += "Map OK:                                              <Enter>\n"
-                    msg += "Map not OK:                                      q + <Enter>\n\n"
+                    msg += "Map OK:                                             <Enter>\n"
+                    msg += "Map not OK:                                  no/n + <Enter>\n\n"
                     msg += "Observer input:"
                     obs_input = raw_input(msg)
                     obs_input = str(obs_input)
+
+                    if str.upper(obs_input) in ['NO', 'N']:
+                        raise RuntimeError("Stopping script:"
+                                           "\nMap of scan %i was reported as bad!"%scan +\
+                                           "\nREMEMBER TO ADD THIS SCAN TO 'bad_scans' list in"+\
+                                           "reduction script before executing again...'")
             
             else:
                 # Retrieve BoA map
@@ -660,8 +664,6 @@ with warnings.catch_warnings():
         del rmsMap  # free memory
         del snrMap  # free memory
 
-
-print('\n\n\n')
 print('############################')
 info('Reduction finished.')
 print('############################')
