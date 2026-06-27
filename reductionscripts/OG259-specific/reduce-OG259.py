@@ -17,7 +17,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 # SUGGESTED: run all scans with niters=1, figure out bad scans using showMaps.py and then
 # run with niters=2 or 3 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
-niters       = 2            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = 3.           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
                             # noisemap > clip * mediannoise, else no clipping
 flagJumps    = True         # Flag jumps/spikes in the data:
