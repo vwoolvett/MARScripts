@@ -26,7 +26,7 @@ doPlot  = True              # Display co-added map after each scan is included. 
 
 # ----- Reduction parameters -----
 # Manually exclude bad scans if needed            
-badscans = []
+badscans = [23070]
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 2         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
