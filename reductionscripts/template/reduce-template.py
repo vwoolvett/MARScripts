@@ -474,7 +474,6 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                print('')
                 info('Reducing scan %s (iteration %i)...'%(scan, iter))
 
                 # Reduce it
@@ -571,6 +570,7 @@ with warnings.catch_warnings():
                     print('')
 
                     if str.upper(obs_input) in ['NO', 'N']:
+                        print("-----------------------------------------------------------------------")
                         info('Removing reduction of scan %i in file: %s'%(scan, scanname))
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
@@ -578,6 +578,7 @@ with warnings.catch_warnings():
                                            "\n*** Remember to add this scan to 'badscans' list in"+\
                                            "\nreduction script before executing again ***'")
                     else:
+                        print("-----------------------------------------------------------------------")
                         info('Scan %i OK'%scan)
             
             else:
