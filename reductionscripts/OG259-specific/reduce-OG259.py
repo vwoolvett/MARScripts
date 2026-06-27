@@ -102,6 +102,7 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                     if key == 'Scan status':
                         message+=(line[4:-6].ljust(12) + ' | ') 
                 start = False
+                print(keys)
 
                 if source in message.split('|')[1]:
                     if 'MAP' in message.split('|')[2] and 'OK' in message.split('|')[3]:

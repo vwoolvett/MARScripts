@@ -18,9 +18,9 @@ doPlot  = True              # Display maps at each scan. If False, only final
 # run with niters=2 or 3 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
 niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
-clip         = 3.           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
+clip         = -1           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
                             # noisemap > clip * mediannoise, else no clipping
-flagJumps    = True         # Flag jumps/spikes in the data:
+flagJumps    = False        # Flag jumps/spikes in the data:
                             # recommended to set to True for LFA
 smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
