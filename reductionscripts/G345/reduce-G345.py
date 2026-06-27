@@ -3,13 +3,13 @@
 # =================================
 
 # --- Source and map parameters ---
-source  = 'OG259'           # As in observing logs
+source  = 'G345'            # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
 system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center  = [259.3, -1.4]     # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.5               # Size of map in deg for X direction
-sizey   = 1.5               # Size of map in deg for Y direction
-padding = 0.5               # Padding around the map in deg for grid (default ~2x array)
+center  = [345.3, 1.7]      # Center of map in CHOSEN COORDINATES in deg
+sizex   = 2.2               # Size of map in deg for X direction
+sizey   = 2.2               # Size of map in deg for Y direction
+padding = 0.6               # Padding around the map in deg for grid (default ~2x array)
 doPlot  = True              # Display maps at each scan. If False, only final
                             # coadded map per iteration will be displayed.
 
@@ -17,7 +17,7 @@ doPlot  = True              # Display maps at each scan. If False, only final
 # SUGGESTED: run all scans with niters=1, figure out bad scans using showMaps.py and then
 # run with niters=2 or 3 ignoring bad scans
 writeSummary = True         # Write summary of reductions or not
-niters       = 1            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters       = 3            # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip         = -1           # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
                             # noisemap > clip * mediannoise, else no clipping
 flagJumps    = True         # Flag jumps/spikes in the data:
@@ -32,22 +32,22 @@ scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # Manually exclude bad scans if needed            
-badscans = [27979, 27991, 28217, 28498, 34849]
+badscans = [32439, 33340, 33568, 34066, 34685, 34693, 34950]  
+# VWO:
+# 25088 -> half the map is missing (likely cancelled scan). Still good.
+# 30659 -> despiking worked, but left NaN patches. Still good.
+# 31953 -> could not even reduce, not readable, I and Q have different lengths - NOW WE CAN REDUCE AND IT'S FINE!
+# 32439 -> absolutely no signal in map. Apparently camera got warm: IQBTs look like Fsweeps.
+# 33340 -> still has spikes on top of map after despiking
+# 33568 -> same as 32439
+# 34066 -> despiking worked well, but big patches of the map are NaNs. Up to you to use - I removed it.
+# 34685 -> despiking worked well, but big patches of the map are NaNs. Up to you to use - I removed it.
+# 34693 -> same as 32439
+# 34950 -> same as 32439
 
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -480,8 +480,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                if scan == 28517:
-                    flagC(3353, flag=2)
+                #if scan == 28517:
+                #    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
