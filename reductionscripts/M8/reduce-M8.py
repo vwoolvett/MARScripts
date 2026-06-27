@@ -642,9 +642,8 @@ with warnings.catch_warnings():
         # plotting
         minsnr = min(-3, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
         maxsnr = max(10, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
-        maxabs = max(abs(minsnr), abs(maxsnr))
         caption = '%s - %s - Coadded map up to scan %i | SNR (smoothed by %.1f"): arb. scale '%(source, fe, scan, smoothby_arcsec)
-        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs], caption=caption)
+        snrMap.display(aspect=1,limitsZ=[-minsnr, maxsnr], caption=caption)
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
