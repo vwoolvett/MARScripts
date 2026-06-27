@@ -305,16 +305,16 @@ if smallerY < -90:
 # Case 3: left = 200, right = 190 -> frame was 0:360, now left = -160, right = -170
 # Case 4 : same as before but one of the boundaries ended up < -180: add 360
 sysreframe = False
-if biggerX > 180:
+if biggerX > 180 and system!='EQ':
     biggerX -= 360
     sysreframe = True
-if biggerX < -180:
+if biggerX < -180 and system!='EQ':
     biggerX += 360
     sysreframe = True
-if smallerX > 180:
+if smallerX > 180 and system!='EQ':
     smallerX -=360
     sysreframe = True
-if smallerX < -180:
+if smallerX < -180 and system!='EQ':
     smallerX +=360
     sysreframe = True
 
