@@ -112,7 +112,7 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                         message += 'SCAN DISCARDED'
                     if verbose:
                         print(message)
-        if c==0:
+        if c==0 and len(keys)!=0:
             print(keys)
             c+=1
     scanlist.sort()
