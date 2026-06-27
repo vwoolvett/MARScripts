@@ -64,7 +64,7 @@ import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
 # define the good functions :)
-def findSciTargetScans(source, obslogsdir, verbose=False):
+def findSciTargetScans(source, obslogsdir, verbose=True):
     scanlist = []
     files = os.listdir(obslogsdir)
     c=0
@@ -114,7 +114,7 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
 
                 if source in src:
                     if  '-999' not in duration:
-                        if 'OTF' in mode and 'OK' in status and 'warm' not in str.lower(comment):
+                        if 'MAP' in scantype and 'OTF' in mode and 'OK' in status and 'warm' not in str.lower(comment):
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
