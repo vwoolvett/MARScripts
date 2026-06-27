@@ -67,6 +67,7 @@ from mars.fortran import fMap
 def findSciTargetScans(source, obslogsdir, verbose=False):
     scanlist = []
     files = os.listdir(obslogsdir)
+    c=0
     for file in files:
         fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
         f = open(fullfilename,'r')
@@ -93,31 +94,42 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                     line=lines[index]
                     index+=1 
                     if key == 'Scan':
-                        scan=int(line[4:-6])
-                        message+=(line[4:-6].ljust(6) + ' | ')
+                        scan_int = int(line[4:-6])
+                        scan = (line[4:-6].ljust(6) + ' | ')       # 0
                     if key == 'Source':
-                        message+=(line[4:-6].ljust(12) + ' | ')       
+                        src = (line[4:-6].ljust(12) + ' | ')       # 1  
                     if key == 'Scan type':
-                        message+=(line[4:-6].ljust(12) + ' | ')  
+                        scantype = (line[4:-6].ljust(12) + ' | ')  # 2
                     if key == 'Observ. mode':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        mode = (line[4:-6].ljust(12) + ' | ')      # 3
                     if key == 'Scan duration':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        duration = (line[4:-6].ljust(12) + ' | ')  # 4
                     if key == 'Scan status':
-                        message+=(line[4:-6].ljust(12) + ' | ')
+                        status = (line[4:-6].ljust(12) + ' | ')    # 5
+                    if key == 'Comment':
+                        comment = (line[4:-6])             # last                        
+                        message += scan + src + scantype + mode + duration + status
+
                 start = False
 
-                if source in message.split('|')[1]:
-                    if 'OTF' in message.split('|')[3] and 'OK' in message.split('|')[5]:
-                        if  '-999' not in message.split('|')[4]:
-                            message += 'SCAN CONSIDERED'
-                            scanlist.append(scan)
+                if source in src:
+                    if  '-999' not in duration:
+                        if 'OTF' in mode and 'OK' in status and 'warm' not in str.lower(comment):
+                            message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
+                            scanlist.append(scan_int)
                         else:
-                            message += 'SCAN ONGOING'
+                            message += 'SCAN DISCARDED'.ljust(15) + ' | ' + comment
                     else:
-                        message += 'SCAN DISCARDED'
+                        message += 'SCAN ONGOING'.ljust(15) + ' | ' + comment
                     if verbose:
                         print(message)
+
+        if c==0 and len(keys)!=0 and verbose:
+            print('============')
+            print('OBSLOG KEYS:')
+            print('============')
+            print(keys)
+            c+=1
     scanlist.sort()
     info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
     return scanlist
