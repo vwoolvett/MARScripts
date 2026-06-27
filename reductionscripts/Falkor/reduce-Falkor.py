@@ -474,7 +474,6 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                print('')
                 info('Reducing scan %s (iteration %i)...'%(scan, iter))
 
                 # Reduce it
@@ -555,22 +554,32 @@ with warnings.catch_warnings():
                     mediannoise = np.nanmedian(rmsArray)
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
                     del rmsArray  # free memory
-                    m.display(aspect=1, limitsZ=[-3*meannoise, +3*meannoise])
-                    msg  = "------------------------------------------------------------\n"
-                    msg += "Output of redweak for scan %i (%s system, no smoothing).\n\n"%(scan, system)
+                    caption = '%s - %s - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, scan)
+                    m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
+                    print('')
+                    msg  = "-----------------------------------------------------------------------\n"
+                    msg += "- Check map and answer whether it looks fine, regardless of sensitivity\n"
+                    msg += "- Consider phase setting (> ~80% good) and sensitivity (mJy sqrt(s))"+"\n"
+                    msg += "  for re-calibration!                                                  \n"
+                    msg += "-----------------------------------------------------------------------\n"
                     msg += "Map OK:                                             <Enter>\n"
                     msg += "Map not OK:                                  no/n + <Enter>\n\n"
                     msg += "Observer input:"
                     obs_input = raw_input(msg)
                     obs_input = str(obs_input)
+                    print('')
 
                     if str.upper(obs_input) in ['NO', 'N']:
-                        info( 'Removing reduction file: %s'%scanname)
+                        print("-----------------------------------------------------------------------")
+                        info('Removing reduction of scan %i in file: %s'%(scan, scanname))
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
                                            "\nMap of scan %i was reported as bad!"%scan +\
-                                           "\nRemember to add this scan to 'bad_scans' list in"+\
-                                           "reduction script before executing again...'")
+                                           "\n*** Remember to add this scan to 'badscans' list in"+\
+                                           "\nreduction script before executing again ***'")
+                    else:
+                        print("-----------------------------------------------------------------------")
+                        info('Scan %i OK'%scan)
             
             else:
                 # Retrieve BoA map
@@ -595,13 +604,11 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                snrMap.display(aspect=1,limitsZ=[-3, +10])
+                caption = '%s - %s - Coadded map up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, scan)
+                snrMap.display(aspect=1,limitsZ=[-3, +10], caption=caption)
                 del snrMap  # free memory
 
             del m  # free memory
-
-            # Space between co-adding scans
-            print('')
 
         # ==========================================================
         # ITERATION COMPLETE, NO SMOOTHING AT ALL UP TO HERE IN "ms"
@@ -635,10 +642,11 @@ with warnings.catch_warnings():
             meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
 
         # plotting
-        minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
-        maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
+        minsnr = min(-3, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
+        maxsnr = max(10, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
         maxabs = max(abs(minsnr), abs(maxsnr))
-        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs])
+        caption = '%s - %s - Coadded map up to scan %i | SNR (smoothed by %.1f"): arb. scale '%(source, fe, scan, smoothby_arcsec)
+        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs], caption=caption)
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
@@ -661,7 +669,7 @@ with warnings.catch_warnings():
         del snrMap  # free memory
 
 print('############################')
-info('Reduction finished.')
+info( 'Reduction finished.')
 print('############################')
 
 # Beam corrections
