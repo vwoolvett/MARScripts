@@ -228,8 +228,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         if not overwrite:
             print('File %s exists' % outfile)
             return
-    info('Exporting map to fits file:')
-    print(outfile)
+    info('Exporting map to fits file: %s'%outfile)
     if not data:
         data = data.Map
     try:
@@ -571,9 +570,11 @@ with warnings.catch_warnings():
                     obs_input = str(obs_input)
 
                     if str.upper(obs_input) in ['NO', 'N']:
+                        info( 'Removing reduction file: %s'%scanname)
+                        os.remove(scanname)
                         raise RuntimeError("Stopping script:"
                                            "\nMap of scan %i was reported as bad!"%scan +\
-                                           "\nREMEMBER TO ADD THIS SCAN TO 'bad_scans' list in"+\
+                                           "\nRemember to add this scan to 'bad_scans' list in"+\
                                            "reduction script before executing again...'")
             
             else:
