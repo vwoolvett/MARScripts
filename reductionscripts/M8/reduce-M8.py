@@ -1,11 +1,12 @@
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
+# Currently LFA-only
 
 # --- Source and map parameters ---
 source  = 'M8'              # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
 center  = [270.9, -24.38]   # Center of map in CHOSEN COORDINATES in deg
 sizex   = 1.0               # Size of map in deg for X direction
 sizey   = 0.67              # Size of map in deg for Y direction
@@ -304,16 +305,16 @@ if smallerY < -90:
 # Case 3: left = 200, right = 190 -> frame was 0:360, now left = -160, right = -170
 # Case 4 : same as before but one of the boundaries ended up < -180: add 360
 sysreframe = False
-if biggerX > 180:
+if biggerX > 180 and system!='EQ':
     biggerX -= 360
     sysreframe = True
-if biggerX < -180:
+if biggerX < -180 and system!='EQ':
     biggerX += 360
     sysreframe = True
-if smallerX > 180:
+if smallerX > 180 and system!='EQ':
     smallerX -=360
     sysreframe = True
-if smallerX < -180:
+if smallerX < -180 and system!='EQ':
     smallerX +=360
     sysreframe = True
 

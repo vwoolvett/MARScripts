@@ -1,11 +1,12 @@
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
+# Currently LFA-only
 
 # --- Source and map parameters ---
 source  = 'Falkor'          # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
 center  = [274.1, -1.2]     # Center of map in CHOSEN COORDINATES in deg
 sizex   = 1.5               # Size of map in deg for X direction
 sizey   = 0.5               # Size of map in deg for Y direction

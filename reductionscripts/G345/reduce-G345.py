@@ -1,11 +1,12 @@
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
+# Currently LFA-only
 
 # --- Source and map parameters ---
 source  = 'G345'            # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
 center  = [345.3, 1.7]      # Center of map in CHOSEN COORDINATES in deg
 sizex   = 2.2               # Size of map in deg for X direction
 sizey   = 2.2               # Size of map in deg for Y direction
