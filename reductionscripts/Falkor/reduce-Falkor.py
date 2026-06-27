@@ -2,7 +2,7 @@
 # ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @27.06.2026
 # =================================
 # NOTE: for exceptional cases, additional flagging is executed after redweak (ctrl+f here).
-# Consult Axel or Vicente if you see anomalies in data after reducing as PI.
+# Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
 
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
@@ -25,6 +25,8 @@ doPlot  = True              # Display co-added map after each scan is included. 
                             # final coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
+# Manually exclude bad scans if needed            
+badscans = []
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
@@ -40,16 +42,9 @@ correctbeam     = True      # Whether to correct beam bookkeeping in final itera
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-
-# Manually exclude bad scans if needed            
-badscans = []
-
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
-
-
 
 
 

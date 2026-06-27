@@ -2,7 +2,7 @@
 # ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @27.06.2026
 # =================================
 # NOTE: for exceptional cases, additional flagging is executed after redweak (ctrl+f here).
-# Consult Axel or Vicente if you see anomalies in data after reducing as PI.
+# Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
 
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
@@ -25,6 +25,8 @@ doPlot  = True              # Display co-added map after each scan is included. 
                             # final coadded map per iteration will be displayed.
 
 # ----- Reduction parameters -----
+# Manually exclude bad scans if needed            
+badscans = [27979, 27991, 28217, 28498, 34849]
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
@@ -35,21 +37,14 @@ smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Defaul
 writefits       = True      # Write FITS of final iteration maps. True or False.
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
-# ----- Scans ------
+# ----- Scans (usually automatic) ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-
-# Manually exclude bad scans if needed            
-badscans = [27979, 27991, 28217, 28498, 34849]
-
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
-
-
 
 
 
@@ -504,8 +499,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                #if scan == 28517:
-                #    flagC(3353, flag=2)
+                if scan == 28517:
+                    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
@@ -560,22 +555,28 @@ with warnings.catch_warnings():
                     mediannoise = np.nanmedian(rmsArray)
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
                     del rmsArray  # free memory
-                    m.display(aspect=1, limitsZ=[-3*meannoise, +3*meannoise])
+                    caption = '%s - %s - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, scan)
+                    m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
+                    print('')
                     msg  = "------------------------------------------------------------\n"
-                    msg += "Output of redweak for scan %i (%s system, no smoothing).\n\n"%(scan, system)
+                    msg += "Check displayed map and printed sensitivities in mJy sqrt(s)\n"
+                    msg += "------------------------------------------------------------\n"
                     msg += "Map OK:                                             <Enter>\n"
                     msg += "Map not OK:                                  no/n + <Enter>\n\n"
                     msg += "Observer input:"
                     obs_input = raw_input(msg)
                     obs_input = str(obs_input)
+                    print('')
 
                     if str.upper(obs_input) in ['NO', 'N']:
-                        info( 'Removing reduction file: %s'%scanname)
+                        info('Removing reduction of scan %i in file: %s'%(scan, scanname))
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
                                            "\nMap of scan %i was reported as bad!"%scan +\
-                                           "\nRemember to add this scan to 'bad_scans' list in"+\
-                                           "reduction script before executing again...'")
+                                           "\n*** Remember to add this scan to 'badscans' list in"+\
+                                           "\nreduction script before executing again ***'")
+                    else:
+                        info('Scan %i OK'%scan)
             
             else:
                 # Retrieve BoA map
@@ -600,13 +601,11 @@ with warnings.catch_warnings():
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                snrMap.display(aspect=1,limitsZ=[-3, +10])
+                caption = '%s - %s - Coadded map up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, scan)
+                snrMap.display(aspect=1,limitsZ=[-3, +10], caption=caption)
                 del snrMap  # free memory
 
             del m  # free memory
-
-            # Space between co-adding scans
-            print('')
 
         # ==========================================================
         # ITERATION COMPLETE, NO SMOOTHING AT ALL UP TO HERE IN "ms"
@@ -640,10 +639,11 @@ with warnings.catch_warnings():
             meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
 
         # plotting
-        minsnr = min(-5, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
-        maxsnr = max(5, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
+        minsnr = min(-3, np.nanpercentile(snrMap.Data[snrMap.Data<0], 90))
+        maxsnr = max(10, np.nanpercentile(snrMap.Data[snrMap.Data>0], 90))
         maxabs = max(abs(minsnr), abs(maxsnr))
-        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs])
+        caption = '%s - %s - Coadded map up to scan %i | SNR (smoothed by %.1f"): arb. scale '%(source, fe, scan, smoothby_arcsec)
+        snrMap.display(aspect=1,limitsZ=[-maxabs, maxabs], caption=caption)
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
@@ -666,7 +666,7 @@ with warnings.catch_warnings():
         del snrMap  # free memory
 
 print('############################')
-info('Reduction finished.')
+info( 'Reduction finished.')
 print('############################')
 
 # Beam corrections
