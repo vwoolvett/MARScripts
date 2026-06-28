@@ -51,8 +51,7 @@ msg = '''\
 Show next map:          <Enter>
 Quit:               q + <Enter>
 -------------------------------
-user input:
-'''
+user input:'''
 
 # =============================
 # Beginning of map display loop
