@@ -603,7 +603,7 @@ with warnings.catch_warnings():
                     msg += "   for re-calibration!                                                   \n"
                     msg += "-------------------------------------------------------------------------\n"
                     msg += "Map OK:                      <Enter>\n"
-                    msg += "Map NOT OK:         no/n + <Enter>\n\n"
+                    msg += "Map NOT OK:           no/n + <Enter>\n\n"
                     msg += "Observer input:"
                     obs_input = raw_input(msg)
                     obs_input = str(obs_input)
