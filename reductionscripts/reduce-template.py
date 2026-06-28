@@ -132,10 +132,10 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
 
                     if key == 'Frontend-backend':                   # 4
                         thisFeBe = line[4:-6]
-                        if FeBedict['LFA'] in thisFeBe:
-                            thisfe = ('LFA'.ljust(12) + ' | ')
-                        elif FeBedict['HFA'] in thisFeBe:
+                        if FeBedict['HFA'] in thisFeBe:
                             thisfe = ('LFA + HFA'.ljust(12) + ' | ')
+                        elif FeBedict['LFA'] in thisFeBe:
+                            thisfe = ('LFA'.ljust(12) + ' | ')
                         else:
                             thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
 
