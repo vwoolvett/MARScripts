@@ -552,7 +552,7 @@ with warnings.catch_warnings():
                     mediannoise = np.nanmedian(rmsArray)
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
                     del rmsArray  # free memory
-                    caption = '%s - %s - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, scan)
+                    caption = '%s - %s - Iter%i - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, iter, scan)
                     m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
                     print('')
                     msg  = "-------------------------------------------------------------------------\n"
