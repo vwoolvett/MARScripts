@@ -460,14 +460,21 @@ with warnings.catch_warnings():
                 isreduced = True if len(glob(scanname))!=0 else False
                 scanreduced.append(isreduced)
             print(scanreduced)
+            missingreds = np.any(scanreduced) == False
 
             if iter == 2:
                 subtract = False
-                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
+                if missingreds:
+                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
+                else:
+                    mymodel = None
             
             if iter == 3:
                 subtract = True
-                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
+                if missingreds:
+                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
+                else:
+                    mymodel = None
 
             del coadded  # free memory
 
