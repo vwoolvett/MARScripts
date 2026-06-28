@@ -397,7 +397,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
     scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe)
     if len(scans) == 0:
-        raise ValueError('No scans of source %s (%s) found in ObsLogs directory: %s!'%(source, fe obslogsdir))
+        raise ValueError('No scans of source %s (%s) found in ObsLogs directory:\n%s!'%(source, fe, obslogsdir))
 
 # sort scans
 scans.sort()
