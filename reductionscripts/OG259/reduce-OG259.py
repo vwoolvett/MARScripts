@@ -460,16 +460,20 @@ with warnings.catch_warnings():
                 scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
                 isreduced = True if len(glob(scanname))!=0 else False
                 scanreduced.append(isreduced)
-            print(scanreduced)
-            #missingreds = np.any()
 
             if iter == 2:
                 subtract = False
-                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
+                if np.any(scanreduced) == False:
+                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
+                else:
+                    mymodel = None
             
             if iter == 3:
                 subtract = True
-                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
+                if np.any(scanreduced) == False:
+                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
+                else:
+                    mymodel = None
 
             del coadded  # free memory
 
