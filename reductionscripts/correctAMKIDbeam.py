@@ -163,5 +163,5 @@ print('')
 print(correctionsummary)
 if printwarn ==True:
     warn('Beam size extraction from beam maps was not possible: the nominal value of %.3f " for %s was used. '%(AMKID_beamsize, fe)+\
-         'Check if a merged beammap (beam_map_SCAN_%s_merged.csv) file exists in CalFiles/ directory.'%fe)
+         'Check if one and only ONE merged beammap (beam_map_SCAN_%s_merged.csv) file exists in CalFiles/ directory.'%fe)
 info('Check "FITSfiles/BeamCorrected/" directory for beam-corrected FITS!')
