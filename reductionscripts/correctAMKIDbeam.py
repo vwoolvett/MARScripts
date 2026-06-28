@@ -1,8 +1,7 @@
 # SCRIPT TO CORRECT THE BEAM SIZE AND RE-SCALING IN CO-ADDED MAPS
-# AND EXPORT THEM AS FITS INTO "./BeamCorrected" directory
+# AND EXPORT THEM AS FITS INTO "./BeamCorrected" directory.
 # INTENDED TO BE RAN AUTOMATICALLY AFTER REDUCTION SCRIPT
 # NO USER INPUT NEEDED
-# TODO: extract AMKID_beamsize from average of beammaps instead!
 
 # ===== BEGINNING OF CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 import warnings
@@ -22,16 +21,20 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
 
     # determine nominal AMKID beam size
-    AMKID_beamsize  = 16.5  # arcsec
+    if fe == 'LFA':
+        AMKID_beamsize = 16.5  # arcsec
+    elif fe == 'HFA':
+        AMKID_beamsize = 7.63  # arcsec
     from_where = 'Nominal value'
 
-    info('Attempting to extract AMKID beam size from beammap info...')
+    info('Attempting to extract AMKID %s beam size from beammap info...'%fe)
     # Try and read nominal beam size from merged beammap
+    printwarn = False
     try:
         # find beam_map reduced file
         beammap_fnames = []
         for filename in os.listdir('CalFiles'):
-            if 'beam_map' in filename and 'merged' in filename:
+            if 'beam_map' in filename and 'merged' in filename and fe in filename:
                 beammap_fnames.append(filename)
         if len(beammap_fnames) > 1:
             # use last?
@@ -52,13 +55,12 @@ with warnings.catch_warnings():
         # succesfully got a beammap estimate
         from_where = 'Extracted from beam map: %s'%beammap_fname_full
 
-        info('Success extracting beam size from:')
-        print(beammap_fname_full)
+        info('Success extracting beam size from: %s'%beammap_fname_full)
         info('Beam size is %.3f "'%AMKID_beamsize)
         
 
     except:
-        warn('Beam size extraction was not possible. Using nominal value of %.3f "'%AMKID_beamsize)
+        printwarn = True
         pass
 
     for iter in range(1, niters+1):
@@ -158,4 +160,7 @@ with warnings.catch_warnings():
 
 print('')
 print(correctionsummary)
+if printwarn ==True:
+    warn('Beam size extraction from beam maps was not possible: the nominal value of %.3f " for %s was used. '%(AMKID_beamsize, fe)+\
+         'Check if a merged beammap (beam_map_SCAN_%s_merged.csv) file exists in CalFiles/ directory.'%fe)
 info('Check "BeamCorrected/" directory for beam-corrected FITS!')

@@ -1,22 +1,16 @@
 # =================================
 # ==== BEGINNING OF USER INPUT ====
 # =================================
+# NOTE: script intended to be used after reducing all scans (iteration 1)
+# to assess whether any scan should be added to or removed from
+# badscans. It takes all variables but 'iter' and 'show' from reduction
+# script, so it will not work properly if not ran after reduction
+# in the same MARS session.
 
-# --- Source and map parameters ---
-source    = 'OG259'         # As in observing logs
-fe        = 'LFA'           # Frontend, either 'LFA' or 'HFA'
-system    = 'GAL'           # Coordinate system of reduced map, 'EQ', 'GAL' or 'HO'
+# --- Plotting parameters ---
 iter      = 1               # Which iteration of the reduction to show (usual 1-2)
-show      = 'snr'           # Show Noise (noise), Signal (sig), or SNR (snr)
-flagJumps = True            # Whether the maps to show were de-jumped with
-                            # 'flagJumps = True' at reduction
+show      = 'snr'           # Show Signal-SKY (sig), Noise (rms), or SNR (snr)
 smoothby_arcsec = 0.        # Default 0 arcsec. Smoothing before showing takes more time.
-
-# ----- Scans ------
-# If scans is empty, automatically retrieves all scans of the source
-# specified above from the obslogs directory below
-scans = []
-obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
 
 # ==============================
 # ===== END OF USER INUPUT =====

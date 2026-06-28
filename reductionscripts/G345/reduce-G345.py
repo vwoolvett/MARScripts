@@ -1,17 +1,20 @@
 # =================================
-# ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @27.06.2026
+# ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @28.06.2026
 # =================================
-# NOTE: for exceptional cases, additional flagging is executed after redweak (ctrl+f here).
+# NOTE: for exceptional cases, additional flagging is needed. 
+# This is executed after the "redweak" function call (ctrl+f here).
 # Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
 
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
 # Prompts upon running script as observer give more information on what to do.
-observer = False            # True or False -> PROJECT IS DONE
+observer = True             # True or False
 
-# PIs should set to observer = False and assess with "showMaps.py" (see comments therein)
-# which scans to actually discard via the "bad_scans" variable in this reduction script. Then
-# run it until Iteration 2 or 3 depending on science goals.
+# PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
+# variable in this reduction script (only missing bad scans are reduced). Then assess with
+# "showMaps.py" (see comments therein) which scans to actually discard via filling the
+# "badscans" list again on their own criteria. 
+# Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
 source  = 'G345'            # As in observing logs
@@ -29,8 +32,8 @@ doPlot  = True              # Display co-added map after each scan is included. 
 badscans = [32439, 33340, 33568, 34066, 34685, 34693, 34950]
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
-clip            = -1        # Sigma clipping level (-1 or >=1.5) on noise map: masked where 
-                            # noisemap > clip * mediannoise, else no clipping
+clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
+                            # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
 smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
