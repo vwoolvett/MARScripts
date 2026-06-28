@@ -72,8 +72,7 @@ with warnings.catch_warnings():
         # Try to retrieve it
         if len(globlist) != 0:
             print('')
-            info('Loading map in file:')
-            print(mycoadded_fullfname)
+            info('Loading map in file: %s'%mycoadded_fullfname)
             ms = restoreFile(mycoadded_fullfname)
         else:
             print('')
@@ -150,10 +149,10 @@ with warnings.catch_warnings():
             correctionsummary += '\n------------------------------------------------------------'
 
         # now export to fits
-        outname = 'FITSfiles/BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into .FITSfiles/BeamCorrected directory.
+        outname = 'FITSfiles/BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
         auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         info('Beam-corrected FITS written to:')
-        print(outname)
+        print('%9s'%outname)
 
         # free memory
         ms = None
@@ -162,5 +161,5 @@ print('')
 print(correctionsummary)
 if printwarn ==True:
     warn('Beam size extraction from beam maps was not possible: the nominal value of %.3f " for %s was used. '%(AMKID_beamsize, fe)+\
-         'Check if a merged beammap (beam_map_SCAN_%s_merged.csv) file exists in "CalFiles" directory.'%fe)
+         'Check if a merged beammap (beam_map_SCAN_%s_merged.csv) file exists in CalFiles/ directory.'%fe)
 info('Check "BeamCorrected/" directory for beam-corrected FITS!')

@@ -228,7 +228,8 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         if not overwrite:
             print('File %s exists' % outfile)
             return
-    info('Exporting map to fits file: %s'%outfile)
+    info('Exporting map to fits file:')
+    print('%9s'%outfile)
     if not data:
         data = data.Map
     try:

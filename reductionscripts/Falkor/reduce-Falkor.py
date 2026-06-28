@@ -459,7 +459,6 @@ with warnings.catch_warnings():
                 scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
                 isreduced = True if len(glob(scanname))!=0 else False
                 scanreduced.append(isreduced)
-            print(scanreduced)
             missingreds = np.any(scanreduced) == False
 
             if iter == 2:
