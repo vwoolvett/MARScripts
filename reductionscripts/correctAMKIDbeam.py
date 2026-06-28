@@ -55,7 +55,8 @@ with warnings.catch_warnings():
         # succesfully got a beammap estimate
         from_where = 'Extracted from beam map: %s'%beammap_fname_full
 
-        info('Success extracting beam size from: %s'%beammap_fname_full)
+        info('Success extracting beam size from:')
+        print('         %s'%beammap_fname_full)
         info('Beam size is %.3f "'%AMKID_beamsize)
         
 
@@ -72,11 +73,12 @@ with warnings.catch_warnings():
         # Try to retrieve it
         if len(globlist) != 0:
             print('')
-            info('Loading map in file: %s'%mycoadded_fullfname)
+            info('Loading map in file:')
+            print('         %s'%mycoadded_fullfname)
             ms = restoreFile(mycoadded_fullfname)
         else:
             print('')
-            warn('File %s not found!'%mycoadded_fullfname)
+            warn('File for Iteration %i not found!'%iter)
             print('')
             continue
 
@@ -152,7 +154,7 @@ with warnings.catch_warnings():
         outname = 'FITSfiles/BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
         auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         info('Beam-corrected FITS written to:')
-        print('%9s'%outname)
+        print('         %s'%outname)
 
         # free memory
         ms = None

@@ -229,7 +229,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
             print('File %s exists' % outfile)
             return
     info('Exporting map to fits file:')
-    print('%9s'%outfile)
+    print('         %s'%outfile)
     if not data:
         data = data.Map
     try:
@@ -488,7 +488,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %s (iteration %i)...'%(scan, iter))
+                info('Reducing scan %i (iteration %i)...'%(scan, iter))
 
                 # Reduce it
                 redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
@@ -586,7 +586,8 @@ with warnings.catch_warnings():
 
                     if str.upper(obs_input) in ['NO', 'N']:
                         print("------------------------------------------------------------------------")
-                        info('Removing reduction of scan %i in file: %s'%(scan, scanname))
+                        info('Removing reduction of scan %i in file:'%(scan))
+                        print('         %s'%scanname)
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
                                            "\nMap of scan %i was reported as bad!"%scan +\

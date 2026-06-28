@@ -228,7 +228,8 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
         if not overwrite:
             print('File %s exists' % outfile)
             return
-    info('Exporting map to fits file: %s'%outfile)
+    info('Exporting map to fits file:')
+    print('         %s'%outfile)
     if not data:
         data = data.Map
     try:
@@ -453,6 +454,15 @@ with warnings.catch_warnings():
             mymodel = "ReducedFiles/" + str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
             coadded = restoreFile(mymodel)
 
+            # Only create source model if a scan in scans list is missing reduction in this iteration
+            scanreduced = []
+            for scan in scans:
+                scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
+                isreduced = True if len(glob(scanname))!=0 else False
+                scanreduced.append(isreduced)
+            print(scanreduced)
+            #missingreds = np.any()
+
             if iter == 2:
                 subtract = False
                 mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
@@ -478,7 +488,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %s (iteration %i)...'%(scan, iter))
+                info('Reducing scan %i (iteration %i)...'%(scan, iter))
 
                 # Reduce it
                 redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
@@ -576,7 +586,8 @@ with warnings.catch_warnings():
 
                     if str.upper(obs_input) in ['NO', 'N']:
                         print("------------------------------------------------------------------------")
-                        info('Removing reduction of scan %i in file: %s'%(scan, scanname))
+                        info('Removing reduction of scan %i in file:'%(scan))
+                        print('         %s'%scanname)
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
                                            "\nMap of scan %i was reported as bad!"%scan +\

@@ -8,7 +8,7 @@
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
 # Prompts upon running script as observer give more information on what to do.
-observer = True             # True or False
+observer = False            # True or False -> PROJECT FINISHED - RMS ACHIEVED
 
 # PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
 # variable in this reduction script (only missing bad scans are reduced). Then assess with
@@ -229,7 +229,7 @@ def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=
             print('File %s exists' % outfile)
             return
     info('Exporting map to fits file:')
-    print('%9s'%outfile)
+    print('         %s'%outfile)
     if not data:
         data = data.Map
     try:
@@ -460,21 +460,16 @@ with warnings.catch_warnings():
                 scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
                 isreduced = True if len(glob(scanname))!=0 else False
                 scanreduced.append(isreduced)
-            missingreds = np.any(scanreduced) == False
+            print(scanreduced)
+            #missingreds = np.any()
 
             if iter == 2:
                 subtract = False
-                if missingreds:
-                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
-                else:
-                    mymodel = None
+                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
             
             if iter == 3:
                 subtract = True
-                if missingreds:
-                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
-                else:
-                    mymodel = None
+                mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
 
             del coadded  # free memory
 
@@ -493,7 +488,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %s (iteration %i)...'%(scan, iter))
+                info('Reducing scan %i (iteration %i)...'%(scan, iter))
 
                 # Reduce it
                 redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
@@ -591,7 +586,8 @@ with warnings.catch_warnings():
 
                     if str.upper(obs_input) in ['NO', 'N']:
                         print("------------------------------------------------------------------------")
-                        info('Removing reduction of scan %i in file: %s'%(scan, scanname))
+                        info('Removing reduction of scan %i in file:'%(scan))
+                        print('         %s'%scanname)
                         os.remove(scanname)
                         raise RuntimeError("Stopping script:"
                                            "\nMap of scan %i was reported as bad!"%scan +\
