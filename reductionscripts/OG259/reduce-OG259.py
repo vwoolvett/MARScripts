@@ -132,10 +132,10 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
 
                     if key == 'Frontend-backend':                   # 4
                         thisFeBe = line[4:-6]
-                        if FeBedict['LFA'] in thisFeBe:
-                            thisfe = ('LFA'.ljust(12) + ' | ')
-                        elif FeBedict['HFA'] in thisFeBe:
+                        if FeBedict['HFA'] in thisFeBe:
                             thisfe = ('LFA + HFA'.ljust(12) + ' | ')
+                        elif FeBedict['LFA'] in thisFeBe:
+                            thisfe = ('LFA'.ljust(12) + ' | ')
                         else:
                             thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
 
@@ -521,6 +521,11 @@ with warnings.catch_warnings():
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
                 # and pointing corrections in smoothed maps. This is fine.
+
+                # If we CTRL+C while in redweak, sometimes map is written and it is empty.
+                # this is just a safe check to see if redweak finished, otherwise stop script.
+                if data.Unit != 'Flux density [Jy/beam]':
+                    raise RuntimeError('Stopping script: either CTRL+C was used or redweak call failed.')
 
                 # Immediately rename summary and move to new folder
                 if writeSummary:

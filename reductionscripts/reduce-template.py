@@ -522,6 +522,11 @@ with warnings.catch_warnings():
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
                 # and pointing corrections in smoothed maps. This is fine.
 
+                # If we CTRL+C while in redweak, sometimes map is written and it is empty.
+                # this is just a safe check to see if redweak finished, otherwise stop script.
+                if data.Unit != 'Flux density [Jy/beam]':
+                    raise RuntimeError('Stopping script: either CTRL+C was used or redweak call failed.')
+
                 # Immediately rename summary and move to new folder
                 if writeSummary:
                     # VWO: made it iteration-specific
