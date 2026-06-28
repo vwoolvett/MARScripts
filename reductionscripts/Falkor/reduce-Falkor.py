@@ -83,7 +83,12 @@ import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
 # define the good functions :)
-def findSciTargetScans(source, obslogsdir, verbose=False):
+def findSciTargetScans(source, obslogsdir, fe, verbose=True):
+    assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
+    # no HFA-only mode, so:
+    FeBedict = {'LFA': 'AMKID870-AMKID870BE', 'HFA':'AMKID350-AMKID350BE'}
+    febe = FeBedict[fe]
+
     scanlist = []
     files = os.listdir(obslogsdir)
     c=0
@@ -112,28 +117,43 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
                 for key in keys:
                     line=lines[index]
                     index+=1 
-                    if key == 'Scan':
+                    if key == 'Scan':                               # 0
                         scan_int = int(line[4:-6])
-                        scan = (line[4:-6].ljust(6) + ' | ')       # 0
-                    if key == 'Source':
-                        src = (line[4:-6].ljust(12) + ' | ')       # 1  
-                    if key == 'Scan type':
-                        scantype = (line[4:-6].ljust(12) + ' | ')  # 2
-                    if key == 'Observ. mode':
-                        mode = (line[4:-6].ljust(12) + ' | ')      # 3
+                        scan = (line[4:-6].ljust(6) + ' | ')
+
+                    if key == 'Source':                             # 1 
+                        src = (line[4:-6].ljust(12) + ' | ') 
+
+                    if key == 'Scan type':                          # 2
+                        scantype = (line[4:-6].ljust(12) + ' | ')
+
+                    if key == 'Observ. mode':                       # 3
+                        mode = (line[4:-6].ljust(12) + ' | ')
+
+                    if key == 'Frontend-backend':                   # 4
+                        thisFeBe = line[4:-6]
+                        if FeBedict['LFA'] in thisFeBe:
+                            thisfe = ('LFA'.ljust(12) + ' | ')
+                        elif FeBedict['HFA'] in thisFeBe:
+                            thisfe = ('LFA + HFA'.ljust(12) + ' | ')
+                        else:
+                            thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
+
                     if key == 'Scan duration':
-                        duration = (line[4:-6].ljust(12) + ' | ')  # 4
+                        duration = (line[4:-6].ljust(12) + ' | ')   # 5
+
                     if key == 'Scan status':
-                        status = (line[4:-6].ljust(12) + ' | ')    # 5
-                    if key == 'Comment':
-                        comment = (line[4:-6])             # last                        
-                        message += scan + src + scantype + mode + duration + status
+                        status = (line[4:-6].ljust(12) + ' | ')     # 6
+
+                    if key == 'Comment':                            # last, build message    
+                        comment = (line[4:-6])                      # added later         
+                        message += scan + src + scantype + mode + thisfe + duration + status
 
                 start = False
 
                 if source in src:
                     if  '-999' not in duration:
-                        if 'MAP' in scantype and 'OTF' in mode and 'OK' in status and 'warm' not in str.lower(comment):
+                        if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
@@ -150,7 +170,7 @@ def findSciTargetScans(source, obslogsdir, verbose=False):
             print(keys)
             c+=1
     scanlist.sort()
-    info("Number of 'MAP' scans on science target %s: %i"%(source, len(scanlist)))
+    info("Number of 'MAP' scans on source %s (%s): %i"%(source, fe, len(scanlist)))
     return scanlist
 
 
@@ -375,9 +395,9 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir)
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe)
     if len(scans) == 0:
-        raise ValueError('No scans of source %s found in ObsLogs directory: %s!'%(source, obslogsdir))
+        raise ValueError('No scans of source %s (%s) found in ObsLogs directory: %s!'%(source, fe obslogsdir))
 
 # sort scans
 scans.sort()
