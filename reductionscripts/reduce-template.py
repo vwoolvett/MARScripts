@@ -453,6 +453,15 @@ with warnings.catch_warnings():
             mymodel = "ReducedFiles/" + str(myname) + "-coadded-flux-iter" + str(iter-1) + ".data"
             coadded = restoreFile(mymodel)
 
+            # Only create source model if a scan in scans list is missing reduction in this iteration
+            scanreduced = []
+            for scan in scans:
+                scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
+                isreduced = True if len(glob(scanname))!=0 else False
+                scanreduced.append(isreduced)
+            print(scanreduced)
+            #missingreds = np.any()
+
             if iter == 2:
                 subtract = False
                 mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
