@@ -44,11 +44,11 @@ correctbeam     = True      # Whether to correct beam bookkeeping in final itera
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
-obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
+obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
+verbose = False             # print scan selection criteria from ObsLogs if scans=[] initially
 # ==============================
 # ===== END OF USER INUPUT =====
 # ==============================
-
 
 
 
@@ -83,7 +83,7 @@ import BoaMapping as BOAMAP
 from mars.fortran import fMap
 
 # define the good functions :)
-def findSciTargetScans(source, obslogsdir, fe, verbose=True):
+def findSciTargetScans(source, obslogsdir, fe, verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
     FeBedict = {'LFA': 'AMKID870-AMKID870BE', 'HFA':'AMKID350-AMKID350BE'}
@@ -395,7 +395,7 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe)
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe, verbose=verbose)
     if len(scans) == 0:
         raise ValueError('No scans of source %s (%s) found in ObsLogs directory:\n%s!'%(source, fe, obslogsdir))
 
