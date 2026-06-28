@@ -14,8 +14,8 @@ info('Beginning SKY, RMS, and SNR map corrections for iteration maps')
 print('=======================================================================')
 
 # Create dir if missing
-if os.path.exists('BeamCorrected') == False:
-    os.makedirs("BeamCorrected")
+if os.path.exists("FITSfiles/BeamCorrected") == False:
+    os.makedirs("FITSfiles/BeamCorrected")
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
@@ -150,7 +150,7 @@ with warnings.catch_warnings():
             correctionsummary += '\n------------------------------------------------------------'
 
         # now export to fits
-        outname = 'BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
+        outname = 'FITSfiles/BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into .FITSfiles/BeamCorrected directory.
         auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         info('Beam-corrected FITS written to:')
         print(outname)

@@ -65,6 +65,8 @@ obslogsdir = '~/obslogs'  # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-C
 
 
 
+
+
 # ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 # NOTE: VWO: BoA smoothBy smooths weights with the kernel, but weights are 1 / rms^2 which is
 # a non-linear scale. All smoothing should be done as:
@@ -402,6 +404,10 @@ if os.path.exists("ReducedFiles") == False:
 if writeSummary and os.path.exists("Summaries") == False:
     os.makedirs("Summaries")
 
+# Create directory for FITS files of final iteration maps
+if writefits and os.path.exists("FITSfiles") == False:
+    os.makedirs("FITSfiles")
+
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
 
@@ -657,7 +663,8 @@ with warnings.catch_warnings():
         print("############################################################")
 
         if writefits:
-            outname = str(myname)+"-coadded-iter"+str(iter)+".fits" # Goes into current dir.
+            outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
+            outname = "FITSfiles/" + outname                         # goes into FITSfiles dir.
             auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         
         del ms  # free memory
