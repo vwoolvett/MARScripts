@@ -507,6 +507,9 @@ with warnings.catch_warnings():
 
             # Initialize map for this scan
             m = None
+            # avoid mapping() call for map N after CTRL+C during redweak->mapping gets previous data.Map (N-1)
+            data.Data = None
+            data.Map = None
 
             # Check if reduction does not exist
             if len(globlist) ==  0:
