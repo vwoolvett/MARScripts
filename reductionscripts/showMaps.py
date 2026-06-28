@@ -47,8 +47,11 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 
 # display message
 msg = '''\
-Show next map:      Enter
-Quit:               q
+-------------------------------
+Show next map:          <Enter>
+Quit:               q + <Enter>
+-------------------------------
+user input:
 '''
 
 # =============================
