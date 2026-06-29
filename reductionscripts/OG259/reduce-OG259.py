@@ -35,7 +35,7 @@ badscans = [27979, 27991, 28217, 28498, 34849]
 doPlot  = True              # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
-niters          = 2         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
+niters          = 2         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
