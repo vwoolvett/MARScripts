@@ -12,7 +12,7 @@ mymapdict = {}
 if len(mymapdict)==0:
     raise RuntimeError('Source/map dictionary is empty! edit the obsfkts.apecs script of the project accordingly.')
 
-def obs(source=mymapdict.keys()[0], n=1, dir='xy', doCals=True):
+def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
     '''
     source:         [str], Source name as in source catalog
     n:              [int], Number of loops (kid_center + scanner + X/Y/XY OTF).
@@ -20,6 +20,7 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', doCals=True):
                            Based on Tsky stability along path of the source.
                            Limited by max 105 minutes without tonelist calibration.
     dir:            [str], scanning direction 'xy', 'x', 'y', default 'xy'.
+    tiltangle:    [float], every OTF will be tilted by a random angle from [-tiltangle, +tiltangle]
     doCals:        [bool], Do calibrations before OTFs. Default true. Set to False only
                            if, for example, the second OTF in an X+Y was cancelled, you
                            want to re-do the Y dir, it and you did a kid_center + scanner
@@ -78,40 +79,40 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', doCals=True):
     # Check not more than 105 min without creating new tonelists
     # with nominal values, this is max n=3 loops.
     otfsperloop = 2 if str.upper(dir)=='XY' else 1
-    if n*otfsperloop*scantime / 60 > 105:
+    if n*otfsperloop*scantime / 60 > 80:
         print('Requested number of loops leaves A-MKID without')
         print('Tone power/frequency optimization for more than')
-        print('1 hr 45 minutes. Reduce number of loops "n".')
+        print('1 hr 20 minutes. Reduce number of loops "n".')
+        return
     
 
     # --------------------
     # START OBS - all good
     # --------------------
     source(source, cats='user')                  # Center and set source
-    continuous_data('on')
-    refcenter()
     
-    # loop of OTFs (each OTF is a scan)
-    print('Executing %s OTF(s): %i loops.'%('X+Y' if str.upper(dir)=='XY' else dir, n))
+    # loop of OTFs
     for i in range(n):
-        print('Starting loop %i'%(i+1))
+        print('Starting loop %i/%i...'%(i+1, n))
         # Do calibrations (this is a must before a long science observation!)
         if doCals==True:
             print('Executing kid_center() (Fsweep)')
             kid_center()
             print('Executing scanner() (WireScan)')
             scanner()
-        
+
+        print('Executing %s...'%('X+Y OTFs' if str.upper(dir)=='XY' else '%s OTF'%str.upper(dir)))
+        continuous_data('on')
+        refcenter()
+
+        myang1 = random.uniform(-tiltangle, tiltangle) + sourceang
         if str.upper(dir) == 'X':
-            myang = random.uniform(-15,15) + sourceang
-            otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0, angle=myang, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
+            otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0, angle=myang1, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
 
         elif str.upper(dir) == 'Y':
-            myang = random.uniform(-15,15) + sourceang
-            otf(xlen=xlen, ylen=ylen, xstep=perpstep, ystep=scanstep, time=1.0, angle=myang, direction='y', zigzag=1, size_unit='arcsec', system='EQ')
+            otf(xlen=xlen, ylen=ylen, xstep=perpstep, ystep=scanstep, time=1.0, angle=myang1, direction='y', zigzag=1, size_unit='arcsec', system='EQ')
 
         else:
-            myang = random.uniform(-15,15) + sourceang
-            otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0 ,angle=myang, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
-            myang = random.uniform(-15,15) + sourceang
-            otf(xlen=xlen, ylen=ylen, xstep=perpstep, ystep=scanstep, time=1.0, angle=myang, direction='y', zigzag=1, size_unit='arcsec', system='EQ')
+            otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0 ,angle=myang1, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
+            myang2 = random.uniform(-tiltangle, tiltangle) + sourceang
+            otf(xlen=xlen, ylen=ylen, xstep=perpstep, ystep=scanstep, time=1.0, angle=myang2, direction='y', zigzag=1, size_unit='arcsec', system='EQ')
