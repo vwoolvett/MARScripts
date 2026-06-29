@@ -94,7 +94,7 @@ with warnings.catch_warnings():
         elif show == 'rms':
             info('Displaying Noise map...')
             rmsMap = copy.deepcopy(m)  # Signal
-            rmsMap.Data = 1.0 / np.sqrt(rmsMap.Weight)  # Noise = 1/sqrt(weight)
+            rmsMap.Data = np.where(rmsMap.Weight > 0, 1.0 / np.sqrt(rmsMap.Weight), np.nan)  # Noise = 1/sqrt(weight)
             mediannoise = np.nanmedian(rmsMap.Data)
             caption = '%s - %s - Iter%i - Scan %i | RMS (no smoothing): 0 to 2 x median'%(source, fe, iter, scan)
             rmsMap.display(aspect=1, limitsZ=[0, 2*mediannoise], caption=caption)
