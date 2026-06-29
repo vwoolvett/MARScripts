@@ -18,25 +18,28 @@ observer = False            # True or False -> PROJECT FINISHED - RMS ACHIEVED
 
 # --- Source and map parameters ---
 source  = 'G345'            # As in observing logs
-fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA' - CURRENTLY LFA ONLY!!!
+fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
 system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
 center  = [345.3, 1.7]      # Center of map in CHOSEN COORDINATES in deg
 sizex   = 2.2               # Size of map in deg for X direction
 sizey   = 2.2               # Size of map in deg for Y direction
 padding = 0.6               # Padding around the map in deg for grid (default ~2x array)
-doPlot  = True              # Display co-added map after each scan is included. If False, only
-                            # final coadded map per iteration will be displayed.
+smooth_arcsec   = 'default' # By how much to smooth final iteration maps.
+                            # Default 8. arcsec for LFA and 3.7 for HFA.
+                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
 
-# ----- Reduction parameters -----
 # Manually exclude bad scans if needed            
 badscans = [32439, 33340, 33568, 34066, 34685, 34693, 34950]
+
+# ----- Reduction parameters -----
+doPlot  = True              # Display co-added map after each scan is included. If False, only
+                            # final coadded map per iteration will be displayed.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 2 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
-smoothby_arcsec = 8.        # By how much to smooth final iteration maps. Default 8. arcsec
 writefits       = True      # Write FITS of final iteration maps. True or False.
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
@@ -429,6 +432,14 @@ if writeSummary and os.path.exists("Summaries") == False:
 if writefits and os.path.exists("FITSfiles") == False:
     os.makedirs("FITSfiles")
 
+if smooth_arcsec == 'default':
+    if fe == 'LFA':
+        smoothby_arcsec = 8.
+    else:
+        smoothby_arcsec = 3.7
+else:
+    smoothby_arcsec = smooth_arcsec
+
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
 
@@ -448,11 +459,13 @@ Map Boundaries:     %s, %s deg in x; %s, %s deg in y
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Smoothing:          %s arcsec
+Smoothing:          %s
 Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], sizex, sizey,
                            padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
                            clip if clip != -1 else 'No clipping',
-                           flagJumps, smoothby_arcsec, len(scans)))
+                           flagJumps,
+                           '%.1f arcsec (default)'%(smoothby_arcsec) if smooth_arcsec=='default' else '%.1f arcsec'%(smoothby_arcsec),
+                           len(scans)))
 
 # ===========================
 # Beginning of reduction loop
@@ -663,14 +676,16 @@ with warnings.catch_warnings():
         # ==========================================================
         del mymodel  # free memory
 
+
         # Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
+            print('')
             info('Smoothing co-added map for iteration %i by %.1f"...'%(iter, smoothby_arcsec))
             nativebeam = ms.BeamSize
             auxsmoothby(ms, smoothby_deg)
             newbeam = ms.BeamSize
-            print('Original beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
+            print('         Original beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
 
         # RMS map creation
         rmsMap = copy.deepcopy(ms)  # Signal
@@ -699,11 +714,13 @@ with warnings.catch_warnings():
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
+        print('')
         ms.dumpMap(outname)
 
-        print("################### Iteration %i finished ###################"%(iter))
-        print("minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b"%(1000*minnoise,1000*meannoise))
-        print("############################################################")
+        print('')
+        print("####################### Iteration %i finished #######################"%(iter))
+        print("         minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b         "%(1000*minnoise,1000*meannoise))
+        print("####################################################################")
 
         if writefits:
             outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
@@ -714,9 +731,11 @@ with warnings.catch_warnings():
         del rmsMap  # free memory
         del snrMap  # free memory
 
-print('############################')
-info( 'Reduction finished.')
-print('############################')
+if observer==False:
+    print('')
+    print("############################################################")
+    print("                   Reduction finished                       ")
+    print("############################################################")
 
 # Beam corrections
 if correctbeam:
