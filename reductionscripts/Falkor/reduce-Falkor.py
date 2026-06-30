@@ -24,7 +24,7 @@ center  = [274.1, -1.2]     # Center of map in CHOSEN COORDINATES in deg
 sizex   = 1.5               # Size of map in deg for X direction
 sizey   = 0.7               # Size of map in deg for Y direction
 padding = 0.5               # Padding around the map in deg for grid (default ~2x array)
-smooth_arcsec   = 'default' # By how much to smooth final iteration maps.
+smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
 
@@ -397,7 +397,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
     scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe, verbose=verbose)
     if len(scans) == 0:
-        raise ValueError('No scans of source %s (%s) found in ObsLogs directory:\n%s!'%(source, fe, obslogsdir))
+        raise ValueError('No scans of source %s (%s) found in ObsLogs directory:\n%s'%(source, fe, obslogsdir))
 
 # sort scans
 scans.sort()
