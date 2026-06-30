@@ -67,9 +67,6 @@ verbose = False             # print scan selection criteria from ObsLogs if scan
 
 
 
-
-
-
 # ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 # NOTE: VWO: BoA smoothBy smooths weights with the kernel, but weights are 1 / rms^2 which is
 # a non-linear scale. All smoothing should be done as:
@@ -474,9 +471,9 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     for iter in range(1, niters+1):
         print('')
-        print("####################################################################")
-        print("####################### Iteration %i starting #######################"%(iter))
-        print("####################################################################")
+        print("#####################################################################")
+        print("####################### Iteration %i starting ########################"%(iter))
+        print("#####################################################################")
 
         if iter == 1:
             # First iteration -- no model
@@ -513,6 +510,7 @@ with warnings.catch_warnings():
   
         # Initialize co-added map
         ms = None
+        tint = 0
 
         for i, scan in enumerate(scans):
             scanname = "ReducedFiles/"+str(myname)+"-"+str(scan)+"-iter"+str(iter)+".data"
@@ -566,7 +564,10 @@ with warnings.catch_warnings():
                 # NOTE: this has a smooth parameter, but is default 0
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
                 # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
-            
+
+                # Add integration time
+                data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
+
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
                 data.Map.dumpMap(scanname)
 
@@ -648,16 +649,26 @@ with warnings.catch_warnings():
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
-                raise ValueError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
+                raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
                                  "incorrect map bounds or coordinate system. Aborting reduction.")
 
 
             info('Coadding...')
             if ms and m:
-                ms = mapsumfast([ms,m])  
+                if np.shape(ms.Data)!=np.shape(m.Data):
+                    raise RuntimeError("Coadded map and scan %i map have different grids. Cannot co-add!"%scan+\
+                                       "\nDid you change map size or padding in reduction script?")
+                ms = mapsumfast([ms,m])
         
             elif not ms:
                 ms = copy.deepcopy(m)
+            
+            # Add integration time and delete map m of scan
+            try:
+                tint += m.Tint
+            except:
+                pass
+            del m  # free memory
 
             if doPlot:
                 # SNR map creation
@@ -669,7 +680,6 @@ with warnings.catch_warnings():
                 snrMap.display(aspect=1,limitsZ=[-3, +10], caption=caption)
                 del snrMap  # free memory
 
-            del m  # free memory
 
         # ==========================================================
         # ITERATION COMPLETE, NO SMOOTHING AT ALL UP TO HERE IN "ms"
@@ -718,9 +728,9 @@ with warnings.catch_warnings():
         ms.dumpMap(outname)
 
         print('')
-        print("####################### Iteration %i finished #######################"%(iter))
-        print("         minimum noise: %5.1f mJy/b, mean noise: %5.1f mJy/b         "%(1000*minnoise,1000*meannoise))
-        print("####################################################################")
+        print("####################### Iteration %i finished ########################"%(iter))
+        print(" Time: %3.1f Hrs | min. noise: %3.1f mJy/b | mean noise: %3.1f mJy/b "%(tint/3600, 1000*minnoise,1000*meannoise))
+        print("#####################################################################")
 
         if writefits:
             outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
@@ -733,9 +743,9 @@ with warnings.catch_warnings():
 
 if observer==False:
     print('')
-    print("############################################################")
-    print("                   Reduction finished                       ")
-    print("############################################################")
+    print("#####################################################################")
+    print("                         Reduction finished                          ")
+    print("#####################################################################")
 
 # Beam corrections
 if correctbeam:
