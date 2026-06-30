@@ -23,7 +23,7 @@ system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (de
 center  = [345.3, 1.7]      # Center of map in CHOSEN COORDINATES in deg
 sizex   = 2.2               # Size of map in deg for X direction
 sizey   = 2.2               # Size of map in deg for Y direction
-padding = 0.6               # Padding around the map in deg for grid (default ~2x array)
+padding = 0.6               # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
 smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
