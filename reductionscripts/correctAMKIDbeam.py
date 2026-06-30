@@ -32,20 +32,8 @@ with warnings.catch_warnings():
     printwarn = False
     try:
         # find beam_map reduced file
-        beammap_fnames = []
-        for filename in os.listdir('CalFiles'):
-            if 'beam_map' in filename and 'merged' in filename and fe in filename:
-                beammap_fnames.append(filename)
-        if len(beammap_fnames) > 1:
-            # use last?
-            beammap_fname = beammap_fnames[-1]
-        elif len(beammap_fnames) == 1:
-            beammap_fname = beammap_fnames[0]
-        else:
-            raise ValueError # stop trying
-        
-        # read and extract average beam size
-        beammap_fname_full = 'CalFiles/' + beammap_fname
+        mjdref = data.ScanParam.MJD[0]
+        beammap_fname_full = '/home/amkid/AMKID/beammaps/' + getMKIDsBeamMap(mjdref, fe)
         beamdict = readBeamMapDict(infile=beammap_fname_full, fe=fe)  # fe defined at reduction
 
         # median of geometric average FWHM of all kids
