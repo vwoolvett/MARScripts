@@ -76,13 +76,18 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
         perpstep = minperpstep                   # all good, each OTF will last ~17 min
         scantime = xlen*ylen/(speed*perpstep)
 
-    # Check not more than 105 min without creating new tonelists
-    # with nominal values, this is max n=3 loops.
+    # Check not more than 90 min without doing pointing + calibrator
+    # and checking if new tonelist (power and freq optim.) is needed
+    # With nominal 1000s OTFs, this is max n=2 loops.
     otfsperloop = 2 if str.upper(dir)=='XY' else 1
-    if n*otfsperloop*scantime / 60 > 80:
+    calibtime = 220.  # sec, 100 fsweep, 120 wirescan
+    looptime = otfsperloop * scantime + (calibtime if doCals==True else 0.)  # sec
+
+    if n * looptime / 60 > 90:
         print('Requested number of loops leaves A-MKID without')
-        print('Tone power/frequency optimization for more than')
-        print('1 hr 20 minutes. Reduce number of loops "n".')
+        print('pointing + calibrator obs. and without checking')
+        print('tone power/frequency optimization for more than')
+        print('90 minutes. Reduce number of loops "n".')
         return
     
 
@@ -104,7 +109,7 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
         print('Executing %s...'%('X+Y OTFs' if str.upper(dir)=='XY' else '%s OTF'%str.upper(dir)))
         continuous_data('on')
         refcenter()
-
+        
         myang1 = random.uniform(-tiltangle, tiltangle) + sourceang
         if str.upper(dir) == 'X':
             otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0, angle=myang1, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
@@ -116,3 +121,5 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
             otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0 ,angle=myang1, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
             myang2 = random.uniform(-tiltangle, tiltangle) + sourceang
             otf(xlen=xlen, ylen=ylen, xstep=perpstep, ystep=scanstep, time=1.0, angle=myang2, direction='y', zigzag=1, size_unit='arcsec', system='EQ')
+
+
