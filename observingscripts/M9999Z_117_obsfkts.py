@@ -34,9 +34,20 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
     xlen = float(mymapdict[source][0])*60.       # Xsize (arcsec)
     ylen = float(mymapdict[source][1])*60.       # Ysize (arcsec)
     sourceang = float(mymapdict[source][2])      # Angle (degree)
+    arraysize = 15.*60.                          # 15 arcmin
+
+    # Check map is smaller than array
+    minsize = min(xlen, ylen)
+    if minsize < arraysize:
+        msg = 'WARNING: one or more dimensions of the map are smaller than the AMKID array.'
+        msg +='Rectangular OTFs might not be the optimal scanning pattern.'
+        msg +='\n\nContinue anyways? (y/n):     '
+        userInput = str(raw_input(msg))
+        if str.upper(userInput) in ['NO', 'N']:
+            print('obs() call aborted. Source was not changed!')
+            return
 
     # add array size to get uniform sensitivity within requested map
-    arraysize = 15.*60.                          # 15 arcmin
     xlen += arraysize
     ylen += arraysize
 
