@@ -17,25 +17,25 @@ observer = True             # True or False
 # Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
-source  = 'M8'              # As in observing logs
-fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
+source  = 'SPT3G_2349'         # As in observing logs
+fe      = 'HFA'             # Frontend, either 'LFA' or 'HFA'
 system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
-center  = [270.9, -24.38]   # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.0               # Size of map in deg for X direction
-sizey   = 0.67              # Size of map in deg for Y direction
-padding = 0.5               # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
+center  = [357.3333333, -59.680556]            # Center of map in CHOSEN COORDINATES in deg
+sizex   = 7./60.               # Size of map in deg for X direction
+sizey   = 14./60.               # Size of map in deg for Y direction
+padding = 2.42*0.25         # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
 smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
 
-# Manually exclude bad scans if needed            
+# Manually exclude bad scans if needed
 badscans = []
 
 # ----- Reduction parameters -----
 doPlot  = True              # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
-niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
+niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
@@ -43,7 +43,7 @@ flagJumps       = True      # Flag jumps/spikes in the data:
 writefits       = True      # Write FITS of final iteration maps. True or False.
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
-# ----- Scans ------
+# ----- Scans (usually automatic) ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
@@ -440,6 +440,9 @@ else:
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
 
+# initialize MJD list for all scans
+mymjdrefs = []
+
 print('')
 print('''\
 =====================
@@ -565,7 +568,8 @@ with warnings.catch_warnings():
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
                 # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
 
-                # Add integration time
+                # Add MJD of start and integration time to dumped map
+                data.Map.MJD = data.ScanParam(MJD[0])  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
 
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
@@ -666,6 +670,7 @@ with warnings.catch_warnings():
             # Add integration time and delete map m of scan
             try:
                 tint += m.Tint
+                mymjdrefs.append(m.MJD)
             except:
                 pass
             del m  # free memory

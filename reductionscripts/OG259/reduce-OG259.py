@@ -8,7 +8,7 @@
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
 # Prompts upon running script as observer give more information on what to do.
-observer = True             # True or False
+observer = False            # True or False -> project finished
 
 # PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
 # variable in this reduction script (only missing bad scans are reduced). Then assess with
@@ -23,7 +23,7 @@ system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (de
 center  = [259.3, -1.4]     # Center of map in CHOSEN COORDINATES in deg
 sizex   = 1.5               # Size of map in deg for X direction
 sizey   = 1.5               # Size of map in deg for Y direction
-padding = 0.5               # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
+padding = 2.42*0.25         # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
 smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
@@ -440,6 +440,9 @@ else:
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
 
+# initialize MJD list for all scans
+mymjdrefs = []
+
 print('')
 print('''\
 =====================
@@ -565,7 +568,8 @@ with warnings.catch_warnings():
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
                 # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
 
-                # Add integration time
+                # Add MJD of start and integration time to dumped map
+                data.Map.MJD = data.ScanParam(MJD[0])  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
 
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
@@ -666,6 +670,7 @@ with warnings.catch_warnings():
             # Add integration time and delete map m of scan
             try:
                 tint += m.Tint
+                mymjdrefs.append(m.MJD)
             except:
                 pass
             del m  # free memory

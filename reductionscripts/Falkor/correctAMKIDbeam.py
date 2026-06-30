@@ -31,9 +31,9 @@ with warnings.catch_warnings():
     # Try and read nominal beam size from merged beammap
     printwarn = False
     try:
-        # find beam_map reduced file from last scan!
+        # find beam_map reduced file from last scan
         # even if earlier scans have a different beammap
-        mjdref = data.ScanParam.MJD[0]
+        mjdref = mymjdrefs[-1]
         beammap_fname_full = '/home/amkid/AMKID/beammaps/' + getMKIDsBeamMap(mjdref, fe)
         beamdict = readBeamMapDict(infile=beammap_fname_full, fe=fe)  # fe defined at reduction
 

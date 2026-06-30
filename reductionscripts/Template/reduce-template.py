@@ -440,6 +440,9 @@ else:
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
 
+# initialize MJD list for all scans
+mymjdrefs = []
+
 print('')
 print('''\
 =====================
@@ -565,7 +568,8 @@ with warnings.catch_warnings():
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
                 # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
 
-                # Add integration time
+                # Add MJD of start and integration time to dumped map
+                data.Map.MJD = data.ScanParam(MJD[0])  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
 
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
@@ -666,6 +670,7 @@ with warnings.catch_warnings():
             # Add integration time and delete map m of scan
             try:
                 tint += m.Tint
+                mymjdrefs.append(m.MJD)
             except:
                 pass
             del m  # free memory

@@ -8,7 +8,7 @@
 # ------ OBSERVER or PI mode -------
 # If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
 # Prompts upon running script as observer give more information on what to do.
-observer = False            # True or False -> PROJECT FINISHED - RMS ACHIEVED
+observer = True             # True or False
 
 # PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
 # variable in this reduction script (only missing bad scans are reduced). Then assess with
@@ -17,19 +17,19 @@ observer = False            # True or False -> PROJECT FINISHED - RMS ACHIEVED
 # Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
-source  = 'Falkor'          # As in observing logs
-fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
-center  = [274.1, -1.2]     # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.5               # Size of map in deg for X direction
-sizey   = 0.7               # Size of map in deg for Y direction
+source  = 'M8'              # As in observing logs
+fe      = 'HFA'             # Frontend, either 'LFA' or 'HFA'
+system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
+center  = [270.9, -24.38]   # Center of map in CHOSEN COORDINATES in deg
+sizex   = 1.0               # Size of map in deg for X direction
+sizey   = 0.67              # Size of map in deg for Y direction
 padding = 2.42*0.25         # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
 smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
 
 # Manually exclude bad scans if needed            
-badscans = [23070]
+badscans = []
 
 # ----- Reduction parameters -----
 doPlot  = True              # Display co-added map after each scan is included. If False, only
