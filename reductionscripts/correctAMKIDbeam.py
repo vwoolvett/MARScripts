@@ -31,7 +31,8 @@ with warnings.catch_warnings():
     # Try and read nominal beam size from merged beammap
     printwarn = False
     try:
-        # find beam_map reduced file
+        # find beam_map reduced file from last scan!
+        # even if earlier scans have a different beammap
         mjdref = data.ScanParam.MJD[0]
         beammap_fname_full = '/home/amkid/AMKID/beammaps/' + getMKIDsBeamMap(mjdref, fe)
         beamdict = readBeamMapDict(infile=beammap_fname_full, fe=fe)  # fe defined at reduction
@@ -125,7 +126,7 @@ with warnings.catch_warnings():
 
         # create summary for first iteration, will always be there...
         if iter==1:
-            correctionsummary = 'Summary of corrections (should be same for all iterations):'
+            correctionsummary = 'Summary of corrections:'
             correctionsummary += '\n------------------------------------------------------------'
             correctionsummary += '\nBeam read from files:                       %s "'%(str(np.round(UNCORRECTED_CONVOLVED_FWHM*3600., 3)).ljust(6))
             correctionsummary += '\nSmoothing was:                              %s "'%(str(np.round(smoothby_deg*3600., 3)).ljust(6))
@@ -141,8 +142,6 @@ with warnings.catch_warnings():
         # now export to fits
         outname = 'FITSfiles/BeamCorrected/' + str(myname)+"-coadded-iter"+str(iter)+"-beamCorrected.fits" # Goes into ./BeamCorrected directory.
         auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
-        info('Beam-corrected FITS written to:')
-        print('         %s'%outname)
 
         # free memory
         ms = None
@@ -150,6 +149,5 @@ with warnings.catch_warnings():
 print('')
 print(correctionsummary)
 if printwarn ==True:
-    warn('Beam size extraction from beam maps was not possible: the nominal value of %.3f " for %s was used. '%(AMKID_beamsize, fe)+\
-         'Check if one and only ONE merged beammap (beam_map_SCAN_%s_merged.csv) file exists in CalFiles/ directory.'%fe)
+    warn('Beam size extraction from beam maps was not possible: the nominal value of %.3f " for %s was used. '%(AMKID_beamsize, fe))
 info('Check "FITSfiles/BeamCorrected/" directory for beam-corrected FITS!')
