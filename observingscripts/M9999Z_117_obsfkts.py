@@ -3,8 +3,8 @@ import random
 # define map dictionary (edit for each project accordingly). Entries are:
 # 'sourceName': [xsize (arcmin), ysize (arcmin), mapangle (degree)]
 # if equatorial map, angle is 0, if galactic map contact PI for angle.
-# ex: mymapdict = {'source1':[deltaRA, deltaDEC, 0], 'source2':[deltaRA, deltaDEC, 0]}
 
+# ex: mymapdict = {'source1':[sizeRA, sizeDEC, 0], 'source2':[sizeRA, sizeDEC, 0]}
 mymapdict = {}
 
 
