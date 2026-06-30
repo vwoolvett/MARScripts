@@ -29,7 +29,7 @@ smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
 
 # Manually exclude bad scans if needed
-badscans = []
+badscans = [34500]  # 34500 too big for HFA...
 
 # ----- Reduction parameters -----
 doPlot  = True              # Display co-added map after each scan is included. If False, only
