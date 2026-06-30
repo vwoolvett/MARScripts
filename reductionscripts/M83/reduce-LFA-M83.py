@@ -21,8 +21,8 @@ source  = 'M83'         # As in observing logs
 fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
 system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
 center  = [204.25375, -29.865556]            # Center of map in CHOSEN COORDINATES in deg
-sizex   = 0.5               # Size of map in deg for X direction
-sizey   = 0.5               # Size of map in deg for Y direction
+sizex   = 0.2               # Size of map in deg for X direction
+sizey   = 0.2               # Size of map in deg for Y direction
 padding = 2.42*0.25         # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
 smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
@@ -35,7 +35,7 @@ badscans = []
 doPlot  = True              # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
-niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
+niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
