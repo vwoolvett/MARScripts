@@ -534,8 +534,8 @@ with warnings.catch_warnings():
                 info('Reducing scan %i (iteration %i)...'%(scan, iter))
 
                 # Reduce it
-                redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
-                        writeSummary=writeSummary, flagJumps=flagJumps, skipMapping=True)
+                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
+                           flagJumps=flagJumps, writeSummary=writeSummary)
                 # NOTE: redweak's summary is everything about the timelines, nothing about map.
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
