@@ -494,16 +494,18 @@ with warnings.catch_warnings():
                 isreduced = True if len(glob(scanname))!=0 else False
                 scanreduced.append(isreduced)
 
+            scanreduced = np.array(scanreduced)
+
             if iter == 2:
                 subtract = False
-                if np.any(scanreduced) == False:
+                if np.any(scanreduced==False):
                     mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
                 else:
                     mymodel = None
             
             if iter == 3:
                 subtract = True
-                if np.any(scanreduced) == False:
+                if np.any(scanreduced==False):
                     mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
                 else:
                     mymodel = None
@@ -533,7 +535,7 @@ with warnings.catch_warnings():
 
                 # Reduce it
                 redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
-                        writeSummary=writeSummary, flagJumps=flagJumps)
+                        writeSummary=writeSummary, flagJumps=flagJumps, skipMapping=True)
                 # NOTE: redweak's summary is everything about the timelines, nothing about map.
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
