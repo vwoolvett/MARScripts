@@ -570,8 +570,8 @@ with warnings.catch_warnings():
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
                 # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
 
-                # Add MJD of start and integration time to dumped map
-                data.Map.MJD = data.ScanParam.MJD[0]  # MJD
+                # Add MJD of middle and integration time to dumped map
+                data.Map.MJDref = (data.ScanParam.MJD[-1] + data.ScanParam.MJD[0]) / 2  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
 
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
@@ -672,7 +672,7 @@ with warnings.catch_warnings():
             # Add integration time and delete map m of scan
             try:
                 tint += m.Tint
-                mymjdrefs.append(m.MJD)
+                mymjdrefs.append(m.MJDref)
             except:
                 pass
             del m  # free memory
