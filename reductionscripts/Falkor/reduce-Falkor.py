@@ -494,16 +494,18 @@ with warnings.catch_warnings():
                 isreduced = True if len(glob(scanname))!=0 else False
                 scanreduced.append(isreduced)
 
+            scanreduced = np.array(scanreduced)
+
             if iter == 2:
                 subtract = False
-                if np.any(scanreduced) == False:
+                if np.any(scanreduced==False):
                     mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3)
                 else:
                     mymodel = None
             
             if iter == 3:
                 subtract = True
-                if np.any(scanreduced) == False:
+                if np.any(scanreduced==False):
                     mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3)
                 else:
                     mymodel = None
