@@ -41,7 +41,7 @@ clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map:
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
 writefits       = True      # Write FITS of final iteration maps. True or False.
-correctbeam     = False     # Whether to correct beam bookkeeping in final iteration maps
+correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
 
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
@@ -523,7 +523,7 @@ with warnings.catch_warnings():
 
             # Initialize map for this scan
             m = None
-            # avoid mapping() call for map N after CTRL+C during redweak->mapping gets previous data.Map (N-1)
+            # avoid mapping() call for map N after CTRL+C during reduction->mapping gets previous data.Map (N-1)
             data.Data = None
             data.Map = None
 
@@ -540,15 +540,16 @@ with warnings.catch_warnings():
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
                 # and pointing corrections in smoothed maps. This is fine.
+                # NOTE 3: No longer using redweak. New function redscience implemented.
 
-                # If we CTRL+C while in redweak, sometimes map is written and it is empty.
-                # this is just a safe check to see if redweak finished, otherwise stop script.
+                # If we CTRL+C while in reduction, sometimes map is written and it is empty.
+                # this is just a safe check to see if reduction finished, otherwise stop script.
                 if data.Unit != 'Flux density [Jy/beam]':
                     raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
                 if data.ScanParam.ScanNum != scan:
                     raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
 
-                # Immediately rename summary and move to new folder
+                # Immediately rename summary if used and move to new folder
                 if writeSummary:
                     # VWO: made it iteration-specific
                     origname = "%s-%s-%i_summary.txt"%(fe, data.ScanParam.Object, data.ScanParam.ScanNum)
@@ -570,7 +571,7 @@ with warnings.catch_warnings():
                 mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize, limitsZ=[-0.8,1.5], noPlot=True)
                 # NOTE: this has a smooth parameter, but is default 0
                 # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
-                # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap!
+                # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap.
 
                 # Add MJD of middle and integration time to dumped map
                 data.Map.MJDref = (data.ScanParam.MJD[-1] + data.ScanParam.MJD[0]) / 2  # MJD
@@ -617,7 +618,7 @@ with warnings.catch_warnings():
                 # --- OBSERVER PAUSE AT REDUCTION ---
                 # -----------------------------------
                 if observer == True:
-                    # Show this scan's map, should be last finished scan, unsmoothed just as in redweak
+                    # Show this scan's map, should be last finished scan, unsmoothed just as in reduction
                     rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
                     mediannoise = np.nanmedian(rmsArray)
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
@@ -658,7 +659,7 @@ with warnings.catch_warnings():
 
             if np.all(np.isnan(m.Data)):
                 raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
-                                 "incorrect map bounds or coordinate system. Aborting reduction.")
+                                   "incorrect map bounds or coordinate system. Aborting reduction.")
 
 
             info('Coadding...')
