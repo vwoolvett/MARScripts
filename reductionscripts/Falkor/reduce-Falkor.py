@@ -534,8 +534,8 @@ with warnings.catch_warnings():
                 info('Reducing scan %i (iteration %i)...'%(scan, iter))
 
                 # Reduce it
-                redweak(scan, fe=fe, size=-1, model=mymodel, subtract=subtract, doPlot=False, extremeFilter=False,
-                        writeSummary=writeSummary, flagJumps=flagJumps, skipMapping=True)
+                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
+                           flagJumps=flagJumps, writeSummary=writeSummary)
                 # NOTE: redweak's summary is everything about the timelines, nothing about map.
                 # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
                 # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
@@ -544,7 +544,9 @@ with warnings.catch_warnings():
                 # If we CTRL+C while in redweak, sometimes map is written and it is empty.
                 # this is just a safe check to see if redweak finished, otherwise stop script.
                 if data.Unit != 'Flux density [Jy/beam]':
-                    raise RuntimeError('Stopping script: either CTRL+C was used or redweak call failed.')
+                    raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
+                if data.ScanParam.ScanNum != scan:
+                    raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
 
                 # Immediately rename summary and move to new folder
                 if writeSummary:
