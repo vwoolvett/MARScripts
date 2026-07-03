@@ -41,7 +41,7 @@ clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map:
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
 writefits       = True      # Write FITS of final iteration maps. True or False.
-correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
+correctbeam     = False     # Whether to correct beam bookkeeping in final iteration maps
 
 # ----- Scans ------
 # If scans is empty, automatically retrieves all scans of the source
