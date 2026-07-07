@@ -12,9 +12,9 @@ mymapdict = {}
 if len(mymapdict)==0:
     raise RuntimeError('Source/map dictionary is empty! edit the obsfkts.apecs script of the project accordingly.')
 
-def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
+def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
     '''
-    source:         [str], Source name as in source catalog
+    mysource:       [str], Source name as in source catalog
     n:              [int], Number of loops (kid_center + scanner + X/Y/XY OTF).
                            Each loop is ~ 40 minutes for X+Y. Evaluate number of loops
                            Based on Tsky stability along path of the source.
@@ -31,9 +31,9 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
     
 
     # Define map
-    xlen = float(mymapdict[source][0])*60.       # Xsize (arcsec)
-    ylen = float(mymapdict[source][1])*60.       # Ysize (arcsec)
-    sourceang = float(mymapdict[source][2])      # Angle (degree)
+    xlen = float(mymapdict[mysource][0])*60.       # Xsize (arcsec)
+    ylen = float(mymapdict[mysource][1])*60.       # Ysize (arcsec)
+    sourceang = float(mymapdict[mysource][2])      # Angle (degree)
     arraysize = 15.*60.                          # 15 arcmin
 
     # Check map is smaller than array
@@ -107,7 +107,7 @@ def obs(source=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
     # --------------------
     # START OBS - all good
     # --------------------
-    source(source, cats='user')                  # Center and set source
+    source(mysource, cats='user')                  # Center and set source
     
     # loop of OTFs
     for i in range(n):
