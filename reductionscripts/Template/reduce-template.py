@@ -644,10 +644,13 @@ with warnings.catch_warnings():
                         info('Removing reduction of scan %i in file:'%(scan))
                         print('         %s'%scanname)
                         os.remove(scanname)
-                        raise RuntimeError("Stopping script:"
-                                           "\nMap of scan %i was reported as bad!"%scan +\
-                                           "\n*** Remember to add this scan to 'badscans' list in"+\
-                                           "\nreduction script before executing again ***'")
+                        raise RuntimeError(
+                            "Stopping script: Map of scan %i was reported as bad!"%scan +\
+                            "\n- If map is heavily spiked: add to badscans list in this script and re-reduce"+\
+                            "\n- If map needs more padding (borders), add fracions of a degree (+0.1 or 0.2) and re-reduce"+\
+                            "\n- If data is loaded from a previous reduction but reduction is corrupted:"+\
+                            "\n    - Go to ReducedFiles/DataObjects/ and run: rm *scannumber*"+\
+                            "\n    - Execute the script again and data should be re-reduced from scratch (if not, contact support)")
                     else:
                         print("------------------------------------------------------------------------")
                         info('Scan %i OK'%scan)
