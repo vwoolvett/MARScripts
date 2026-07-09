@@ -661,15 +661,18 @@ with warnings.catch_warnings():
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
-                raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
-                                   "incorrect map bounds or coordinate system. Aborting reduction.")
+                raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates"%scan+\
+                                   "\nincorrect map bounds or coordinate system. Aborting reduction."+\
+                                   "\nYou can run redweak(scan) and then mapping(system=YOUR SYSTEM) to"+\
+                                   "\ncheck automatic map bounds generated from the reference position.")
 
 
             info('Coadding...')
             if ms and m:
                 if np.shape(ms.Data)!=np.shape(m.Data):
                     raise RuntimeError("Coadded map and scan %i map have different grids. Cannot co-add!"%scan+\
-                                       "\nDid you change map size or padding in reduction script?")
+                                       "\nDid you change map size or padding in reduction script?"+\
+                                       "\nIf so, delete all source maps in ReducedFiles/*sourcename* and re-run script.")
                 ms = mapsumfast([ms,m])
         
             elif not ms:
