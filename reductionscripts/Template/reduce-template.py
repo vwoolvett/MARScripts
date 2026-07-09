@@ -545,9 +545,11 @@ with warnings.catch_warnings():
                 # If we CTRL+C while in reduction, sometimes map is written and it is empty.
                 # this is just a safe check to see if reduction finished, otherwise stop script.
                 if data.Unit != 'Flux density [Jy/beam]':
-                    raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
+                    raise RuntimeError('Stopping script: either CTRL+C was used, you forgot to reduce the WireScanner'+\
+                                       ' for this scan, or reduction failed.')
                 if data.ScanParam.ScanNum != scan:
-                    raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
+                    raise RuntimeError('Stopping script: either CTRL+C was used, you forgot to reduce the WireScanner'+\
+                                       ' for this scan, or reduction failed.')
 
                 # Immediately rename summary if used and move to new folder
                 if writeSummary:
