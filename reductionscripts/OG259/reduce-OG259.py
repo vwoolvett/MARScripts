@@ -32,7 +32,7 @@ smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
 badscans = [27979, 27991, 28217, 28498, 34849]
 
 # ----- Reduction parameters -----
-doPlot  = True              # Display co-added map after each scan is included. If False, only
+doPlot  = False              # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
@@ -41,7 +41,7 @@ clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map:
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
 writefits       = True      # Write FITS of final iteration maps. True or False.
-correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
+correctbeam     = False      # Whether to correct beam bookkeeping in final iteration maps
 
 # ----- Scans (usually automatic) ------
 # If scans is empty, automatically retrieves all scans of the source
@@ -740,14 +740,16 @@ with warnings.catch_warnings():
             minnoise = np.nanmin(rmsMap.Data[imagemask])
             meannoise = np.nanmean(rmsMap.Data[imagemask])
 
-        # plotting
+        # plotting contours for final noise calculation
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
             # use coverage from before
-            rmsMap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
+            covmap = copy.deepcopy(ms)
+            covmap.Data = covmap.Coverage
+            covmap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
