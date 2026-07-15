@@ -739,10 +739,7 @@ with warnings.catch_warnings():
         H, edges, centers = H[notempty], edges[notempty], centers[notempty] # remove empty bins
 
         delimiter = centers[np.argmin(H)]
-        del tempmask  # free memory
-        del notempty  # free memory
-        del edges  # free memory
-        del H, edges, centers  # free memory
+        del coverage_flat, low, hi, tempmask, notempty, H, edges, centers  # free memory
         imagemask = (ms.Coverage > delimiter)
         minnoise = np.nanmin(rmsMap.Data[imagemask])
         meannoise = np.nanmean(rmsMap.Data[imagemask])
