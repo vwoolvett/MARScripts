@@ -442,6 +442,10 @@ smoothby_deg = smoothby_arcsec / 3600.
 
 # initialize MJD list for all scans
 mymjdrefs = []
+mytints = []
+mymapnoises = []
+mynbols = []
+mybeamarea = 1.133*(19.901142669331044/60.)**2
 
 print('')
 print('''\
@@ -545,11 +549,9 @@ with warnings.catch_warnings():
                 # If we CTRL+C while in reduction, sometimes map is written and it is empty.
                 # this is just a safe check to see if reduction finished, otherwise stop script.
                 if data.Unit != 'Flux density [Jy/beam]':
-                    raise RuntimeError('Stopping script: either CTRL+C was used, you forgot to reduce the WireScanner'+\
-                                       ' for this scan, or reduction failed.')
+                    raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
                 if data.ScanParam.ScanNum != scan:
-                    raise RuntimeError('Stopping script: either CTRL+C was used, you forgot to reduce the WireScanner'+\
-                                       ' for this scan, or reduction failed.')
+                    raise RuntimeError('Stopping script: either CTRL+C was used or reduction failed.')
 
                 # Immediately rename summary if used and move to new folder
                 if writeSummary:
@@ -646,13 +648,10 @@ with warnings.catch_warnings():
                         info('Removing reduction of scan %i in file:'%(scan))
                         print('         %s'%scanname)
                         os.remove(scanname)
-                        raise RuntimeError(
-                            "Stopping script: Map of scan %i was reported as bad!"%scan +\
-                            "\n- If map is heavily spiked: add to badscans list in this script and re-reduce"+\
-                            "\n- If map needs more padding (borders), add fracions of a degree (+0.1 or 0.2) and re-reduce"+\
-                            "\n- If data is loaded from a previous reduction but reduction is corrupted:"+\
-                            "\n    - Go to ReducedFiles/DataObjects/ and run: rm *scannumber*"+\
-                            "\n    - Execute the script again and data should be re-reduced from scratch (if not, contact support)")
+                        raise RuntimeError("Stopping script:"
+                                           "\nMap of scan %i was reported as bad!"%scan +\
+                                           "\n*** Remember to add this scan to 'badscans' list in"+\
+                                           "\nreduction script before executing again ***'")
                     else:
                         print("------------------------------------------------------------------------")
                         info('Scan %i OK'%scan)
@@ -663,18 +662,15 @@ with warnings.catch_warnings():
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
-                raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates"%scan+\
-                                   "\nincorrect map bounds or coordinate system. Aborting reduction."+\
-                                   "\nYou can run redweak(scan) and then mapping(system=YOUR SYSTEM) to"+\
-                                   "\ncheck automatic map bounds generated from the reference position.")
+                raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
+                                   "incorrect map bounds or coordinate system. Aborting reduction.")
 
 
             info('Coadding...')
             if ms and m:
                 if np.shape(ms.Data)!=np.shape(m.Data):
                     raise RuntimeError("Coadded map and scan %i map have different grids. Cannot co-add!"%scan+\
-                                       "\nDid you change map size or padding in reduction script?"+\
-                                       "\nIf so, delete all source maps in ReducedFiles/*sourcename* and re-run script.")
+                                       "\nDid you change map size or padding in reduction script?")
                 ms = mapsumfast([ms,m])
         
             elif not ms:
@@ -684,6 +680,7 @@ with warnings.catch_warnings():
             try:
                 tint += m.Tint
                 mymjdrefs.append(m.MJDref)
+                mytints.append(m.Tint)
             except:
                 pass
             del m  # free memory
@@ -724,21 +721,36 @@ with warnings.catch_warnings():
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         # Compute statistics, let auxwriteFits handle clipping
-        mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        if clip != -1:
-            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-        else:
-            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<2*mediannoise])
-            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
+        #mediannoise = np.nanmedian(rmsMap.Data)  # on full map
+        # if clip != -1:
+        #    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        #    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        #else:
+        # VWO: now use coverage, works best to identify PI-defined region based on OTF scanning pattern
+        coverage_flat = ms.Coverage.flatten()
+        low, hi = 0.10*np.nanmax(coverage_flat), 0.90*np.nanmax(coverage_flat)
+        tempmask = (ms.Coverage > low) & (ms.Coverage < hi)
+        # separator of both distributions
+        H, edges = np.histogram(ms.Coverage[tempmask], bins=100)
+        centers = (edges[1:] + edges[:-1]) / 2
+        delimiter = centers[np.argmin(H)]
+        del tempmask  # free memory
+        del H, edges, centers  # free memory
+        imagemask = (ms.Coverage > delimiter)
+        minnoise = np.nanmin(rmsMap.Data[imagemask])
+        meannoise = np.nanmean(rmsMap.Data[imagemask])
 
-        # plotting
+        # plotting contours for final noise calculation
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
-        if clip != -1:
-            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
-        else:
-            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+        #if clip != -1:
+        #    rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+        #else:
+        # use coverage from before
+        covmap = copy.deepcopy(ms)
+        covmap.Data = covmap.Coverage
+        covmap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
+        del covmap  # free memory
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
