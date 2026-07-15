@@ -727,14 +727,21 @@ with warnings.catch_warnings():
         #    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
         #else:
         # VWO: now use coverage, works best to identify PI-defined region based on OTF scanning pattern
+        messages.info('Computing coverage-based noise statistics...')
         coverage_flat = ms.Coverage.flatten()
         low, hi = 0.10*np.nanmax(coverage_flat), 0.90*np.nanmax(coverage_flat)
         tempmask = (ms.Coverage > low) & (ms.Coverage < hi)
         # separator of both distributions
         H, edges = np.histogram(ms.Coverage[tempmask], bins=100)
         centers = (edges[1:] + edges[:-1]) / 2
+        H, edges, centers = H[2:], edges[2:], centers[2:]  # remove first two bins (low/zero coverage)
+        notempty = (H>0)
+        H, edges, centers = H[notempty], edges[notempty], centers[notempty] # remove empty bins
+
         delimiter = centers[np.argmin(H)]
         del tempmask  # free memory
+        del notempty  # free memory
+        del edges  # free memory
         del H, edges, centers  # free memory
         imagemask = (ms.Coverage > delimiter)
         minnoise = np.nanmin(rmsMap.Data[imagemask])
