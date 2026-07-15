@@ -34,7 +34,7 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
     xlen = float(mymapdict[mysource][0])*60.       # Xsize (arcsec)
     ylen = float(mymapdict[mysource][1])*60.       # Ysize (arcsec)
     sourceang = float(mymapdict[mysource][2])      # Angle (degree)
-    arraysize = 15.*60.                          # 15 arcmin
+    arraysize = 15.*60.                            # 15 arcmin
 
     # Check map is smaller than array
     minsize = min(xlen, ylen)

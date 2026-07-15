@@ -35,7 +35,7 @@ badscans = [27979, 27991, 28217, 28498, 34849]
 doPlot  = True              # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
-niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
+niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
@@ -442,6 +442,10 @@ smoothby_deg = smoothby_arcsec / 3600.
 
 # initialize MJD list for all scans
 mymjdrefs = []
+mytints = []
+mymapnoises = []
+mynbols = []
+mybeamarea = 1.133*(19.901142669331044/60.)**2
 
 print('')
 print('''\
@@ -676,6 +680,7 @@ with warnings.catch_warnings():
             try:
                 tint += m.Tint
                 mymjdrefs.append(m.MJDref)
+                mytints.append(m.Tint)
             except:
                 pass
             del m  # free memory
@@ -721,8 +726,19 @@ with warnings.catch_warnings():
             minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
             meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
         else:
-            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<2*mediannoise])
-            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
+            # use coverage
+            coverage_flat = ms.Coverage.flatten()
+            low, hi = 0.10*np.nanmax(coverage_flat), 0.90*np.nanmax(coverage_flat)
+            tempmask = (ms.Coverage > low) & (ms.Coverage < hi)
+            # separator of both distributions
+            H, edges = np.histogram(ms.Coverage[tempmask], bins=100)
+            centers = (edges[1:] + edges[:-1]) / 2
+            delimiter = centers[np.argmin(H)]
+            del tempmask  # free memory
+            del H, edges, centers  # free memory
+            imagemask = (ms.Coverage > delimiter)
+            minnoise = np.nanmin(rmsMap.Data[imagemask])
+            meannoise = np.nanmean(rmsMap.Data[imagemask])
 
         # plotting
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
@@ -730,7 +746,8 @@ with warnings.catch_warnings():
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
-            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+            # use coverage from before
+            rmsMap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
