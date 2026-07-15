@@ -721,35 +721,36 @@ with warnings.catch_warnings():
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         # Compute statistics, let auxwriteFits handle clipping
-        mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        if clip != -1:
-            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-        else:
-            # use coverage
-            coverage_flat = ms.Coverage.flatten()
-            low, hi = 0.10*np.nanmax(coverage_flat), 0.90*np.nanmax(coverage_flat)
-            tempmask = (ms.Coverage > low) & (ms.Coverage < hi)
-            # separator of both distributions
-            H, edges = np.histogram(ms.Coverage[tempmask], bins=100)
-            centers = (edges[1:] + edges[:-1]) / 2
-            delimiter = centers[np.argmin(H)]
-            del tempmask  # free memory
-            del H, edges, centers  # free memory
-            imagemask = (ms.Coverage > delimiter)
-            minnoise = np.nanmin(rmsMap.Data[imagemask])
-            meannoise = np.nanmean(rmsMap.Data[imagemask])
+        #mediannoise = np.nanmedian(rmsMap.Data)  # on full map
+        # if clip != -1:
+        #    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        #    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
+        #else:
+        # VWO: now use coverage, works best to identify PI-defined region based on OTF scanning pattern
+        coverage_flat = ms.Coverage.flatten()
+        low, hi = 0.10*np.nanmax(coverage_flat), 0.90*np.nanmax(coverage_flat)
+        tempmask = (ms.Coverage > low) & (ms.Coverage < hi)
+        # separator of both distributions
+        H, edges = np.histogram(ms.Coverage[tempmask], bins=100)
+        centers = (edges[1:] + edges[:-1]) / 2
+        delimiter = centers[np.argmin(H)]
+        del tempmask  # free memory
+        del H, edges, centers  # free memory
+        imagemask = (ms.Coverage > delimiter)
+        minnoise = np.nanmin(rmsMap.Data[imagemask])
+        meannoise = np.nanmean(rmsMap.Data[imagemask])
 
         # plotting contours for final noise calculation
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
-        if clip != -1:
-            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
-        else:
-            # use coverage from before
-            covmap = copy.deepcopy(ms)
-            covmap.Data = covmap.Coverage
-            covmap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
+        #if clip != -1:
+        #    rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+        #else:
+        # use coverage from before
+        covmap = copy.deepcopy(ms)
+        covmap.Data = covmap.Coverage
+        covmap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
+        del covmap  # free memory
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
