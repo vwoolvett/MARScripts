@@ -745,7 +745,7 @@ with warnings.catch_warnings():
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot apperture map
-        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[0.5],overplot=1, color='cyan')
+        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[0.5],overplot=1,colors=['cyan'])
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
