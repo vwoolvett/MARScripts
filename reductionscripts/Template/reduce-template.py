@@ -1,6 +1,6 @@
-# =================================
-# ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @28.06.2026
-# =================================
+# ===============================================
+# =========== BEGINNING OF USER INPUT ===========   Last edited by: VWO @21.07.2026
+# ===============================================
 # NOTE: for exceptional cases, additional flagging is needed. 
 # This is executed after the "redscience" function call (ctrl+f here).
 # Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
@@ -17,41 +17,41 @@ observer = True             # True or False
 # Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
-source  = 'SrcName'         # As in observing logs
-fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'EQ'              # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
-center  = [0, 0]            # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.0               # Size of map in deg for X direction
-sizey   = 1.0               # Size of map in deg for Y direction
-padding = 2.42*0.25/2.      # Padding around the map in deg for grid (default ~(1+sqrt(2))xarray/2)
-smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
+source      = 'SrcName'     # As in observing logs
+fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
+system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center      = [0, 0]        # Center of map in CHOSEN COORDINATES in deg
+sizex       = 1.0           # Size of map in deg for X direction
+sizey       = 1.0           # Size of map in deg for Y direction
+padding     = 0.3           # Padding around the map in deg for grid
+smoothing   = 'default'     # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
-                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
-
-# Manually exclude bad scans if needed
-badscans = []
+                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2
+badscans        = []        # Manually exclude bad scans if needed
 
 # ----- Reduction parameters -----
-doPlot  = True              # Display co-added map after each scan is included. If False, only
-                            # final coadded map per iteration will be displayed.
-writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
+doPlot          = True      # Display co-added map after each scan is included. If False, only
+                            # final coadded map per iteration will be displayed.
 writefits       = True      # Write FITS of final iteration maps. True or False.
 correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
+writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 
 # ----- Scans (usually automatic) ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-verbose = False             # print scan selection criteria from ObsLogs if scans=[] initially
-# ==============================
-# ===== END OF USER INUPUT =====
-# ==============================
+verbose = False             # print scan selection criteria from ObsLogs if scans=[]
+# ===============================================
+# ============== END OF USER INUPUT =============
+# ===============================================
+
+
 
 
 
