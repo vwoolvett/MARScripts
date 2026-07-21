@@ -721,43 +721,26 @@ with warnings.catch_warnings():
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         # Compute statistics, let auxwriteFits handle clipping
-        #mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        # if clip != -1:
-        #    minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-        #    meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-        #else:
-        # VWO: now use coverage, works best to identify PI-defined region based on OTF scanning pattern
-        messages.info('Computing coverage-based noise statistics...')
-        coverage_flat = ms.Coverage.flatten()
-        low, hi = 0.10*np.nanmax(coverage_flat), 0.90*np.nanmax(coverage_flat)
-        tempmask = (ms.Coverage > low) & (ms.Coverage < hi)
-        # separator of both distributions
-        H, edges = np.histogram(ms.Coverage[tempmask], bins=100)
-        centers = (edges[1:] + edges[:-1]) / 2
-        H, edges, centers = H[2:], edges[2:], centers[2:]  # remove first two bins (low/zero coverage)
-        notempty = (H>0)
-        H, edges, centers = H[notempty], edges[notempty], centers[notempty] # remove empty bins
-
-        delimiter = centers[np.argmin(H)]
-        del tempmask  # free memory
-        del notempty  # free memory
-        del edges  # free memory
-        del H, edges, centers  # free memory
-        imagemask = (ms.Coverage > delimiter)
-        minnoise = np.nanmin(rmsMap.Data[imagemask])
-        meannoise = np.nanmean(rmsMap.Data[imagemask])
+        messages.info('Computing apperture-based noise statistics...')
+        # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
+        radius_deg = 2.0 / 60.0  # 2 arcmin
+        # create a mask for the circular aperture
+        y_indices, x_indices = np.indices(ms.Data.shape)
+        x_center = (ms.WCS['CRVAL1'] - ms.WCS['CRPIX1']) / ms.WCS['CDELT1']
+        y_center = (ms.WCS['CRVAL2'] - ms.WCS['CRPIX2']) / ms.WCS['CDELT2']
+        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
+        minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on apperture
+        meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on apperture
+        mediannoise = np.nanmedian(rmsMap.Data)  # on full map
 
         # plotting contours for final noise calculation
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
-        #if clip != -1:
-        #    rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
-        #else:
-        # use coverage from before
-        covmap = copy.deepcopy(ms)
-        covmap.Data = covmap.Coverage
-        covmap.display(aspect=1,limitsZ=[0, delimiter],doContour=1,levels=[delimiter],overplot=1)
-        del covmap  # free memory
+        if clip != -1:
+            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+        else:
+            # use 2*median noise to show "edges" of map, but not to clip
+            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir

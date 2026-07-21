@@ -1,24 +1,37 @@
 import random
 
-# define map dictionary (edit for each project accordingly). Entries are:
-# 'sourceName': [xsize (arcmin), ysize (arcmin), mapangle (degree)]
-# if equatorial map, angle is 0, if galactic map contact PI for angle.
+# define map dictionary (edit for each project accordingly).
+# Example:
+# mydict = {
+#           'G23.60+0.00': {'xlen': 14.9, 'ylen': 12.4, 'angle': 0.0},
+#           'G24':         {'xlen': 18.0, 'ylen': 7.0, 'angle': -18.48}
+#          } 
+# Entries are:
+# 'sourceName': {'xlen': dX arcmin in EQ, 'ylen': dY arcmin in EQ, 'angle': angle of map in EQ}
+# All values are floats (III.ddd)
 
-# ex: mymapdict = {'source1':[sizeRA, sizeDEC, 0], 'source2':[sizeRA, sizeDEC, 0]}
-mymapdict = {}
+mydict = {
+          'AB1234':      {'xlen': 10.0, 'ylen': 10.0, 'angle': 0.0},
+          'CD5678':      {'xlen': 15.0, 'ylen': 15.0, 'angle': 15.0},
+          'EF9012':      {'xlen': 20.0, 'ylen': 20.0, 'angle': -32.0},
+         }
 
 
 
-if len(mymapdict)==0:
+# ==============================================================
+# Script. Do not edit below this line unless strictly necessary.
+# ==============================================================
+if len(mydict)==0:
     raise RuntimeError('Source/map dictionary is empty! edit the obsfkts.apecs script of the project accordingly.')
 
-def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
+def obs(mysource=mydict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True):
     '''
     mysource:       [str], Source name as in source catalog
     n:              [int], Number of loops (kid_center + scanner + X/Y/XY OTF).
                            Each loop is ~ 40 minutes for X+Y. Evaluate number of loops
                            Based on Tsky stability along path of the source.
-                           Limited by max 105 minutes without tonelist calibration.
+                           Limited by max 90 minutes before evaluating
+                           pointing, sensitivity and phase setting.
     dir:            [str], scanning direction 'xy', 'x', 'y', default 'xy'.
     tiltangle:    [float], every OTF will be tilted by a random angle from [-tiltangle, +tiltangle]
     doCals:        [bool], Do calibrations before OTFs. Default true. Set to False only
@@ -31,25 +44,12 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
     
 
     # Define map
-    xlen = float(mymapdict[mysource][0])*60.       # Xsize (arcsec)
-    ylen = float(mymapdict[mysource][1])*60.       # Ysize (arcsec)
-    sourceang = float(mymapdict[mysource][2])      # Angle (degree)
-    arraysize = 15.*60.                            # 15 arcmin
+    xlen = float(mydict[mysource]['xlen'])*60.       # Xsize (arcsec)
+    ylen = float(mydict[mysource]['ylen'])*60.       # Ysize (arcsec)
+    sourceang = float(mydict[mysource]['angle'])     # Angle (degree)
 
-    # Check map is smaller than array
-    minsize = min(xlen, ylen)
-    if minsize < arraysize:
-        msg = 'WARNING: one or more dimensions of the map are smaller than the AMKID array:'
-        msg = '\nX length = %.3f arcmin, Y length = %.3f arcmin, AMKID size = %.3f arcmin'%(xlen/60., ylen/60., 15)
-        msg +='\nRectangular OTFs might not be the optimal scanning pattern.'
-        msg +='\n\nContinue anyways? (y/n):     '
-        userInput = str(raw_input(msg))
-        if str.upper(userInput) in ['NO', 'N']:
-            print('obs() call aborted. Source was not changed!')
-            return
-
-    # add array size to get uniform sensitivity within requested map:
-    # the entire requested map is visited by the entire array.
+    # add array size to get uniform sensitivity within requested map
+    arraysize = 15.*60.                          # 15 arcmin
     xlen += arraysize
     ylen += arraysize
 
@@ -57,9 +57,9 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
     # and LFA will be better than nyquist (not a problem).
     f_samp = 25.                                 # 25 samples / sec nominal
     HFA_fwhm = 7.                                # arcsec, conservative nominal
-    oversamp = 2.5
-    # oversamp = f_samp / speed * HFA_fwhm [samples / beam]:
-    speed = f_samp * HFA_fwhm / oversamp         # is around 70 arcsec / sec
+    samp_per_FWHM = 2.5                          # what we require
+    # samp_per_FWHM = f_samp / speed * HFA_fwhm [samples / beamFWHM]:
+    speed = f_samp * HFA_fwhm/samp_per_FWHM      # is around 70 arcsec / sec
     scanstep = speed * 1.0                       # time in OTF command set to 1.0 sec
 
     # Define perpendicular step:
@@ -71,11 +71,11 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
     # Now, if the perpendicular step is greater
     # than the array size there will be missing patches.
     # Moreover if it is greater than 1/2 the array,
-    # there will be lines that will only be visited "once".
+    # there will be lines that will only be visited once per OTF.
     # This can happen if the map is too big and we want
     # the OTF to last less than 1000 seconds...
-    if minperpstep > arraysize/2 * 0.9:
-        perpstep = arraysize/2 * 0.9
+    if minperpstep > arraysize/2. * 0.9:  # 90% of this to be conservative
+        perpstep = arraysize/2. * 0.9
         scantime = xlen*ylen/(speed*perpstep)
         msg = 'WARNING: the map is too big to be observed in less than %.1f seconds per OTF.'%maxScanTime
         msg +='\nRequested OTFs will last %.1f seconds and might not be reduceable for HFA.'%scantime
@@ -86,14 +86,14 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
             print('obs() call aborted. Source was not changed!')
             return
     else:
-        perpstep = minperpstep                   # all good, each OTF will last ~17 min
+        perpstep = minperpstep                   # all good, each OTF will last ~17 min + time between subscans
         scantime = xlen*ylen/(speed*perpstep)
 
     # Check not more than 90 min without doing pointing + calibrator
     # and checking if new tonelist (power and freq optim.) is needed
     # With nominal 1000s OTFs, this is max n=2 loops.
     otfsperloop = 2 if str.upper(dir)=='XY' else 1
-    calibtime = 220.  # sec, 100 fsweep, 120 wirescan
+    calibtime = 200.  # sec, 50 kid_center, 120 wirescan + overheads
     looptime = otfsperloop * scantime + (calibtime if doCals==True else 0.)  # sec
 
     if n * looptime / 60 > 90:
@@ -107,7 +107,7 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
     # --------------------
     # START OBS - all good
     # --------------------
-    source(mysource, cats='user')                  # Center and set source
+    source(mysource, cats='user')                  # Set source
     
     # loop of OTFs
     for i in range(n):
@@ -134,5 +134,3 @@ def obs(mysource=mymapdict.keys()[0], n=1, dir='xy', tiltangle=15., doCals=True)
             otf(xlen=xlen, ylen=ylen, xstep=scanstep, ystep=perpstep, time=1.0 ,angle=myang1, direction='x', zigzag=1, size_unit='arcsec', system='EQ')
             myang2 = random.uniform(-tiltangle, tiltangle) + sourceang
             otf(xlen=xlen, ylen=ylen, xstep=perpstep, ystep=scanstep, time=1.0, angle=myang2, direction='y', zigzag=1, size_unit='arcsec', system='EQ')
-
-
