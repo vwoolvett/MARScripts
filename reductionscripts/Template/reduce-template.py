@@ -27,9 +27,9 @@ padding     = 0.3           # Padding around the map in deg for grid
 smoothing   = 'default'     # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2
-badscans        = []        # Manually exclude bad scans if needed
 
 # ----- Reduction parameters -----
+badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
@@ -73,9 +73,6 @@ verbose = False             # print scan selection criteria from ObsLogs if scan
 # Sky_smoothed = Kernel * Sky
 # Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
 # Coverage_smoothed = Kernel * Coverage
-
-# NOTE 2: smoothBy does handle the sky convolution correctly, it's just the weights that are not
-# correct after convolution
 
 import warnings
 import copy as copy
@@ -429,13 +426,13 @@ if writeSummary and os.path.exists("Summaries") == False:
 if writefits and os.path.exists("FITSfiles") == False:
     os.makedirs("FITSfiles")
 
-if smooth_arcsec == 'default':
+if smoothing == 'default':
     if fe == 'LFA':
         smoothby_arcsec = 8.
     else:
         smoothby_arcsec = 3.7
 else:
-    smoothby_arcsec = smooth_arcsec
+    smoothby_arcsec = smoothing
 
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
@@ -468,7 +465,7 @@ Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], s
                            padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
                            clip if clip != -1 else 'No clipping',
                            flagJumps,
-                           '%.1f arcsec (default)'%(smoothby_arcsec) if smooth_arcsec=='default' else '%.1f arcsec'%(smoothby_arcsec),
+                           '%.1f arcsec (default)'%(smoothby_arcsec) if smoothing=='default' else '%.1f arcsec'%(smoothby_arcsec),
                            len(scans)))
 
 # ===========================
@@ -732,15 +729,23 @@ with warnings.catch_warnings():
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on apperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on apperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
+        # create an image for this apperture to display
+        appertureMap = copy.deepcopy(rmsMap)
+        appertureMap.Data = np.where(aperture_mask, 1., np.NaN)
 
-        # plotting contours for final noise calculation
+        # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
+
+        # plot noisemap contours
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
             # use 2*median noise to show "edges" of map, but not to clip
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+
+        # plot apperture map
+        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[0.5],overplot=1, color='cyan')
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
@@ -760,6 +765,7 @@ with warnings.catch_warnings():
         del ms  # free memory
         del rmsMap  # free memory
         del snrMap  # free memory
+        del appertureMap  # free memory
 
 if observer==False:
     print('')

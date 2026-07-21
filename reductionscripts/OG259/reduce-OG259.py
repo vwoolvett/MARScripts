@@ -1,8 +1,8 @@
-# =================================
-# ==== BEGINNING OF USER INPUT ====  Last edited by: VWO @28.06.2026
-# =================================
+# ===============================================
+# =========== BEGINNING OF USER INPUT ===========   Last edited by: VWO @21.07.2026
+# ===============================================
 # NOTE: for exceptional cases, additional flagging is needed. 
-# This is executed after the "redweak" function call (ctrl+f here).
+# This is executed after the "redscience" function call (ctrl+f here).
 # Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
 
 # ------ OBSERVER or PI mode -------
@@ -17,41 +17,41 @@ observer = False            # True or False -> project finished
 # Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
-source  = 'OG259'           # As in observing logs
-fe      = 'LFA'             # Frontend, either 'LFA' or 'HFA'
-system  = 'GAL'             # Coordinate system for map, 'EQ', 'GAL' or 'HO' (default)
-center  = [259.3, -1.4]     # Center of map in CHOSEN COORDINATES in deg
-sizex   = 1.5               # Size of map in deg for X direction
-sizey   = 1.5               # Size of map in deg for Y direction
-padding = 2.42*0.25         # Padding around the map in deg for grid (default ~(1+sqrt(2))x array)
-smooth_arcsec = 'default'   # By how much to smooth final iteration maps.
+source      = 'OG259'       # As in observing logs
+fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
+system      = 'GAL'         # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center      = [259.3, -1.4] # Center of map in CHOSEN COORDINATES in deg
+sizex       = 1.5           # Size of map in deg for X direction
+sizey       = 1.5           # Size of map in deg for Y direction
+padding     = 2.42*0.25     # Padding around the map in deg for grid
+smoothing   = 'default'     # By how much to smooth final iteration maps.
                             # Default 8. arcsec for LFA and 3.7 for HFA.
-                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2 if a proposal requires smoothed maps.
-
-# Manually exclude bad scans if needed            
-badscans = [27979, 27991, 28217, 28498, 34849]
+                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2
 
 # ----- Reduction parameters -----
-doPlot  = False              # Display co-added map after each scan is included. If False, only
-                            # final coadded map per iteration will be displayed.
-writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
+badscans        = [27979, 27991, 28217, 28498, 34849]  # Manually exclude bad scans if needed  
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
+doPlot          = False     # Display co-added map after each scan is included. If False, only
+                            # final coadded map per iteration will be displayed.
 writefits       = True      # Write FITS of final iteration maps. True or False.
-correctbeam     = False      # Whether to correct beam bookkeeping in final iteration maps
+correctbeam     = False     # Whether to correct beam bookkeeping in final iteration maps
+writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 
 # ----- Scans (usually automatic) ------
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-verbose = False             # print scan selection criteria from ObsLogs if scans=[] initially
-# ==============================
-# ===== END OF USER INUPUT =====
-# ==============================
+verbose = False             # print scan selection criteria from ObsLogs if scans=[]
+# ===============================================
+# ============== END OF USER INUPUT =============
+# ===============================================
+
+
 
 
 
@@ -73,9 +73,6 @@ verbose = False             # print scan selection criteria from ObsLogs if scan
 # Sky_smoothed = Kernel * Sky
 # Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
 # Coverage_smoothed = Kernel * Coverage
-
-# NOTE 2: smoothBy does handle the sky convolution correctly, it's just the weights that are not
-# correct after convolution
 
 import warnings
 import copy as copy
@@ -429,13 +426,13 @@ if writeSummary and os.path.exists("Summaries") == False:
 if writefits and os.path.exists("FITSfiles") == False:
     os.makedirs("FITSfiles")
 
-if smooth_arcsec == 'default':
+if smoothing == 'default':
     if fe == 'LFA':
         smoothby_arcsec = 8.
     else:
         smoothby_arcsec = 3.7
 else:
-    smoothby_arcsec = smooth_arcsec
+    smoothby_arcsec = smoothing
 
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
@@ -468,7 +465,7 @@ Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], s
                            padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
                            clip if clip != -1 else 'No clipping',
                            flagJumps,
-                           '%.1f arcsec (default)'%(smoothby_arcsec) if smooth_arcsec=='default' else '%.1f arcsec'%(smoothby_arcsec),
+                           '%.1f arcsec (default)'%(smoothby_arcsec) if smoothing=='default' else '%.1f arcsec'%(smoothby_arcsec),
                            len(scans)))
 
 # ===========================
@@ -732,15 +729,23 @@ with warnings.catch_warnings():
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on apperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on apperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
+        # create an image for this apperture to display
+        appertureMap = copy.deepcopy(rmsMap)
+        appertureMap.Data = np.where(aperture_mask, 1., np.NaN)
 
-        # plotting contours for final noise calculation
+        # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
+
+        # plot noisemap contours
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
             # use 2*median noise to show "edges" of map, but not to clip
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+
+        # plot apperture map
+        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[0.5],overplot=1, color='cyan')
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
@@ -760,6 +765,7 @@ with warnings.catch_warnings():
         del ms  # free memory
         del rmsMap  # free memory
         del snrMap  # free memory
+        del appertureMap  # free memory
 
 if observer==False:
     print('')
