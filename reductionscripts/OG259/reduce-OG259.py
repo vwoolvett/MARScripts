@@ -725,14 +725,16 @@ with warnings.catch_warnings():
         y_indices, x_indices = np.indices(ms.Data.shape)
         x_center = ms.WCS['CRPIX1']# / ms.WCS['CDELT1']
         y_center = ms.WCS['CRPIX2']# / ms.WCS['CDELT2']
-        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
-        minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on apperture
-        meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on apperture
+        apperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
+        minnoise = np.nanmin(rmsMap.Data[apperture_mask])  # on apperture
+        meannoise = np.nanmean(rmsMap.Data[apperture_mask])  # on apperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
         # create an image for this apperture to display
         appertureMap = copy.deepcopy(rmsMap)
-        appertureMap.Data = np.where(aperture_mask, 1., 0) * np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2))
-        minap = np.nanmin(appertureMap.Data[aperture_mask])
+        apperturegauss = np.where(apperture_mask, 1., 0) * np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2))
+        minap = np.nanmin(apperturegauss[apperture_mask])
+        appertureMap.Data = apperturegauss
+        
 
         # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
