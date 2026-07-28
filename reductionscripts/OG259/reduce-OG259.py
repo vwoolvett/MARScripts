@@ -731,7 +731,8 @@ with warnings.catch_warnings():
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
         # create an image for this apperture to display
         appertureMap = copy.deepcopy(rmsMap)
-        appertureMap.Data = np.where(aperture_mask, 1., np.NaN)
+        appertureMap.Data = np.where(aperture_mask, 1., 0) * np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2))
+        minap = np.nanmin(appertureMap.Data[aperture_mask])
 
         # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
@@ -745,7 +746,7 @@ with warnings.catch_warnings():
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot apperture map
-        appertureMap.display(aspect=1,limitsZ=[0, 1.],doContour=1,levels=[1.],overplot=1)#,colors=['cyan'])
+        appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
