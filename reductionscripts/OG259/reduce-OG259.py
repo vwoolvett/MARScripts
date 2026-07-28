@@ -136,15 +136,18 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                         else:
                             thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
 
+                    if key == 'Command':
+                        command = (line[4:-6].ljust(12) + ' | ')    # 5
+
                     if key == 'Scan duration':
-                        duration = (line[4:-6].ljust(12) + ' | ')   # 5
+                        duration = (line[4:-6].ljust(12) + ' | ')   # 6
 
                     if key == 'Scan status':
-                        status = (line[4:-6].ljust(12) + ' | ')     # 6
+                        status = (line[4:-6].ljust(12) + ' | ')     # 7
 
                     if key == 'Comment':                            # last, build message    
                         comment = (line[4:-6])                      # added later         
-                        message += scan + src + scantype + mode + thisfe + duration + status
+                        message += scan + src + scantype + mode + thisfe + command + duration + status
 
                 start = False
 
