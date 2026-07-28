@@ -35,7 +35,7 @@ clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map:
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
                             # recommended to set to True while we figure out what the spikes are...
-doPlot          = True      # Display co-added map after each scan is included. If False, only
+doPlot          = False     # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writefits       = True      # Write FITS of final iteration maps. True or False.
 correctbeam     = False     # Whether to correct beam bookkeeping in final iteration maps
