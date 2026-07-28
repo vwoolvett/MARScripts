@@ -723,8 +723,8 @@ with warnings.catch_warnings():
         radius_deg = 2.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
-        x_center = (ms.WCS['CRVAL1'] - ms.WCS['CRPIX1']) / ms.WCS['CDELT1']
-        y_center = (ms.WCS['CRVAL2'] - ms.WCS['CRPIX2']) / ms.WCS['CDELT2']
+        x_center = ms.WCS['CRPIX1']# / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2']# / ms.WCS['CDELT2']
         aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on apperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on apperture
