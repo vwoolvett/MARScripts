@@ -449,10 +449,10 @@ Observer:           %s
 Source:             %s
 Frontend:           %s
 Coordinate system:  %s
-Map center:         %s, %s deg
-Map size (x,y):     %s, %s deg
-Padding:            %s deg
-Map Boundaries:     %s, %s deg in x; %s, %s deg in y
+Map center:         %.5f, %.5f deg
+Map size (x,y):     %.3f, %.3f deg
+Padding:            %.3f deg
+Map Boundaries:     X: %.3f, %.3f deg | Y: %.3f, %.3f deg
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
@@ -528,7 +528,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %i (iteration %i)...'%(scan, iter))
+                info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
                 redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
@@ -651,14 +651,15 @@ with warnings.catch_warnings():
             
             else:
                 # Retrieve BoA map
-                info('Reduction for scan %i (iteration %i) found. Loading...'%(scan, iter))
+                info('Reduction for scan %i found (Iter%i | scan %i/%i). Loading...'%(scan, iter, i+1, len(scans)))
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
+                os.system('rm -f %s'%scanname)
                 raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
-                                   "incorrect map bounds or coordinate system. Aborting reduction.")
-
-
+                                   "incorrect map bounds or coordinate system. Aborting reduction "+\
+                                   "script. Please check your map bounds and coordinate system.")
+            
             info('Coadding...')
             if ms and m:
                 if np.shape(ms.Data)!=np.shape(m.Data):
@@ -694,7 +695,6 @@ with warnings.catch_warnings():
         # ==========================================================
         del mymodel  # free memory
 
-
         # Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
@@ -716,18 +716,22 @@ with warnings.catch_warnings():
         # Compute statistics, let auxwriteFits handle clipping
         messages.info('Computing apperture-based noise statistics...')
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
-        radius_deg = 2.0 / 60.0  # 2 arcmin
+        radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
-        x_center = (ms.WCS['CRVAL1'] - ms.WCS['CRPIX1']) / ms.WCS['CDELT1']
-        y_center = (ms.WCS['CRVAL2'] - ms.WCS['CRPIX2']) / ms.WCS['CDELT2']
-        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
-        minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on apperture
-        meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on apperture
+        x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2'] + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
+        apperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
+        minnoise = np.nanmin(rmsMap.Data[apperture_mask])  # on apperture
+        meannoise = np.nanmean(rmsMap.Data[apperture_mask])  # on apperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
+        apperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
+        apperturegauss *= np.where(apperture_mask, 1., np.nan)  # cut it
+        minap = np.nanmin(apperturegauss)
         # create an image for this apperture to display
         appertureMap = copy.deepcopy(rmsMap)
-        appertureMap.Data = np.where(aperture_mask, 1., np.NaN)
+        appertureMap.Data = apperturegauss
+        
 
         # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
@@ -741,18 +745,18 @@ with warnings.catch_warnings():
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot apperture map
-        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[0.5],overplot=1,colors=['cyan'])
-
-        # Save full-iteration map (will be smoothed if smooth > 0.0)
-        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
-        print('')
-        ms.dumpMap(outname)
+        appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
         print('')
         print("####################### Iteration %i finished ########################"%(iter))
         print(" Time: %3.1f Hrs | min. noise: %3.1f mJy/b | mean noise: %3.1f mJy/b "%(tint/3600, 1000*minnoise,1000*meannoise))
         print("#####################################################################")
 
+        # Save full-iteration map (will be smoothed if smooth > 0.0)
+        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
+        ms.dumpMap(outname)
+
+        # Save FITS file if requested
         if writefits:
             outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
             outname = "FITSfiles/" + outname                         # goes into FITSfiles dir.
@@ -761,6 +765,8 @@ with warnings.catch_warnings():
         del ms  # free memory
         del rmsMap  # free memory
         del snrMap  # free memory
+        del radius_deg, x_indices, y_indices, x_center, y_center  # free memory
+        del apperture_mask, apperturegauss  # free memory
         del appertureMap  # free memory
 
 if observer==False:
