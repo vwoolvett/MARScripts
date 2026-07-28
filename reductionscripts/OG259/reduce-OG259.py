@@ -733,7 +733,7 @@ with warnings.catch_warnings():
         appertureMap = copy.deepcopy(rmsMap)
         apperturegauss = np.where(apperture_mask, 1., np.nan) * 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(0.03/abs(ms.WCS['CDELT1']))**2))
         minap = np.nanmin(apperturegauss[apperture_mask])
-        appertureMap.Data = apperturegauss
+        appertureMap.Data = np.where(apperture_mask, 1., np.nan)#apperturegauss
         
 
         # plot SnR map
@@ -748,7 +748,7 @@ with warnings.catch_warnings():
             #rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot apperture map
-        appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
+        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[1],overplot=1)#,colors=['cyan'])
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
