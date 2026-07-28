@@ -720,11 +720,11 @@ with warnings.catch_warnings():
         # Compute statistics, let auxwriteFits handle clipping
         messages.info('Computing apperture-based noise statistics...')
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
-        radius_deg = 2.0 / 60.0  # 2 arcmin
+        radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
-        x_center = ms.WCS['CRPIX1']# / ms.WCS['CDELT1']
-        y_center = ms.WCS['CRPIX2']# / ms.WCS['CDELT2']
+        x_center = ms.WCS['CRPIX1'] + (center[0] - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2'] + (center[1] - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
         apperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[apperture_mask])  # on apperture
         meannoise = np.nanmean(rmsMap.Data[apperture_mask])  # on apperture
