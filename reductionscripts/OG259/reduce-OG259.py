@@ -30,7 +30,7 @@ smoothing   = 'default'     # By how much to smooth final iteration maps.
 
 # ----- Reduction parameters -----
 badscans        = [27979, 27991, 28217, 28498, 34849]  # Manually exclude bad scans if needed  
-niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
+niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
 flagJumps       = True      # Flag jumps/spikes in the data:
