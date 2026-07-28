@@ -158,7 +158,8 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                         #if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
                         #    message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                         #    scanlist.append(scan_int)
-                        if 'calibrate(' not in command and 'beamscan(' not in command and fe in thisfe and 'OK' in status:
+                        if 'calibrate(' not in command and 'beamscan(' not in command and 'go(' not in command\
+                            and fe in thisfe and 'OK' in status:
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
