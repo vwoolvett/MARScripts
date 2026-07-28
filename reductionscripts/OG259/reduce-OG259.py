@@ -725,11 +725,11 @@ with warnings.catch_warnings():
         minnoise = np.nanmin(rmsMap.Data[apperture_mask])  # on apperture
         meannoise = np.nanmean(rmsMap.Data[apperture_mask])  # on apperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        # create an image for this apperture to display
-        appertureMap = copy.deepcopy(rmsMap)
         apperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
         apperturegauss *= np.where(apperture_mask, 1., np.nan)  # cut it
         minap = np.nanmin(apperturegauss)
+        # create an image for this apperture to display
+        appertureMap = copy.deepcopy(rmsMap)
         appertureMap.Data = apperturegauss
         
 
@@ -765,8 +765,8 @@ with warnings.catch_warnings():
         del ms  # free memory
         del rmsMap  # free memory
         del snrMap  # free memory
-        del x_indices, y_indices  # free memory
-        del apperturegauss  # free memory
+        del radius_deg, x_indices, y_indices, x_center, y_center  # free memory
+        del apperture_mask, apperturegauss  # free memory
         del appertureMap  # free memory
 
 if observer==False:
