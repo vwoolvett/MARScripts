@@ -130,11 +130,11 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                     if key == 'Frontend-backend':                   # 4
                         thisFeBe = line[4:-6]
                         if FeBedict['HFA'] in thisFeBe:
-                            thisfe = ('LFA + HFA'.ljust(12) + ' | ')
+                            thisfe = ('LFA + HFA'.ljust(9) + ' | ')
                         elif FeBedict['LFA'] in thisFeBe:
-                            thisfe = ('LFA'.ljust(12) + ' | ')
+                            thisfe = ('LFA'.ljust(9) + ' | ')
                         else:
-                            thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
+                            thisfe = ('NOT AMKID!'.ljust(9) + ' | ')
 
                     if key == 'Command':
                         command = (line[4:-6].ljust(12) + ' | ')
@@ -142,7 +142,7 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                         command = command[:12] + ' | '              # 5
 
                     if key == 'Scan duration':
-                        duration = (line[4:-6].ljust(12) + ' | ')   # 6
+                        duration = (line[4:-6].ljust(8) + ' | ')   # 6
 
                     if key == 'Scan status':
                         status = (line[4:-6].ljust(12) + ' | ')     # 7
