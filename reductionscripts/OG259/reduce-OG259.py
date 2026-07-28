@@ -741,11 +741,11 @@ with warnings.catch_warnings():
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
 
         # plot noisemap contours
-        if clip != -1:
-            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
-        else:
+        #if clip != -1:
+            #rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+        #else:
             # use 2*median noise to show "edges" of map, but not to clip
-            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+            #rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot apperture map
         appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
