@@ -659,8 +659,7 @@ with warnings.catch_warnings():
                 raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
                                    "incorrect map bounds or coordinate system. Aborting reduction "+\
                                    "script. Please check your map bounds and coordinate system.")
-
-
+            
             info('Coadding...')
             if ms and m:
                 if np.shape(ms.Data)!=np.shape(m.Data):
@@ -696,7 +695,6 @@ with warnings.catch_warnings():
         # ==========================================================
         del mymodel  # free memory
 
-
         # Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
@@ -718,7 +716,7 @@ with warnings.catch_warnings():
         # Compute statistics, let auxwriteFits handle clipping
         messages.info('Computing apperture-based noise statistics...')
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
-        radius_deg = 30.0 / 60.0  # 2 arcmin
+        radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
         x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
