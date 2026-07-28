@@ -130,27 +130,36 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                     if key == 'Frontend-backend':                   # 4
                         thisFeBe = line[4:-6]
                         if FeBedict['HFA'] in thisFeBe:
-                            thisfe = ('LFA + HFA'.ljust(12) + ' | ')
+                            thisfe = ('LFA + HFA'.ljust(9) + ' | ')
                         elif FeBedict['LFA'] in thisFeBe:
-                            thisfe = ('LFA'.ljust(12) + ' | ')
+                            thisfe = ('LFA'.ljust(9) + ' | ')
                         else:
-                            thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
+                            thisfe = ('NOT AMKID!'.ljust(9) + ' | ')
+
+                    if key == 'Command':
+                        command = (line[4:-6].ljust(12) + ' | ')
+                        # only add first 12 characters
+                        command = command[:12] + ' | '              # 5
 
                     if key == 'Scan duration':
-                        duration = (line[4:-6].ljust(12) + ' | ')   # 5
+                        duration = (line[4:-6].ljust(8) + ' | ')   # 6
 
                     if key == 'Scan status':
-                        status = (line[4:-6].ljust(12) + ' | ')     # 6
+                        status = (line[4:-6].ljust(12) + ' | ')     # 7
 
                     if key == 'Comment':                            # last, build message    
-                        comment = (line[4:-6])                      # added later         
-                        message += scan + src + scantype + mode + thisfe + duration + status
+                        comment = (line[4:-6])[0:85]                # added later         
+                        message += scan + src + scantype + mode + thisfe + command + duration + status
 
                 start = False
 
                 if source in src:
                     if  '-999' not in duration:
-                        if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
+                        #    scanlist.append(scan_int)
+                        if 'calibrate(' not in command and 'beamscan(' not in command and 'go(' not in command\
+                            and fe in thisfe and 'OK' in status:
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
@@ -167,7 +176,7 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
             print(keys)
             c+=1
     scanlist.sort()
-    info("Number of 'MAP' scans on source %s (%s): %i"%(source, fe, len(scanlist)))
+    info("Number of valid scans on source %s (%s): %i"%(source, fe, len(scanlist)))
     return scanlist
 
 
@@ -560,8 +569,8 @@ with warnings.catch_warnings():
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                #if scan == 28517:
-                #    flagC(3353, flag=2)
+                if scan == 28517:
+                    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
@@ -714,23 +723,23 @@ with warnings.catch_warnings():
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         # Compute statistics, let auxwriteFits handle clipping
-        messages.info('Computing apperture-based noise statistics...')
+        messages.info('Computing aperture-based noise statistics...')
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
         radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
         x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
         y_center = ms.WCS['CRPIX2'] + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
-        apperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
-        minnoise = np.nanmin(rmsMap.Data[apperture_mask])  # on apperture
-        meannoise = np.nanmean(rmsMap.Data[apperture_mask])  # on apperture
+        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
+        minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
+        meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        apperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
-        apperturegauss *= np.where(apperture_mask, 1., np.nan)  # cut it
-        minap = np.nanmin(apperturegauss)
-        # create an image for this apperture to display
-        appertureMap = copy.deepcopy(rmsMap)
-        appertureMap.Data = apperturegauss
+        aperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
+        aperturegauss *= np.where(aperture_mask, 1., np.nan)  # cut it
+        minap = np.nanmin(aperturegauss)
+        # create an image for this aperture to display
+        apertureMap = copy.deepcopy(rmsMap)
+        apertureMap.Data = aperturegauss
         
 
         # plot SnR map
@@ -744,8 +753,8 @@ with warnings.catch_warnings():
             # use 2*median noise to show "edges" of map, but not to clip
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
-        # plot apperture map
-        appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
+        # plot aperture map
+        apertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
         print('')
         print("####################### Iteration %i finished ########################"%(iter))
@@ -766,8 +775,8 @@ with warnings.catch_warnings():
         del rmsMap  # free memory
         del snrMap  # free memory
         del radius_deg, x_indices, y_indices, x_center, y_center  # free memory
-        del apperture_mask, apperturegauss  # free memory
-        del appertureMap  # free memory
+        del aperture_mask, aperturegauss  # free memory
+        del apertureMap  # free memory
 
 if observer==False:
     print('')
