@@ -46,7 +46,7 @@ writeSummary    = False     # Write summary of reductions or not. This is mostly
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-verbose = True              # print scan selection criteria from ObsLogs if scans=[]
+verbose = False             # print scan selection criteria from ObsLogs if scans=[]
 # ===============================================
 # ============== END OF USER INUPUT =============
 # ===============================================
