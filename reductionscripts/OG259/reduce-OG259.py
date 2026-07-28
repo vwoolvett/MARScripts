@@ -29,7 +29,7 @@ smoothing   = 'default'     # By how much to smooth final iteration maps.
                             # Consider nativebeam^2 + smoothing^2 = targetbeam^2
 
 # ----- Reduction parameters -----
-badscans        = [27979, 27991, 28217, 28498, 34849]  # Manually exclude bad scans if needed  
+badscans        = [27979, 27991, 28217, 28498, 34234, 34849]  # Manually exclude bad scans if needed  
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
 clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
                             # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
@@ -46,7 +46,7 @@ writeSummary    = False     # Write summary of reductions or not. This is mostly
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-verbose = False             # print scan selection criteria from ObsLogs if scans=[]
+verbose = True              # print scan selection criteria from ObsLogs if scans=[]
 # ===============================================
 # ============== END OF USER INUPUT =============
 # ===============================================
