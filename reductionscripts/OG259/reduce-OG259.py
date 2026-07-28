@@ -137,7 +137,9 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                             thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
 
                     if key == 'Command':
-                        command = (line[4:-6].ljust(12) + ' | ')    # 5
+                        command = (line[4:-6].ljust(12) + ' | ')
+                        # only add first 12 characters
+                        command = command[:12] + ' | '              # 5
 
                     if key == 'Scan duration':
                         duration = (line[4:-6].ljust(12) + ' | ')   # 6
@@ -153,7 +155,10 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
 
                 if source in src:
                     if  '-999' not in duration:
-                        if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
+                        #    scanlist.append(scan_int)
+                        if 'calibrate(' not in command and 'beamscan(' not in command and fe in thisfe and 'OK' in status:
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
