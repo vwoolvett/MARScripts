@@ -747,16 +747,16 @@ with warnings.catch_warnings():
         # plot apperture map
         appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
-        # Save full-iteration map (will be smoothed if smooth > 0.0)
-        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
-        print('')
-        ms.dumpMap(outname)
-
         print('')
         print("####################### Iteration %i finished ########################"%(iter))
         print(" Time: %3.1f Hrs | min. noise: %3.1f mJy/b | mean noise: %3.1f mJy/b "%(tint/3600, 1000*minnoise,1000*meannoise))
         print("#####################################################################")
 
+        # Save full-iteration map (will be smoothed if smooth > 0.0)
+        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
+        ms.dumpMap(outname)
+
+        # Save FITS file if requested
         if writefits:
             outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
             outname = "FITSfiles/" + outname                         # goes into FITSfiles dir.
