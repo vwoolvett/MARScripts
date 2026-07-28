@@ -46,7 +46,7 @@ writeSummary    = False     # Write summary of reductions or not. This is mostly
 # specified above from the obslogs directory below
 scans = []
 obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
-verbose = False             # print scan selection criteria from ObsLogs if scans=[]
+verbose = True             # print scan selection criteria from ObsLogs if scans=[]
 # ===============================================
 # ============== END OF USER INUPUT =============
 # ===============================================
@@ -167,7 +167,7 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
             print(keys)
             c+=1
     scanlist.sort()
-    info("Number of 'MAP' scans on source %s (%s): %i"%(source, fe, len(scanlist)))
+    info("Number of valid scans on source %s (%s): %i"%(source, fe, len(scanlist)))
     return scanlist
 
 
