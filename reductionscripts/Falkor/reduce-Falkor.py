@@ -74,9 +74,6 @@ verbose = False             # print scan selection criteria from ObsLogs if scan
 # Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
 # Coverage_smoothed = Kernel * Coverage
 
-# NOTE 2: smoothBy does handle the sky convolution correctly, it's just the weights that are not
-# correct after convolution
-
 import warnings
 import copy as copy
 import BoaMapping as BOAMAP
@@ -133,27 +130,36 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                     if key == 'Frontend-backend':                   # 4
                         thisFeBe = line[4:-6]
                         if FeBedict['HFA'] in thisFeBe:
-                            thisfe = ('LFA + HFA'.ljust(12) + ' | ')
+                            thisfe = ('LFA + HFA'.ljust(9) + ' | ')
                         elif FeBedict['LFA'] in thisFeBe:
-                            thisfe = ('LFA'.ljust(12) + ' | ')
+                            thisfe = ('LFA'.ljust(9) + ' | ')
                         else:
-                            thisfe = ('NOT AMKID!'.ljust(12) + ' | ')
+                            thisfe = ('NOT AMKID!'.ljust(9) + ' | ')
+
+                    if key == 'Command':
+                        command = (line[4:-6].ljust(12) + ' | ')
+                        # only add first 12 characters
+                        command = command[:12] + ' | '              # 5
 
                     if key == 'Scan duration':
-                        duration = (line[4:-6].ljust(12) + ' | ')   # 5
+                        duration = (line[4:-6].ljust(8) + ' | ')   # 6
 
                     if key == 'Scan status':
-                        status = (line[4:-6].ljust(12) + ' | ')     # 6
+                        status = (line[4:-6].ljust(12) + ' | ')     # 7
 
                     if key == 'Comment':                            # last, build message    
-                        comment = (line[4:-6])                      # added later         
-                        message += scan + src + scantype + mode + thisfe + duration + status
+                        comment = (line[4:-6])[0:85]                # added later         
+                        message += scan + src + scantype + mode + thisfe + command + duration + status
 
                 start = False
 
                 if source in src:
                     if  '-999' not in duration:
-                        if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
+                        #    scanlist.append(scan_int)
+                        if 'calibrate(' not in command and 'beamscan(' not in command and 'go(' not in command\
+                            and fe in thisfe and 'OK' in status:
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
@@ -170,7 +176,7 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
             print(keys)
             c+=1
     scanlist.sort()
-    info("Number of 'MAP' scans on source %s (%s): %i"%(source, fe, len(scanlist)))
+    info("Number of valid scans on source %s (%s): %i"%(source, fe, len(scanlist)))
     return scanlist
 
 
@@ -429,13 +435,13 @@ if writeSummary and os.path.exists("Summaries") == False:
 if writefits and os.path.exists("FITSfiles") == False:
     os.makedirs("FITSfiles")
 
-if smooth_arcsec == 'default':
+if smoothing == 'default':
     if fe == 'LFA':
         smoothby_arcsec = 8.
     else:
         smoothby_arcsec = 3.7
 else:
-    smoothby_arcsec = smooth_arcsec
+    smoothby_arcsec = smoothing
 
 # smoothby to deg
 smoothby_deg = smoothby_arcsec / 3600.
@@ -452,10 +458,10 @@ Observer:           %s
 Source:             %s
 Frontend:           %s
 Coordinate system:  %s
-Map center:         %s, %s deg
-Map size (x,y):     %s, %s deg
-Padding:            %s deg
-Map Boundaries:     %s, %s deg in x; %s, %s deg in y
+Map center:         %.5f, %.5f deg
+Map size (x,y):     %.3f, %.3f deg
+Padding:            %.3f deg
+Map Boundaries:     X: %.3f, %.3f deg | Y: %.3f, %.3f deg
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
@@ -464,7 +470,7 @@ Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], s
                            padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
                            clip if clip != -1 else 'No clipping',
                            flagJumps,
-                           '%.1f arcsec (default)'%(smoothby_arcsec) if smooth_arcsec=='default' else '%.1f arcsec'%(smoothby_arcsec),
+                           '%.1f arcsec (default)'%(smoothby_arcsec) if smoothing=='default' else '%.1f arcsec'%(smoothby_arcsec),
                            len(scans)))
 
 # ===========================
@@ -531,7 +537,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %i (iteration %i)...'%(scan, iter))
+                info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
                 redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
@@ -654,14 +660,15 @@ with warnings.catch_warnings():
             
             else:
                 # Retrieve BoA map
-                info('Reduction for scan %i (iteration %i) found. Loading...'%(scan, iter))
+                info('Reduction for scan %i found (Iter%i | scan %i/%i). Loading...'%(scan, iter, i+1, len(scans)))
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
+                os.system('rm -f %s'%scanname)
                 raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
-                                   "incorrect map bounds or coordinate system. Aborting reduction.")
-
-
+                                   "incorrect map bounds or coordinate system. Aborting reduction "+\
+                                   "script. Please check your map bounds and coordinate system.")
+            
             info('Coadding...')
             if ms and m:
                 if np.shape(ms.Data)!=np.shape(m.Data):
@@ -676,6 +683,7 @@ with warnings.catch_warnings():
             try:
                 tint += m.Tint
                 mymjdrefs.append(m.MJDref)
+                mytints.append(m.Tint)
             except:
                 pass
             del m  # free memory
@@ -696,7 +704,6 @@ with warnings.catch_warnings():
         # ==========================================================
         del mymodel  # free memory
 
-
         # Now create final iter maps and FITS.
         # First, smooth co-added if required:
         if smoothby_deg > 0.0:
@@ -716,32 +723,49 @@ with warnings.catch_warnings():
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
         # Compute statistics, let auxwriteFits handle clipping
+        messages.info('Computing aperture-based noise statistics...')
+        # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
+        radius_deg = 3.0 / 60.0  # 2 arcmin
+        # create a mask for the circular aperture
+        y_indices, x_indices = np.indices(ms.Data.shape)
+        x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2'] + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
+        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
+        minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
+        meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        if clip != -1:
-            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<clip*mediannoise])
-        else:
-            minnoise = np.nanmin(rmsMap.Data[rmsMap.Data<2*mediannoise])
-            meannoise = np.nanmean(rmsMap.Data[rmsMap.Data<2*mediannoise])
+        aperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
+        aperturegauss *= np.where(aperture_mask, 1., np.nan)  # cut it
+        minap = np.nanmin(aperturegauss)
+        # create an image for this aperture to display
+        apertureMap = copy.deepcopy(rmsMap)
+        apertureMap.Data = aperturegauss
+        
 
-        # plotting
+        # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
+
+        # plot noisemap contours
         if clip != -1:
             rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
+            # use 2*median noise to show "edges" of map, but not to clip
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
-        # Save full-iteration map (will be smoothed if smooth > 0.0)
-        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
-        print('')
-        ms.dumpMap(outname)
+        # plot aperture map
+        apertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
         print('')
         print("####################### Iteration %i finished ########################"%(iter))
         print(" Time: %3.1f Hrs | min. noise: %3.1f mJy/b | mean noise: %3.1f mJy/b "%(tint/3600, 1000*minnoise,1000*meannoise))
         print("#####################################################################")
 
+        # Save full-iteration map (will be smoothed if smooth > 0.0)
+        outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
+        ms.dumpMap(outname)
+
+        # Save FITS file if requested
         if writefits:
             outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
             outname = "FITSfiles/" + outname                         # goes into FITSfiles dir.
@@ -750,6 +774,9 @@ with warnings.catch_warnings():
         del ms  # free memory
         del rmsMap  # free memory
         del snrMap  # free memory
+        del radius_deg, x_indices, y_indices, x_center, y_center  # free memory
+        del aperture_mask, aperturegauss  # free memory
+        del apertureMap  # free memory
 
 if observer==False:
     print('')
