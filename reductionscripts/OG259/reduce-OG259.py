@@ -731,7 +731,7 @@ with warnings.catch_warnings():
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
         # create an image for this apperture to display
         appertureMap = copy.deepcopy(rmsMap)
-        apperturegauss = np.where(apperture_mask, 1., 0) * 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(0.03*abs(ms.WCS['CDELT1']))**2))
+        apperturegauss = np.where(apperture_mask, 1., np.nan) * 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(0.03*abs(ms.WCS['CDELT1']))**2))
         minap = np.nanmin(apperturegauss[apperture_mask])
         appertureMap.Data = apperturegauss
         
