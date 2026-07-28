@@ -528,7 +528,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %i (Iter%i - scan %i/%i)...'%(scan, iter, i+1, len(scans)))
+                info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
                 redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
@@ -651,12 +651,14 @@ with warnings.catch_warnings():
             
             else:
                 # Retrieve BoA map
-                info('Reduction for scan %i (Iter%i - scan %i/%i) found. Loading...'%(scan, iter, i+1, len(scans)))
+                info('Reduction for scan %i found (Iter%i | scan %i/%i). Loading...'%(scan, iter, i+1, len(scans)))
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
+                os.system('rm -f %s'%scanname)
                 raise RuntimeError("Scan %i produced an all-NaN map. This almost always indicates "%scan+\
-                                   "incorrect map bounds or coordinate system. Aborting reduction.")
+                                   "incorrect map bounds or coordinate system. Aborting reduction "+\
+                                   "script. Please check your map bounds and coordinate system.")
 
 
             info('Coadding...')
