@@ -439,10 +439,6 @@ smoothby_deg = smoothby_arcsec / 3600.
 
 # initialize MJD list for all scans
 mymjdrefs = []
-mytints = []
-mymapnoises = []
-mynbols = []
-mybeamarea = 1.133*(19.901142669331044/60.)**2
 
 print('')
 print('''\

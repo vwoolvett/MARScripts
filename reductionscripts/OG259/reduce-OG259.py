@@ -439,10 +439,6 @@ smoothby_deg = smoothby_arcsec / 3600.
 
 # initialize MJD list for all scans
 mymjdrefs = []
-mytints = []
-mymapnoises = []
-mynbols = []
-mybeamarea = 1.133*(19.901142669331044/60.)**2
 
 print('')
 print('''\
@@ -723,17 +719,18 @@ with warnings.catch_warnings():
         radius_deg = 30.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
-        x_center = ms.WCS['CRPIX1']# + (center[0] - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
-        y_center = ms.WCS['CRPIX2']# + (center[1] - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
+        x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2'] + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
         apperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[apperture_mask])  # on apperture
         meannoise = np.nanmean(rmsMap.Data[apperture_mask])  # on apperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
         # create an image for this apperture to display
         appertureMap = copy.deepcopy(rmsMap)
-        apperturegauss = np.where(apperture_mask, 1., np.nan) * 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(0.03/abs(ms.WCS['CDELT1']))**2))
-        minap = np.nanmin(apperturegauss[apperture_mask])
-        appertureMap.Data = np.where(apperture_mask, 1., np.nan)#apperturegauss
+        apperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
+        apperturegauss *= np.where(apperture_mask, 1., np.nan)  # cut it
+        minap = np.nanmin(apperturegauss)
+        appertureMap.Data = apperturegauss
         
 
         # plot SnR map
@@ -748,7 +745,7 @@ with warnings.catch_warnings():
             #rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot apperture map
-        appertureMap.display(aspect=1,limitsZ=[0, 1],doContour=1,levels=[1],overplot=1)#,colors=['cyan'])
+        appertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
         # Save full-iteration map (will be smoothed if smooth > 0.0)
         outname = "ReducedFiles/"+str(myname)+"-coadded-flux-iter"+str(iter)+".data"  # goes into ReducedFiles dir
@@ -768,6 +765,8 @@ with warnings.catch_warnings():
         del ms  # free memory
         del rmsMap  # free memory
         del snrMap  # free memory
+        del x_indices, y_indices  # free memory
+        del apperturegauss  # free memory
         del appertureMap  # free memory
 
 if observer==False:
