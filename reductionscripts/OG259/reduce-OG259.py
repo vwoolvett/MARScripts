@@ -452,7 +452,7 @@ Coordinate system:  %s
 Map center:         %.5f, %.5f deg
 Map size (x,y):     %.3f, %.3f deg
 Padding:            %.3f deg
-Map Boundaries:     X: %.3f, %.3f deg - Y: %.3f, %.3f deg
+Map Boundaries:     X: %.3f, %.3f deg | Y: %.3f, %.3f deg
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
