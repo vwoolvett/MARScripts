@@ -449,10 +449,10 @@ Observer:           %s
 Source:             %s
 Frontend:           %s
 Coordinate system:  %s
-Map center:         %s, %s deg
-Map size (x,y):     %s, %s deg
-Padding:            %s deg
-Map Boundaries:     %s, %s deg in x; %s, %s deg in y
+Map center:         %.5f, %.5f deg
+Map size (x,y):     %.3f, %.3f deg
+Padding:            %.3f deg
+Map Boundaries:     X: %.3f, %.3f deg - Y: %.3f, %.3f deg
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
@@ -528,7 +528,7 @@ with warnings.catch_warnings():
             if len(globlist) ==  0:
                 print('')
                 print('')
-                info('Reducing scan %i (iteration %i)...'%(scan, iter))
+                info('Reducing scan %i (Iter%i - scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
                 redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
@@ -651,7 +651,7 @@ with warnings.catch_warnings():
             
             else:
                 # Retrieve BoA map
-                info('Reduction for scan %i (iteration %i) found. Loading...'%(scan, iter))
+                info('Reduction for scan %i (Iter%i - scan %i/%i) found. Loading...'%(scan, iter, i+1, len(scans)))
                 m = restoreFile(scanname)
 
             if np.all(np.isnan(m.Data)):
