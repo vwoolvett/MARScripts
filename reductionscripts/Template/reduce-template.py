@@ -65,6 +65,8 @@ verbose = False             # print scan selection criteria from ObsLogs if scan
 
 
 
+
+
 # ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
 # NOTE: VWO: BoA smoothBy smooths weights with the kernel, but weights are 1 / rms^2 which is
 # a non-linear scale. All smoothing should be done as:
@@ -726,7 +728,7 @@ with warnings.catch_warnings():
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
         radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
-        y_indices, x_indices = np.indices(ms.Data.shape)
+        x_indices, y_indices = np.indices(ms.Data.shape)
         x_center = ms.WCS['CRPIX1']# + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
         y_center = ms.WCS['CRPIX2']# + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
         aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
