@@ -1,6 +1,6 @@
-def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., ignoreblinds=True, full_output=False, doplots=False, debug=False):
+def findspikes_IQBT(windowtime=5, sig=5.5, expspikefree=100, crosstones=25., ignoreblinds=True, full_output=False, doplots=False, debug=False):
     '''
-    ** VERSION 4.1 - 11.06.2026 **
+    ** VERSION 2 - 04.08.2026 **
 
     Finds spiked windowtime-long windows in BT-corrected I and Q data for each tone based
     on the statistics of the IQ-speed of the tone. Then cross-checks whether each spiked window
@@ -19,7 +19,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     @type sig:              float
     @param expspikefree:    percentage of the timelines that is expected to be spike-free to determine "usual tone behavior"
     @type expspikefree:     float
-    @param crosstones:      for any time window, what percentage of tones must be spiked to consider them as really spiked
+    @param crosstones:      for any time window, what percentage of tones must be spiked to consider the window as really spiked. Default 25% is one chip.
     @type crosstones:       float
     @param ignoreblinds:    whether to ignore (True) or consider (False) blindtones. Useful if blindtones are spiked too.
     @type ignoreblinds:     bool
@@ -28,11 +28,11 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     @type full_output:      bool
     @param doplots:         whether to do an example plot of the spike detection
     @type doplots:          bool
-    @param testtone:        tone to use for example plot
-    @type testtone:         int
+    @param debug:           Whether to plot debug info for spike cross-tone check
+    @type debug:            bool
     '''
     
-    info('** Beginning spike detection...')
+    info('Beginning spike/instability detection...')
     # data array
     scannum = data.ScanParam.ScanNum
     Z = data.Data
@@ -40,19 +40,13 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     febe = data.BolometerArray.FeBe
     if febe == 'AMKID870-AMKID870BE':
         fe = 'LFA'
+        nkids = 880 * 4
     elif febe == 'AMKID350-AMKID350BE':
         fe = 'HFA'
+        nkids = 800 * 5 * 4
     else:
         warn('This is not AMKID data!')
         return
-    
-    scaniswire = scanIsBeamscan(scannum, fe)
-    if scaniswire:
-        info('Running de-spiking on WireScanner. Changing crosstones to 50%...')
-        crosstones = 50
-    
-    _ , chains, kidsPerChain = getFebe(fe)
-    nkids = len(chains) * kidsPerChain
     
     if ignoreblinds:
         Z = Z[:, :nkids]
@@ -61,32 +55,30 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         nused = ntones
 
     # time array
-    info('Retrieving time axis data and computing IQ speeds...')
+    info('Retrieving time axis data...')
     time = (data.ScanParam.MJD - data.ScanParam.MJD[0]) * 24 * 3600
     totaltime = time[-1] - time[0]
     dt = np.nanmedian(np.diff(time))
+
+    # Ensure at least 100 windows
+    nwindows = totaltime / windowtime
+    if nwindows<50.0:
+        nwindows = 50
+        warn('Adjusting windowtime to %1.2f seconds to ensure 50 windows...'%(totaltime/nwindows))
+        windowtime = totaltime / nwindows
 
     # Derivatives
     dZdt = np.diff(Z, axis=0) / dt * 1000  # mV / s
     speeds = np.abs(dZdt)
     auxtime = time[:-1] + dt/2
 
-    # Ensure at least 50 windows
-    nwindows = totaltime / windowtime
-    if nwindows < 50.0:
-        nwindows = 50
-        warn('Changing window size to %1.2f seconds to ensure 50 windows...'%(totaltime/nwindows))
-        windowtime = totaltime / nwindows
-
     # define windows
     windows_tstart = np.arange(0, totaltime, windowtime)
     windows_time = windows_tstart + windowtime/2
-
-    # print final window information
-    info('%.2f seconds of data: %i windows of %.1f seconds'%(totaltime, len(windows_tstart), windowtime))
+    info('Windowing: %.2f s -> %i windows of %.1f s'%(totaltime, len(windows_tstart), windowtime))
 
     # RMS of windows
-    info('Computing spike detection metrics...')
+    # info('Computing spike detection metrics...')
     windows_speed_mean = []
     windows_speed_std = []
     windows_speed_max = []
@@ -112,15 +104,14 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
 
     # initialize window flagging array
     windowflag = np.zeros_like(windows_speed_std, dtype=bool)
-
-    if doplots or scaniswire:
+    if doplots:
         # initialize used values list
         # has as many values as tones
         tone_floor_speedMEANs = []
         tone_floor_speedSTDs = []
         tone_thresholds_speed = []
 
-    info('Detecting spikes...')
+    info('Detecting spikes and instabilities...')
     # fill windows flagging array - has True for each window timestamp and tone if window has rms above a carefully chosen threshold
     for toneidx in range(nused):
         # only for non-nan tones!
@@ -130,33 +121,32 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             thresh_tonebased = np.nanpercentile(windows_speed_std[:, toneidx], expspikefree)
             valid = windows_speed_std[:, toneidx] <= thresh_tonebased
 
-            # Compute the spike-free mean of window speed means for tone (MEAN floor)
+            # Compute the spike-free mean of speed means for tone (MEAN floor)
             floor_speedMEAN = np.nanmean(windows_speed_mean[valid, toneidx])
-            
-            # compute the spike-free mean of window speed STDs for tone (STD floor)
+
+            # compute the spike-free mean of speed STDs for tone (STD floor)
             floor_speedSTD = np.nanmean(windows_speed_std[valid, toneidx])
-            
+
             # compute the mean + sig STD threshold
             threshold_speed = floor_speedMEAN + sig * floor_speedSTD
-
-            if doplots or scaniswire:
-                # save values
+            
+            if doplots:
                 tone_floor_speedMEANs.append(floor_speedMEAN)
                 tone_floor_speedSTDs.append(floor_speedSTD)
                 tone_thresholds_speed.append(threshold_speed)
-
+                
             # Tone likely has spike if ANY speed sample in window surpasses threshold
             # or equivalently if the maximum speed does (less comparisons)
             windowflag[:, toneidx] = windows_speed_max[:, toneidx] >= threshold_speed
-
+            
         else:
-            if doplots or scaniswire:
+            if doplots:
                 # Tone is only NaNs, then fill masks to leave un-edited (no spikes)
                 tone_floor_speedMEANs.append(np.nan)
                 tone_floor_speedSTDs.append(np.nan)
                 tone_thresholds_speed.append(np.nan)
             windowflag[:, toneidx] = False
-
+            
     # copy original windowflag
     windowflag2 = copy.deepcopy(windowflag)
 
@@ -191,11 +181,11 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
     # re-create windowflag and save memory
     windowflag = windowflag2
     windowflag2 = None
-
+    
     # inizialize data flagging array
     # if blindtones are ignored in process, flag is false for all blindtones so they will not be affected
     flagmask = np.zeros_like(data.Data, dtype=bool)
-
+    
     # fill data mask array
     for toneidx in range(nused):
         flagged_windows = np.where(windowflag[:, toneidx])[0]
@@ -204,7 +194,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             t_end = t_start + windowtime
             flagmask[:, toneidx] |= (time >= t_start) & (time < t_end)
 
-    if doplots or scaniswire:
+    if doplots:
         # convert to arrays
         tone_floor_speedMEANs = np.array(tone_floor_speedMEANs)
         tone_floor_speedSTDs = np.array(tone_floor_speedSTDs)
@@ -212,69 +202,16 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
 
     # final info
     spikedfraction_alltones = np.sum(windowflag, axis=0) / float(np.shape(windowflag)[0])
-    spikedfraction_alltones_nonzero = spikedfraction_alltones[spikedfraction_alltones != 0]
-    if len(spikedfraction_alltones_nonzero) != 0:
-        spikedfraction_avg = np.nanmean(spikedfraction_alltones_nonzero)
-        spikedtime_avg = spikedfraction_avg * totaltime
-        scanisspikefree = False
-        info('On average for spiked tones, %.2f percent (%1.1f / %1.1f seconds) of the timelines is lost.'%(spikedfraction_avg*100, spikedtime_avg, totaltime))
-        
-        # if wirescanner has spikes, then need to recalibrate!
-        if scaniswire:
-            warn('=============================================================')
-            warn('========= WIRE SCANNER IS CONTAMINATED WITH SPIKES! =========')
-            warn('========= FORCING SPIKE DETECTION DISPLAY, ANALYZE! =========')
-            warn('=============================================================')
-            doplots = True
-
+    spikedfraction_avg = np.nanmean(spikedfraction_alltones)
+    spikedtime_avg = spikedfraction_avg * totaltime
+    if np.all(spikedfraction_alltones==0):
+        info('Scan is spike free!')
     else:
-        info('Scan is spike-free!')
-        scanisspikefree = True
-
+        info('%.1f'%(spikedfraction_avg*100) + '% (avg.) of the KID timelines is lost')
 
     if doplots:
-        info('Initializing de-spiking process histograms and interactive plot...')
-        # ==========
-        # Histograms
-        # ==========
-        fighist, axhist = plt.subplots(1, 3, figsize=(15, 5), sharey=True)
+        info('Initializing de-spiking process interactive plot...')
 
-        # speed MEAN floor histogram
-        avg = np.nanmean(tone_floor_speedMEANs)
-        nonan = ~np.isnan(tone_floor_speedMEANs)
-        axhist[0].hist(np.log10(tone_floor_speedMEANs[nonan]), bins=100)
-        axhist[0].axvline(np.log10(avg), c='green', lw=2, label='Mean: %.2f mV / s'%avg)
-        axhist[0].set_xlabel('log10(Average tone speed in mV/s)')
-        axhist[0].set_ylabel('Number of tones')
-        axhist[0].legend(framealpha=1)
-        
-        # speed STD floor histogram
-        avg = np.nanmean(tone_floor_speedSTDs)
-        nonan = ~np.isnan(tone_floor_speedSTDs)
-        axhist[1].hist(np.log10(tone_floor_speedSTDs[nonan]), bins=100)
-        axhist[1].axvline(np.log10(avg), c='red', lw=2, label='Mean: %.2f mV / s'%avg)
-        axhist[1].set_xlabel('log10(Average tone speed STD in mV/s)')
-        axhist[1].legend(framealpha=1)
-
-        # spike percentage histogram
-        if not scanisspikefree:
-            meanpercentlost = np.nanmean(spikedfraction_alltones_nonzero*100)
-            axhist[2].hist(spikedfraction_alltones_nonzero*100, bins=100, range=(0, 100))
-            axhist[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
-            axhist[2].set_xlim(0, np.nanmax(spikedfraction_alltones_nonzero*100)+2)
-            axhist[2].set_xlabel('Percentage of timeline lost to spikes (spiked tones only!)')
-            axhist[2].legend(framealpha=1)
-        
-        else:
-            meanpercentlost = np.nanmean(spikedfraction_alltones*100)
-            axhist[2].hist(spikedfraction_alltones*100, bins=100, range=(0, 100))
-            axhist[2].axvline(meanpercentlost, c='magenta', lw=3, label='Mean: %.2f percent'%meanpercentlost)
-            axhist[2].set_xlim(0, np.nanmax(spikedfraction_alltones*100)+2)
-            axhist[2].set_xlabel('Percentage of timeline lost to spikes (scan is spike-free!)')
-            axhist[2].legend(framealpha=1)
-
-        fighist.suptitle('Spike detection histograms for scan %i'%scannum)
-        
         # =====================
         # Interactive plot
         # =====================
@@ -289,10 +226,10 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
         msg += 'Enter choice: '
 
         # Create figure
-        fig, ax = plt.subplots(2, 2, figsize=(20, 10))
+        fig, ax = plt.subplots(2, 2, figsize=(15, 8))
 
-        usedtones = np.arange(1, nused+1)
-        testtone = 1
+        usedtones = list(data.tone_dict.keys())
+        testtone = usedtones[0]
 
         while True:
             # define data array tone index
@@ -326,9 +263,6 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             despiked_windows_speed_std_testtone = windows_speed_std[:, toneidx].copy()
             despiked_windows_speed_std_testtone[windowflag[:, toneidx]] = np.nan
 
-            # testplot
-            
-
             # IQBT
             ax[0, 0].plot(data.Data.real[:, toneidx], data.Data.imag[:, toneidx], label='Spiked IQBT')
             ax[0, 0].plot(despiked_Z_testtone.real, despiked_Z_testtone.imag, label='Spike-masked IQBT', zorder=1e9)
@@ -342,6 +276,10 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             ax[0, 1].plot(auxtime, despiked_speed_testtone)
             ax[0, 1].axhline(tone_floor_speedMEANs[toneidx], c='green', lw=2, label='Average spike-free tone speed')
             ax[0, 1].axhline(tone_thresholds_speed[toneidx], c='red', lw=2, label='Mean + %s Sigma'%sig)
+            try:
+                ax[0, 1].set_ylim(0, tone_thresholds_speed[toneidx]*1.5)
+            except:
+                pass
             ax[0, 1].set_xlabel('Time (s)')
             ax[0, 1].set_ylabel('IQ-plane speed (mV/s)')
             ax[0, 1].legend(framealpha=1)
@@ -364,19 +302,20 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
             ax[1, 1].set_xlabel('Time (s)')
             ax[1, 1].set_ylabel('Windowed IQBT-speed STD (mV/s)')
 
-            fig.suptitle('Spike detection for test tone %i in scan %i'%(testtone, scannum))
+            fig.suptitle('Spike/instability detection for tone %i in scan %i'%(testtone, scannum))
 
             plt.show()
 
             userInput = raw_input(msg)
             userInput=str(userInput)
             if userInput == '':
-                testtone += 1
+                current = np.where(np.array(usedtones)==testtone)[0][0]
+                testtone = usedtones[current+1]
             elif userInput == '-':
-                testtone -=1
+                current = np.where(np.array(usedtones)==testtone)[0][0]
+                testtone = usedtones[current-1]
             elif userInput == 'q':
                 plt.close(fig)
-                plt.close(fighist)
                 break
             else:    
                 try: 
@@ -386,8 +325,7 @@ def findspikes_IQBT(windowtime=10., sig=4.5, expspikefree=75., crosstones=10., i
                     continue
 
             if testtone not in usedtones:
-                print('Resulting tone out of bounds. Going back to tone 1.')
-                testtone = 1
+                print('Tone %s not in used tones.'%testtone)
 
             ax[0, 0].cla()
             ax[0, 1].cla()
