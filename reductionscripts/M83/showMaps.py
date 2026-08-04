@@ -9,7 +9,8 @@
 
 # --- Plotting parameters ---
 iter      = 1               # Which iteration of the reduction to show (usual 1)
-show      = 'sig'           # Show Signal-SKY (sig), Noise (rms), or SNR (snr)
+show      = 'sig'           # Show Signal-SKY (sig), Noise (rms), SNR (snr),
+                            # or coverage (cov) map.
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -36,8 +37,8 @@ import copy as copy
 
 if iter < 1 or iter > 3:
     raise ValueError("iter must be 1, 2, or 3.")
-if show not in ['sig', 'rms', 'snr']:
-    raise ValueError("show must be 'sig', 'rms', or 'snr'.")
+if show not in ['sig', 'rms', 'snr', 'cov']:
+    raise ValueError("show must be 'sig', 'rms', 'snr', or 'cov'.")
 
 # NO SMOOTHING
 smoothby_arcsec = 0.
@@ -80,8 +81,17 @@ with warnings.catch_warnings():
             warn('File found, but could not open, Skipping...')
             print('')
             continue
-    
-        if show == 'sig':
+
+        if show == 'cov':
+            info('Displaying Coverage map...')
+            covMap = copy.deepcopy(m)  # Signal
+            covMap.Data = covMap.Coverage  # Coverage = C
+            caption = '%s - %s - Iter%i - Scan %i | Coverage (no smoothing)'%(source, fe, iter, scan)
+            covMap.display(aspect=1, caption=caption)
+            del m  # free memory
+            del covMap  # free memory
+
+        elif show == 'sig':
             info('Displaying Signal map...')
             rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
             mediannoise = np.nanmedian(rmsArray)
