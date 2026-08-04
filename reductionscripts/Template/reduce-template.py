@@ -11,10 +11,8 @@
 observer = True             # True or False
 
 # PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
-# variable in this reduction script (only missing bad scans are reduced). Then assess with
-# "showMaps.py" (see comments therein) which scans to actually discard via filling the
-# "badscans" list again on their own criteria. 
-# Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
+# variable in this reduction script. Then assess with "showMaps.py" (see comments therein)
+# which scans to actually discard via filling the "badscans" list.
 
 # --- Source and map parameters ---
 source      = 'SrcName'     # As in observing logs
@@ -45,7 +43,7 @@ writeSummary    = False     # Write summary of reductions or not. This is mostly
 # If scans is empty, automatically retrieves all scans of the source
 # specified above from the obslogs directory below
 scans = []
-obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
+obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
 verbose = False             # print scan selection criteria from ObsLogs if scans=[]
 # ===============================================
 # ============== END OF USER INUPUT =============
@@ -393,7 +391,8 @@ if obslogsdir == '~/obslogs':
     if projectidx != None:
         obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
     else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
+        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from:\n%s"%currdir\
+                         + "\nPlease manually set obslogsdir variable in reduction script to the correct path.")
 
 if len(scans) == 0 and not os.path.exists(obslogsdir):
     raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
@@ -728,8 +727,8 @@ with warnings.catch_warnings():
         radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         y_indices, x_indices = np.indices(ms.Data.shape)
-        x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
-        y_center = ms.WCS['CRPIX2'] + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
+        x_center = ms.WCS['CRPIX1']# + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2']# + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
         aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
