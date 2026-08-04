@@ -37,8 +37,8 @@ import copy as copy
 
 if iter < 1 or iter > 3:
     raise ValueError("iter must be 1, 2, or 3.")
-if show not in ['sig', 'rms', 'snr']:
-    raise ValueError("show must be 'sig', 'rms', or 'snr'.")
+if show not in ['sig', 'rms', 'snr', 'cov']:
+    raise ValueError("show must be 'sig', 'rms', 'snr', or 'cov'.")
 
 # NO SMOOTHING
 smoothby_arcsec = 0.
