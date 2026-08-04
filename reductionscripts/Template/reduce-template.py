@@ -265,12 +265,12 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
 
 # sort scans
 scans.sort()
+badscans.sort()
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
-        info('Scan %i in bad scans manually removed'%badscan)
 
 # Check removing bads did not leave scans empty
 if len(scans) == 0:
@@ -331,6 +331,10 @@ Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], s
                            flagJumps,
                            '%.1f arcsec (default)'%(smoothby_arcsec) if smoothing=='default' else '%.1f arcsec'%(smoothby_arcsec),
                            len(scans)))
+if len(badscans) > 0:
+    info('Bad scans removed:')
+    print('         %s'%badscans)
+
 
 # ===========================
 # Beginning of reduction loop
