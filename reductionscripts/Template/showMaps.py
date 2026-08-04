@@ -91,7 +91,7 @@ with warnings.catch_warnings():
             del m  # free memory
             del covMap  # free memory
 
-        if show == 'sig':
+        elif show == 'sig':
             info('Displaying Signal map...')
             rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
             mediannoise = np.nanmedian(rmsArray)
