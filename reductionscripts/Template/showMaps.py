@@ -9,7 +9,8 @@
 
 # --- Plotting parameters ---
 iter      = 1               # Which iteration of the reduction to show (usual 1)
-show      = 'sig'           # Show Signal-SKY (sig), Noise (rms), or SNR (snr)
+show      = 'sig'           # Show Signal-SKY (sig), Noise (rms), SNR (snr),
+                            # or coverage (cov) map.
 
 # ==============================
 # ===== END OF USER INUPUT =====
@@ -80,7 +81,16 @@ with warnings.catch_warnings():
             warn('File found, but could not open, Skipping...')
             print('')
             continue
-    
+
+        if show == 'cov':
+            info('Displaying Coverage map...')
+            covMap = copy.deepcopy(m)  # Signal
+            covMap.Data = covMap.Coverage  # Coverage = C
+            caption = '%s - %s - Iter%i - Scan %i | Coverage (no smoothing)'%(source, fe, iter, scan)
+            covMap.display(aspect=1, caption=caption)
+            del m  # free memory
+            del covMap  # free memory
+
         if show == 'sig':
             info('Displaying Signal map...')
             rmsArray = np.where(m.Weight > 0.0, 1.0 / np.sqrt(m.Weight), np.NaN)
