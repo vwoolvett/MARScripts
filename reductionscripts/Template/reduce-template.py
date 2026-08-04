@@ -1,66 +1,56 @@
 # ===============================================
-# =========== BEGINNING OF USER INPUT ===========   Last edited by: VWO @29.07.2026
+# =========== BEGINNING OF USER INPUT ===========   Last edited by: VWO 04.08.2026
 # ===============================================
-# NOTE: for exceptional cases, additional flagging is needed. 
-# This is executed after the "redscience" function call (ctrl+f here).
-# Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
 
 # ------ OBSERVER or PI mode -------
-# If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
-# Prompts upon running script as observer give more information on what to do.
-observer = True             # True or False
-
-# PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
-# variable in this reduction script. Then assess with "showMaps.py" (see comments therein)
-# which scans to actually discard via filling the "badscans" list.
+observer = True             # True or False *NOTE1*
 
 # --- Source and map parameters ---
-source      = 'SrcName'     # As in observing logs
+source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
 center      = [0, 0]        # Center of map in CHOSEN COORDINATES in deg
 sizex       = 1.0           # Size of map in deg for X direction
 sizey       = 1.0           # Size of map in deg for Y direction
 padding     = 0.3           # Padding around the map in deg for grid
-smoothing   = 'default'     # By how much to smooth final iteration maps.
-                            # Default 8. arcsec for LFA and 3.7 for HFA.
-                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2
+smoothing   = 'default'     # *NOTE2* By how much to smooth final iteration maps 
 
 # ----- Reduction parameters -----
 badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
-clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
-                            # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
-flagJumps       = True      # Flag jumps/spikes in the data:
-                            # recommended to set to True while we figure out what the spikes are...
-doPlot          = True      # Display co-added map after each scan is included. If False, only
-                            # final coadded map per iteration will be displayed.
-writefits       = True      # Write FITS of final iteration maps. True or False.
-correctbeam     = True      # Whether to correct native AMKID beam to nominal value or leave as 1.22 lambda / D
+clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5) from noise map
+flagJumps       = True      # Flag jumps/spikes in the data: recommended True for LFA.
+doPlot          = True      # Display co-added map after each scan or final only
+writefits       = True      # Write FITS of final iteration maps.
+correctbeam     = True      # Correct native AMKID beam to nominal: recommended True.
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 
-# ----- Scans (usually automatic) ------
-# If scans is empty, automatically retrieves all scans of the source
-# specified above from the obslogs directory below
-scans = []
-obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
-verbose = False             # print scan selection criteria from ObsLogs if scans=[]
+# ----- Scans (automatic at APEX) ------
+scans       = []            # *NOTE4*
+obslogsdir  = '~/obslogs'   # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
+verbose     = False         # print scan selection criteria from ObsLogs if scans=[]
+
 # ===============================================
 # ============== END OF USER INUPUT =============
 # ===============================================
 
+# *NOTE1*   If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
+#           Prompts upon running script as observer give more information on what to do. PIs should
+#           set to observer = False and re-reduce Iteration 1 with an empty "badscans" list variable
+#           in this reduction script; then assess with "showMaps.py" which scans to actually discard.
+#           For exceptional cases, additional flagging is needed, which can be executed after the
+#           "redscience" function call (ctrl+f here). Consult with Axel or Vicente if this applies.
 
+# *NOTE2*   The default smoothing is 8. and 3.6 arcsec for LFA and HFA, respectively.
+#           The arrays have native beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
+#           If a target beam size is requested by the PI, consider:
+#           smoothing^2 = targetbeam^2 - nativebeam^2
 
+# *NOTE3*   The image is masked where noisemap > clip * mediannoise (clip>=1.5), or else
+#           (clip==-1) no clipping.
 
-
-
-
-
-
-
-
-
-
+# *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of the source
+#           specified above from the specified obslogs directory
 
 
 
