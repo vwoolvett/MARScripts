@@ -36,7 +36,7 @@ flagJumps       = True      # Flag jumps/spikes in the data:
 doPlot          = True      # Display co-added map after each scan is included. If False, only
                             # final coadded map per iteration will be displayed.
 writefits       = True      # Write FITS of final iteration maps. True or False.
-correctbeam     = True      # Whether to correct beam bookkeeping in final iteration maps
+correctbeam     = True      # Whether to correct native AMKID beam to nominal value or leave as 1.22 lambda / D
 writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 
 # ----- Scans (usually automatic) ------
@@ -304,10 +304,11 @@ if writefits and os.path.exists("FITSfiles") == False:
     os.makedirs("FITSfiles")
 
 if smoothing == 'default':
+    # Default is 23% of beam in area
     if fe == 'LFA':
-        smoothby_arcsec = 8.
+        smoothby_arcsec = 8.0  # sqrt(0.23)*16.7"
     else:
-        smoothby_arcsec = 3.7
+        smoothby_arcsec = 3.6  # sqrt(0.23)*7.5"
 else:
     smoothby_arcsec = smoothing
 
