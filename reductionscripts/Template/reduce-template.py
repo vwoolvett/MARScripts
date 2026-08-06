@@ -1,71 +1,75 @@
-# ===============================================
-# =========== BEGINNING OF USER INPUT ===========   Last edited by: VWO 04.08.2026
-# ===============================================
+# =============================================================================
+# ========================== BEGINNING OF USER INPUT ==========================
+# =============================================================================
+# Last edited by: VWO 06.08.2026
 
-# ------ OBSERVER or PI mode -------
-observer = True             # True or False *NOTE1*
+# ------------------------- OBSERVER or PI mode -------------------------------
+observer = True             # *NOTE1* True or False 
 
 # --- Source and map parameters ---
 source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center      = [0, 0]        # Center of map in CHOSEN COORDINATES in deg
-sizex       = 1.0           # Size of map in deg for X direction
-sizey       = 1.0           # Size of map in deg for Y direction
-padding     = 0.3           # Padding around the map in deg for grid
-smoothing   = 'default'     # *NOTE2* By how much to smooth final iteration maps 
+center      = [0, 0]        # Center of map in DEG for **CHOSEN COORDINATES**
+sizex       = 1.0           # Size of map in DEG for X direction
+sizey       = 1.0           # Size of map in DEG for Y direction
+padding     = 0.3           # Padding around the map in DEG for the grid
+smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps 
 
-# ----- Reduction parameters -----
+# ------------------------- Reduction parameters ------------------------------
 badscans        = []        # Manually exclude bad scans if needed
-niters          = 1         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
-clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5) from noise map
-flagJumps       = True      # Flag jumps/spikes in the data: recommended True for LFA.
-doPlot          = True      # Display co-added map after each scan or final only
+niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
+clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5 *sigma)
+flagJumps       = True      # Flag spikes in the data: recomm. True for LFA
+doPlot          = True      # Display coadded map after each scan or final only
 writefits       = True      # Write FITS of final iteration maps.
-correctbeam     = True      # Correct native AMKID beam to nominal: recommended True.
-writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
+correctbeam     = True      # Correct AMKID beam to nominal: recomm. True
+writeSummary    = False     # Write summary of reductions (mostly debugging)
 
-# ----- Scans (automatic at APEX) ------
+# ------------------------- Scans (automatic at APEX) -------------------------
 scans       = []            # *NOTE4*
-obslogsdir  = '~/obslogs'   # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS'
-verbose     = False         # print scan selection criteria from ObsLogs if scans=[]
+obslogsdir  = '~/obslogs'   # at MPIfR: '/apex-archive/obslogs/PROJECT-IN-CAPS'
+verbose     = False         # print ObsLog scan selection criteria (debugging)
 
-# ===============================================
-# ============== END OF USER INUPUT =============
-# ===============================================
+# ------------------------- NOTES ---------------------------------------------
+# *NOTE1*   If you are an observer, leave as True to assess AMKID performance
+#           and/or calib at scan reduction. Prompts upon running script as 
+#           observer give more information on what to do. PIs should set to 
+#           observer = False and re-reduce Iteration 1 with an empty "badscans"
+#           list variable in this reduction script; then assess with the script
+#           "showMaps.py" which scans to actually discard.  For exceptional
+#           cases, additional flagging is needed. Consult with Axel or Vicente
+#           if this applies to you.
 
-# *NOTE1*   If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
-#           Prompts upon running script as observer give more information on what to do. PIs should
-#           set to observer = False and re-reduce Iteration 1 with an empty "badscans" list variable
-#           in this reduction script; then assess with "showMaps.py" which scans to actually discard.
-#           For exceptional cases, additional flagging is needed, which can be executed after the
-#           "redscience" function call (ctrl+f here). Consult with Axel or Vicente if this applies.
-
-# *NOTE2*   The default smoothing is 8. and 3.6 arcsec for LFA and HFA, respectively.
-#           The arrays have native beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
+# *NOTE2*   The arrays have beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
+#           The default smoothings are 8.0 arcsec (LFA) and 3.6 arcsec (HFA).
 #           If a target beam size is requested by the PI, consider:
 #           smoothing^2 = targetbeam^2 - nativebeam^2
 
-# *NOTE3*   The image is masked where noisemap > clip * mediannoise (clip>=1.5), or else
-#           (clip==-1) no clipping.
+# *NOTE3*   The image is masked where noisemap > clip*mediannoise (clip>=1.5), 
+#           or else (clip==-1) no clipping.
 
-# *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of the source
-#           specified above from the specified obslogs directory
+# *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of
+#           the source specified above from the specified obslogs directory.
+#           If not reducing at APEX, you must manually input the obslogs
+#           directory and likely set the (raw)data input directory via the
+#           "indir('directory')" function in mars.
+
+# =============================================================================
+# ============================= END OF USER INPUT =============================
+# =============================================================================
 
 
 
 
 
 
-# ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
-# NOTE: VWO: BoA smoothBy smooths weights with the kernel, but weights are 1 / rms^2 which is
-# a non-linear scale. All smoothing should be done as:
-# Sky_smoothed = Kernel * Sky
-# Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
-# Coverage_smoothed = Kernel * Coverage
-# NOTE 2: this is now implemented in the boacorrections.py module as __smoothBy() and __writeFits().
 
-# define the good functions :)
+
+
+# =============================================================================
+# === REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ====
+# =============================================================================
 def findSciTargetScans(source, obslogsdir, fe, verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
@@ -76,7 +80,8 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
     files = os.listdir(obslogsdir)
     c=0
     for file in files:
-        fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
+        fullfilename = obslogsdir + file if obslogsdir[-1]=='/'\
+                                         else obslogsdir + '/' + file
         f = open(fullfilename,'r')
         lines = f.readlines()
         index = 0
@@ -133,25 +138,34 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                     if key == 'Scan status':
                         status = (line[4:-6].ljust(12) + ' | ')     # 7
 
-                    if key == 'Comment':                            # last, build message    
-                        comment = (line[4:-6])[0:85]                # added later         
-                        message += scan + src + scantype + mode + thisfe + command + duration + status
+                    if key == 'Comment':                            # last
+                        comment = (line[4:-6])[0:85]       
+                        message += scan + src + scantype + mode + thisfe +\
+                                   command + duration + status
 
                 start = False
 
                 if source in src:
                     if  '-999' not in duration:
-                        #if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
-                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
+                        #if 'MAP' in scantype and 'OTF' in mode\
+                        #    and fe in thisfe and 'OK' in status:
+                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | '
+                        #    message += comment
                         #    scanlist.append(scan_int)
-                        if 'calibrate(' not in command and 'beamscan(' not in command and 'go(' not in command\
-                            and fe in thisfe and 'OK' in status:
-                            message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
+                        if 'calibrate(' not in command\
+                            and 'beamscan(' not in command\
+                            and 'go(' not in command\
+                            and fe in thisfe\
+                            and 'OK' in status:
+                            message += 'SCAN CONSIDERED'.ljust(15) + ' | '
+                            message += comment
                             scanlist.append(scan_int)
                         else:
-                            message += 'SCAN DISCARDED'.ljust(15) + ' | ' + comment
+                            message += 'SCAN DISCARDED'.ljust(15) + ' | '
+                            message += comment
                     else:
-                        message += 'SCAN ONGOING'.ljust(15) + ' | ' + comment
+                        message += 'SCAN ONGOING'.ljust(15) + ' | '
+                        message += comment
                     if verbose:
                         print(message)
 
@@ -162,7 +176,8 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
             print(keys)
             c+=1
     scanlist.sort()
-    info("Number of valid scans on source %s (%s): %i"%(source, fe, len(scanlist)))
+    info("Number of valid scans on source %s (%s): %i"\
+         %(source, fe, len(scanlist)))
     return scanlist
 
 # variable checks
@@ -181,10 +196,12 @@ if sizex + 2*padding > 360 or sizey + 2*padding > 180:
 # --- OBSERVER OVERRIDE ---
 # -------------------------
 if observer == True:
-    doPlot = False          # Observer wants to check map of scan at reduction, not coadded until that scan.
+    doPlot = False          # Observer wants to check map of scan at reduction,
+                            # not coadded until that scan.
                             # That is implemented separately below.
     writeSummary = False    # No need.
-    niters = 1              # Source model is the most accurate when Iteration 1 scans are complete.
+    niters = 1              # Source model is the most accurate when Iter1scans
+                            # are complete. Also, saves time and disk space.
     clip = -1               # full map, no clipping
     flagJumps = True        # be as conservative as possible
     writefits = False       # save time, don't clog directory
@@ -199,15 +216,19 @@ smallerY = center[1] - sizey/2 - padding
 
 # These can't happen
 if biggerY > 90:
-    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y coordinate > +90 degrees! are you sure this is intended?')
+    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
+                     'coordinate > +90 degrees! (comment this if intended)')
 if smallerY < -90:
-    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y coordinate < -90 degrees! are you sure this is intended?')
+    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
+                     'coordinate < -90 degrees! (comment this if intended)')
 
 # Check X reframing.
 # Example with an X width of 10 deg:
 # Case 1: left = 150, right = 140 is left untouched
-# Case 1: left = 185, right = 175 -> frame was 0:360, now left = -175, right = 175
-# Case 3: left = 200, right = 190 -> frame was 0:360, now left = -160, right = -170
+# Case 2: left = 185, right = 175 
+#           -> frame was 0:360, now left = -175, right = 175
+# Case 3: left = 200, right = 190
+#           -> frame was 0:360, now left = -160, right = -170
 # Case 4 : same as before but one of the boundaries ended up < -180: add 360
 sysreframe = False
 if biggerX > 180 and system != 'EQ':
@@ -245,23 +266,29 @@ if obslogsdir == '~/obslogs':
     projectidx = None
     for i in range(len(splitted)):
         # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
+        if len(splitted[i].split('.')) == 2\
+            and len(splitted[i].split('-')) == 4:
             projectidx = i
     if projectidx != None:
         obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
     else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from:\n%s"%currdir\
-                         + "\nPlease manually set obslogsdir variable in reduction script to the correct path.")
+        raise ValueError("STOPPING SCRIPT: Project code could not be "\
+                         "extracted from:\n%s"%currdir + \
+                         "\nPlease manually set obslogsdir variable in "+\
+                         "reduction script to the correct path.")
 
 if len(scans) == 0 and not os.path.exists(obslogsdir):
-    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
+    raise ValueError("STOPPING SCRIPT: Either enter scans or an existing "+\
+                     "obslogs directory...")
 
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe, verbose=verbose)
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
+                               verbose=verbose)
     if len(scans) == 0:
-        raise ValueError('No scans of source %s (%s) found in ObsLogs directory:\n%s'%(source, fe, obslogsdir))
+        raise ValueError("No scans of source %s (%s) "%(source, fe) +\
+                         "found in ObsLogs directory:\n%s"%(obslogsdir))
 
 # sort scans
 scans.sort()
@@ -308,6 +335,8 @@ smoothby_deg = smoothby_arcsec / 3600.
 # initialize MJD list for all scans
 mymjdrefs = []
 
+
+# SUMMARY PRINT
 print('')
 print('''\
 =====================
@@ -325,11 +354,13 @@ Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
 Smoothing:          %s
-Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], sizex, sizey,
-                           padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
-                           clip if clip != -1 else 'No clipping',
-                           flagJumps,
-                           '%.1f arcsec (default)'%(smoothby_arcsec) if smoothing=='default' else '%.1f arcsec'%(smoothby_arcsec),
+Number of scans     %s'''%(observer, source, fe, system,
+                           center[0], center[1], sizex, sizey, padding,
+                           xsize[0], xsize[1], ysize[0], ysize[1], niters,
+                           clip if clip != -1 else 'No clipping', flagJumps,
+                           '%.1f arcsec (default)'%(smoothby_arcsec) \
+                           if smoothing=='default' \
+                           else '%.1f arcsec'%(smoothby_arcsec),
                            len(scans)))
 if len(badscans) > 0:
     info('Bad scans removed:')
@@ -339,6 +370,7 @@ if len(badscans) > 0:
 # ===========================
 # Beginning of reduction loop
 # ===========================
+# impossible to keep PEP8 from here onward...
 if True:  # Just to indent
     for iter in range(1, niters+1):
         print('')
@@ -402,13 +434,10 @@ if True:  # Just to indent
                 info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
-                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
-                           correctbeam=correctbeam, flagJumps=flagJumps, writeSummary=writeSummary)
-                # NOTE: redweak's summary is everything about the timelines, nothing about map.
-                # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
-                # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
-                # and pointing corrections in smoothed maps. This is fine.
-                # NOTE 3: No longer using redweak. New function redscience implemented.
+                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel,
+                           subtract=subtract, extremeFilter=False,
+                           correctbeam=correctbeam, flagJumps=flagJumps,
+                           writeSummary=writeSummary)
 
                 # If we CTRL+C while in reduction, sometimes map is written and it is empty.
                 # this is just a safe check to see if reduction finished, otherwise stop script.
@@ -436,11 +465,9 @@ if True:  # Just to indent
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
-                mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize, limitsZ=[-0.8,1.5], noPlot=True)
-                # NOTE: this has a smooth parameter, but is default 0
-                # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
-                # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap.
-
+                mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize,
+                        limitsZ=[-0.8,1.5], noPlot=True)
+                
                 # Add MJD of middle and integration time to dumped map
                 data.Map.MJDref = (data.ScanParam.MJD[-1] + data.ScanParam.MJD[0]) / 2  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
@@ -590,8 +617,8 @@ if True:  # Just to indent
         radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         x_indices, y_indices = np.indices(ms.Data.shape)
-        x_center = ms.WCS['CRPIX1']# + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
-        y_center = ms.WCS['CRPIX2']# + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
+        x_center = ms.WCS['CRPIX1']
+        y_center = ms.WCS['CRPIX2']
         aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
