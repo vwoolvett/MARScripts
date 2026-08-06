@@ -354,7 +354,7 @@ Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
 Smoothing:          %s
-Number of scans     %s'''%(observer, source, fe, system,
+Number of scans     %s (valid)'''%(observer, source, fe, system,
                            center[0], center[1], sizex, sizey, padding,
                            xsize[0], xsize[1], ysize[0], ysize[1], niters,
                            clip if clip != -1 else 'No clipping', flagJumps,
