@@ -1,63 +1,55 @@
-# =============================================================================
-# ========================== BEGINNING OF USER INPUT ==========================
-# =============================================================================
-# Last edited by: VWO 06.08.2026
+# ===============================================
+# =========== BEGINNING OF USER INPUT ===========   Last edited by: VWO @21.07.2026
+# ===============================================
+# NOTE: for exceptional cases, additional flagging is needed. 
+# This is executed after the "redscience" function call (ctrl+f here).
+# Consult with Axel or Vicente if you see anomalies in data after reducing as PI.
 
-# ------------------------- OBSERVER or PI mode -------------------------------
-observer = False            # *NOTE1* True or False 
+# ------ OBSERVER or PI mode -------
+# If you are an observer, leave as True to assess AMKID performance/calib at scan reduction.
+# Prompts upon running script as observer give more information on what to do.
+observer = False            # True or False -> project finished
+
+# PIs should set to observer = False and re-reduce Iteration 1 with an empty "badscans" list
+# variable in this reduction script (only missing bad scans are reduced). Then assess with
+# "showMaps.py" (see comments therein) which scans to actually discard via filling the
+# "badscans" list again on their own criteria. 
+# Afterwards, run reduction script until Iteration 2 or 3 depending on science goals.
 
 # --- Source and map parameters ---
-source      = 'OG259'       # As in observing logs and source catalog
+source      = 'OG259'       # As in observing logs
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'GAL'         # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center      = [259.3, -1.4] # Center of map in DEG for **CHOSEN COORDINATES**
-sizex       = 1.5           # Size of map in DEG for X direction
-sizey       = 1.5           # Size of map in DEG for Y direction
-padding     = 2.42*0.25     # Padding around the map in DEG for the grid
-smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps 
+center      = [259.3, -1.4] # Center of map in CHOSEN COORDINATES in deg
+sizex       = 1.5           # Size of map in deg for X direction
+sizey       = 1.5           # Size of map in deg for Y direction
+padding     = 2.42*0.25     # Padding around the map in deg for grid
+smoothing   = 'default'     # By how much to smooth final iteration maps.
+                            # Default 8. arcsec for LFA and 3.7 for HFA.
+                            # Consider nativebeam^2 + smoothing^2 = targetbeam^2
 
-# ------------------------- Reduction parameters ------------------------------
-badscans        = [27979, 27991, 28217, 28498, 34234, 34849]        # Manually exclude bad scans if needed
-niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
-clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5 *sigma)
-flagJumps       = True      # Flag spikes in the data: recomm. True for LFA
-doPlot          = True      # Display coadded map after each scan or final only
-writefits       = True      # Write FITS of final iteration maps.
-correctbeam     = True      # Correct AMKID beam to nominal: recomm. True
-writeSummary    = False     # Write summary of reductions (mostly debugging)
+# ----- Reduction parameters -----
+badscans        = [27979, 27991, 28217, 28498, 34234, 34849]  # Manually exclude bad scans if needed  
+niters          = 3         # Number of iterations to run, 1 to 3 (recommended: 3 + PLANCK data)
+clip            = -1        # Sigma clipping level (-1 or >=1.5) from noise map: image masked where 
+                            # noisemap > clip * mediannoise (clip>=1.5), or else (clip==-1) no clipping.
+flagJumps       = True      # Flag jumps/spikes in the data:
+                            # recommended to set to True while we figure out what the spikes are...
+doPlot          = False     # Display co-added map after each scan is included. If False, only
+                            # final coadded map per iteration will be displayed.
+writefits       = True      # Write FITS of final iteration maps. True or False.
+correctbeam     = False     # Whether to correct beam bookkeeping in final iteration maps
+writeSummary    = False     # Write summary of reductions or not. This is mostly debugging.
 
-# ------------------------- Scans (automatic at APEX) -------------------------
-scans       = []            # *NOTE4*
-obslogsdir  = '~/obslogs'   # at MPIfR: '/apex-archive/obslogs/PROJECT-IN-CAPS'
-verbose     = False         # print ObsLog scan selection criteria (debugging)
-
-# ------------------------- NOTES ---------------------------------------------
-# *NOTE1*   If you are an observer, leave as True to assess AMKID performance
-#           and/or calib at scan reduction. Prompts upon running script as 
-#           observer give more information on what to do. PIs should set to 
-#           observer = False and re-reduce Iteration 1 with an empty "badscans"
-#           list variable in this reduction script; then assess with the script
-#           "showMaps.py" which scans to actually discard.  For exceptional
-#           cases, additional flagging is needed. Consult with Axel or Vicente
-#           if this applies to you.
-
-# *NOTE2*   The arrays have beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
-#           The default smoothings are 8.0 arcsec (LFA) and 3.6 arcsec (HFA).
-#           If a target beam size is requested by the PI, consider:
-#           smoothing^2 = targetbeam^2 - nativebeam^2
-
-# *NOTE3*   The image is masked where noisemap > clip*mediannoise (clip>=1.5), 
-#           or else (clip==-1) no clipping.
-
-# *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of
-#           the source specified above from the specified obslogs directory.
-#           If not reducing at APEX, you must manually input the obslogs
-#           directory and likely set the (raw)data input directory via the
-#           "indir('directory')" function in mars.
-
-# =============================================================================
-# ============================= END OF USER INPUT =============================
-# =============================================================================
+# ----- Scans (usually automatic) ------
+# If scans is empty, automatically retrieves all scans of the source
+# specified above from the obslogs directory below
+scans = []
+obslogsdir = '~/obslogs'    # at MPIfR: '/apex-archive/obslogs/M-PROJECT.CODE-IN-CAPS/obslogs'
+verbose = False             # print scan selection criteria from ObsLogs if scans=[]
+# ===============================================
+# ============== END OF USER INUPUT =============
+# ===============================================
 
 
 
@@ -67,9 +59,27 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 
 
 
-# =============================================================================
-# === REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ====
-# =============================================================================
+
+
+
+
+
+
+
+
+# ===== REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING =====
+# NOTE: VWO: BoA smoothBy smooths weights with the kernel, but weights are 1 / rms^2 which is
+# a non-linear scale. All smoothing should be done as:
+# Sky_smoothed = Kernel * Sky
+# Weights_smoothed = 1 / Variance_smoothed | with Variance_smoothed = Kernel^2 * Variance
+# Coverage_smoothed = Kernel * Coverage
+
+import warnings
+import copy as copy
+import BoaMapping as BOAMAP
+from mars.fortran import fMap
+
+# define the good functions :)
 def findSciTargetScans(source, obslogsdir, fe, verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
@@ -80,8 +90,7 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
     files = os.listdir(obslogsdir)
     c=0
     for file in files:
-        fullfilename = obslogsdir + file if obslogsdir[-1]=='/'\
-                                         else obslogsdir + '/' + file
+        fullfilename = obslogsdir + file if obslogsdir[-1]=='/' else obslogsdir + '/' + file
         f = open(fullfilename,'r')
         lines = f.readlines()
         index = 0
@@ -138,34 +147,25 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
                     if key == 'Scan status':
                         status = (line[4:-6].ljust(12) + ' | ')     # 7
 
-                    if key == 'Comment':                            # last
-                        comment = (line[4:-6])[0:85]       
-                        message += scan + src + scantype + mode + thisfe +\
-                                   command + duration + status
+                    if key == 'Comment':                            # last, build message    
+                        comment = (line[4:-6])[0:85]                # added later         
+                        message += scan + src + scantype + mode + thisfe + command + duration + status
 
                 start = False
 
                 if source in src:
                     if  '-999' not in duration:
-                        #if 'MAP' in scantype and 'OTF' in mode\
-                        #    and fe in thisfe and 'OK' in status:
-                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | '
-                        #    message += comment
+                        #if 'MAP' in scantype and 'OTF' in mode and fe in thisfe and 'OK' in status:
+                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                         #    scanlist.append(scan_int)
-                        if 'calibrate(' not in command\
-                            and 'beamscan(' not in command\
-                            and 'go(' not in command\
-                            and fe in thisfe\
-                            and 'OK' in status:
-                            message += 'SCAN CONSIDERED'.ljust(15) + ' | '
-                            message += comment
+                        if 'calibrate(' not in command and 'beamscan(' not in command and 'go(' not in command\
+                            and fe in thisfe and 'OK' in status:
+                            message += 'SCAN CONSIDERED'.ljust(15) + ' | ' + comment
                             scanlist.append(scan_int)
                         else:
-                            message += 'SCAN DISCARDED'.ljust(15) + ' | '
-                            message += comment
+                            message += 'SCAN DISCARDED'.ljust(15) + ' | ' + comment
                     else:
-                        message += 'SCAN ONGOING'.ljust(15) + ' | '
-                        message += comment
+                        message += 'SCAN ONGOING'.ljust(15) + ' | ' + comment
                     if verbose:
                         print(message)
 
@@ -176,9 +176,137 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
             print(keys)
             c+=1
     scanlist.sort()
-    info("Number of valid scans on source %s (%s): %i"\
-         %(source, fe, len(scanlist)))
+    info("Number of valid scans on source %s (%s): %i"%(source, fe, len(scanlist)))
     return scanlist
+
+
+
+def auxsmoothby(m, Size):
+    '''
+    BoA-like smoothing but with correct variance propagation.
+
+    - Data: convolved with K (same as BoA)
+    - Weight: propagated via variance (K^2)
+    - Coverage: convolved with K (same as BoA)
+    '''
+    # Build kernel (not normalized)
+    pixsize = abs(m.WCS['CDELT2'])
+    K0 = BOAMAP.Kernel(pixsize, Size).Data.astype(float)
+
+    # Normalize kernel
+    K = K0 / np.sum(K0)
+
+    # Create elementwise-squared kernel for variance
+    K2 = K**2
+
+    # Smooth INTENSITY (same as BoA)
+    #   I' = K * I     =     (K0/sum(K0_i)) * I
+    # and ksmooth does
+    #   I' = (K * I) / sum(K_i), but since sum(K_i)=1
+    # then ksmooth does effectively
+    #   I' = K * I, all good
+    I1 = fMap.ksmooth(m.Data, K)
+
+    # Correct variance propagation for weights:
+    #   V' = K2 * V     =     (K0/sum(K0_i))^2 * V
+    # but ksmooth does
+    #   V' = (K2 * V) / sum(K2_i), and now sum(K2_i)!=1
+    # then ksmooth does effectively
+    #   V' = K2/sum(K2_i) * V
+    # so an additional multiplication by sum(K2_i) is needed
+    # to get back from ksmooth:
+    #   V' = K2/sum(K2_i) * V * sum(K2_i) = K2 * V
+    V0 = np.where(m.Weight > 0.0, 1.0 / m.Weight, np.NaN)
+    V1 = fMap.ksmooth(V0, K2) * np.sum(K2)
+
+    # Smooth COVERAGE (same as BoA)
+    C1 = fMap.ksmooth(m.Coverage, K)
+    
+    # new scale per beam for Jy/beam units
+    newbeam = np.sqrt(m.BeamSize**2 + Size**2)
+    scale = (newbeam**2 / m.BeamSize**2)
+    I1 *= scale  # now in Jy/newbeam
+    V1 *= scale**2  # now in Jy^2/newbeam^2
+
+    # create new weight map
+    W1 = np.where(V1 > 0.0, 1.0 / V1, 0.0)
+
+    # Update map with correct Jy/beam scale
+    m.Data = I1
+    m.Weight = W1
+    m.Coverage = C1
+    m.BeamSize = newbeam
+
+
+
+def auxwriteFits(data=None,outfile='boaMap.fits',overwrite=0,limitsX=[],limitsY=[],intensityUnit="Jy/beam",clip=-1):
+    """
+    DES: store the current map (2D array with WCS info) to a FITS file
+    INP: (str)   outfile: output file name (default boaMap.fits)
+         (bool) overwrite: overwrite existing file -
+                          default = 0: do not overwrite existing file
+         (f list) limitsX/Y: optional map limits (in world coordinates)
+         (string) intensityUnit: optional unit of the intensity (default: "Jy/beam")
+    """
+    from mars import BoaFits
+
+    if os.path.exists(outfile):
+        if not overwrite:
+            print('File %s exists' % outfile)
+            return
+    info('Exporting map to fits file:')
+    print('         %s'%outfile)
+    if not data:
+        data = data.Map
+    try:
+        dataset = BoaFits.createDataset("!" + outfile)
+    except Exception, data:
+        print('Could not open file %s: %s' % (outfile, data))
+        return
+
+        
+    localMap = copy.deepcopy(data)
+        
+    try:
+        # RMS map creation
+        rmsMap = copy.deepcopy(localMap)  # Signal
+        rmsMap.Data = np.where(rmsMap.Weight > 0.0, 1.0 / np.sqrt(rmsMap.Weight), np.NaN)  # Noise = 1/sqrt(weight)
+
+        # SNR map creation
+        snrMap = copy.deepcopy(localMap)  # Signal
+        snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
+
+        if clip > 0:
+            info('Clipping map to %.1f*medianRMS (inner contour on display)...'%clip)
+            mediannoise = np.nanmedian(rmsMap.Data)
+            mask = np.where(rmsMap.Data > clip * mediannoise)
+            localMap.Data[mask] = np.NaN
+            rmsMap.Data[mask] = np.NaN
+            snrMap.Data[mask] = np.NaN
+            del mask  # free memory
+ 
+        #write FLux plane                                                            
+        localMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit)
+        #write RMS plane
+        rmsMap._Image__writeImage(dataset, "Intensity", intensityUnit=intensityUnit+" (RMS)")
+        #write SNR plane
+        snrMap._Image__writeImage(dataset, "Intensity", intensityUnit='SNR')
+        dataset.close()
+            
+    except Exception, data:
+        try:
+            dataset.close()
+        except:
+            pass
+        print('Could not write data to file %s: %s' % (outfile, data))
+        return
+    
+    del localMap  # free memory
+    del snrMap  # free memory
+    del rmsMap  # free memory
+    del dataset  # free memory
+
+
 
 # variable checks
 if fe not in ['LFA', 'HFA']:
@@ -196,12 +324,10 @@ if sizex + 2*padding > 360 or sizey + 2*padding > 180:
 # --- OBSERVER OVERRIDE ---
 # -------------------------
 if observer == True:
-    doPlot = False          # Observer wants to check map of scan at reduction,
-                            # not coadded until that scan.
+    doPlot = False          # Observer wants to check map of scan at reduction, not coadded until that scan.
                             # That is implemented separately below.
     writeSummary = False    # No need.
-    niters = 1              # Source model is the most accurate when Iter1scans
-                            # are complete. Also, saves time and disk space.
+    niters = 1              # Source model is the most accurate when Iteration 1 scans are complete.
     clip = -1               # full map, no clipping
     flagJumps = True        # be as conservative as possible
     writefits = False       # save time, don't clog directory
@@ -216,19 +342,15 @@ smallerY = center[1] - sizey/2 - padding
 
 # These can't happen
 if biggerY > 90:
-    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
-                     'coordinate > +90 degrees! (comment this if intended)')
+    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y coordinate > +90 degrees! are you sure this is intended?')
 if smallerY < -90:
-    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
-                     'coordinate < -90 degrees! (comment this if intended)')
+    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y coordinate < -90 degrees! are you sure this is intended?')
 
 # Check X reframing.
 # Example with an X width of 10 deg:
 # Case 1: left = 150, right = 140 is left untouched
-# Case 2: left = 185, right = 175 
-#           -> frame was 0:360, now left = -175, right = 175
-# Case 3: left = 200, right = 190
-#           -> frame was 0:360, now left = -160, right = -170
+# Case 1: left = 185, right = 175 -> frame was 0:360, now left = -175, right = 175
+# Case 3: left = 200, right = 190 -> frame was 0:360, now left = -160, right = -170
 # Case 4 : same as before but one of the boundaries ended up < -180: add 360
 sysreframe = False
 if biggerX > 180 and system != 'EQ':
@@ -266,38 +388,31 @@ if obslogsdir == '~/obslogs':
     projectidx = None
     for i in range(len(splitted)):
         # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.')) == 2\
-            and len(splitted[i].split('-')) == 4:
+        if len(splitted[i].split('.')) == 2 and len(splitted[i].split('-')) == 4:
             projectidx = i
     if projectidx != None:
         obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
     else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be "\
-                         "extracted from:\n%s"%currdir + \
-                         "\nPlease manually set obslogsdir variable in "+\
-                         "reduction script to the correct path.")
+        raise ValueError("STOPPING SCRIPT: Project code could not be extracted from: %s"%currdir)
 
 if len(scans) == 0 and not os.path.exists(obslogsdir):
-    raise ValueError("STOPPING SCRIPT: Either enter scans or an existing "+\
-                     "obslogs directory...")
+    raise ValueError('STOPPING SCRIPT: Either enter scans or an existing obslogs directory...')
 
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
-                               verbose=verbose)
+    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe, verbose=verbose)
     if len(scans) == 0:
-        raise ValueError("No scans of source %s (%s) "%(source, fe) +\
-                         "found in ObsLogs directory:\n%s"%(obslogsdir))
+        raise ValueError('No scans of source %s (%s) found in ObsLogs directory:\n%s'%(source, fe, obslogsdir))
 
 # sort scans
 scans.sort()
-badscans.sort()
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
+        info('Scan %i in bad scans manually removed'%badscan)
 
 # Check removing bads did not leave scans empty
 if len(scans) == 0:
@@ -321,11 +436,10 @@ if writefits and os.path.exists("FITSfiles") == False:
     os.makedirs("FITSfiles")
 
 if smoothing == 'default':
-    # Default is 23% of beam in area
     if fe == 'LFA':
-        smoothby_arcsec = 8.0  # sqrt(0.23)*16.7"
+        smoothby_arcsec = 8.
     else:
-        smoothby_arcsec = 3.6  # sqrt(0.23)*7.5"
+        smoothby_arcsec = 3.7
 else:
     smoothby_arcsec = smoothing
 
@@ -335,8 +449,6 @@ smoothby_deg = smoothby_arcsec / 3600.
 # initialize MJD list for all scans
 mymjdrefs = []
 
-
-# SUMMARY PRINT
 print('')
 print('''\
 =====================
@@ -354,24 +466,18 @@ Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
 Smoothing:          %s
-Number of scans     %s'''%(observer, source, fe, system,
-                           center[0], center[1], sizex, sizey, padding,
-                           xsize[0], xsize[1], ysize[0], ysize[1], niters,
-                           clip if clip != -1 else 'No clipping', flagJumps,
-                           '%.1f arcsec (default)'%(smoothby_arcsec) \
-                           if smoothing=='default' \
-                           else '%.1f arcsec'%(smoothby_arcsec),
+Number of scans     %s'''%(observer, source, fe, system, center[0], center[1], sizex, sizey,
+                           padding, xsize[0], xsize[1], ysize[0], ysize[1], niters,
+                           clip if clip != -1 else 'No clipping',
+                           flagJumps,
+                           '%.1f arcsec (default)'%(smoothby_arcsec) if smoothing=='default' else '%.1f arcsec'%(smoothby_arcsec),
                            len(scans)))
-if len(badscans) > 0:
-    info('Bad scans removed:')
-    print('         %s'%badscans)
-
 
 # ===========================
 # Beginning of reduction loop
 # ===========================
-# impossible to keep PEP8 from here onward...
-if True:  # Just to indent
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore")
     for iter in range(1, niters+1):
         print('')
         print("#####################################################################")
@@ -434,10 +540,13 @@ if True:  # Just to indent
                 info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
-                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel,
-                           subtract=subtract, extremeFilter=False,
-                           correctbeam=correctbeam, flagJumps=flagJumps,
-                           writeSummary=writeSummary)
+                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel, subtract=subtract, extremeFilter=False,
+                           flagJumps=flagJumps, writeSummary=writeSummary)
+                # NOTE: redweak's summary is everything about the timelines, nothing about map.
+                # NOTE 2: redweak then runs mapping in horizontal coords, forces a 10" (LFA) or 4.5"(HFA) smoothing
+                # and tries to solve for pointing corrections on smoothed map. Then prints timeline sensitivity
+                # and pointing corrections in smoothed maps. This is fine.
+                # NOTE 3: No longer using redweak. New function redscience implemented.
 
                 # If we CTRL+C while in reduction, sometimes map is written and it is empty.
                 # this is just a safe check to see if reduction finished, otherwise stop script.
@@ -460,14 +569,16 @@ if True:  # Just to indent
                 #    flagMJD(above=1430, below=1600,flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
-                #if scan == 28517:
-                #    flagC(3353, flag=2)
+                if scan == 28517:
+                    flagC(3353, flag=2)
 
                 # Create map in chosen system and chosen box
                 # where pixsize = BEAM_FWHM / oversamp
-                mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize,
-                        limitsZ=[-0.8,1.5], noPlot=True)
-                
+                mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize, limitsZ=[-0.8,1.5], noPlot=True)
+                # NOTE: this has a smooth parameter, but is default 0
+                # NOTE 2: data.Map.BeamSize is taken from data.BolometerArray.BeamSize
+                # NOTE 3: data.BolometerArray.BeamSize is just 1.22 * lambda / D * 180/pi, not from beammap.
+
                 # Add MJD of middle and integration time to dumped map
                 data.Map.MJDref = (data.ScanParam.MJD[-1] + data.ScanParam.MJD[0]) / 2  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
@@ -483,7 +594,7 @@ if True:  # Just to indent
                     info('Smoothing copy of map for summary at final resolution...')
                     # copy map and smooth with same kernel as final file
                     m_smooth = copy.deepcopy(m)
-                    __smoothBy(m_smooth, smoothby_deg)
+                    auxsmoothby(m_smooth, smoothby_deg)
 
                     # Create smoothed noise map
                     rmsArray = np.where(m_smooth.Weight > 0.0, 1.0 / np.sqrt(m_smooth.Weight), np.NaN)
@@ -599,7 +710,7 @@ if True:  # Just to indent
             print('')
             info('Smoothing co-added map for iteration %i by %.1f"...'%(iter, smoothby_arcsec))
             nativebeam = ms.BeamSize
-            __smoothBy(ms, smoothby_deg)
+            auxsmoothby(ms, smoothby_deg)
             newbeam = ms.BeamSize
             print('         Original beam: %.3f"     New beam: %.3f"'%(nativebeam*3600, newbeam*3600))
 
@@ -611,14 +722,14 @@ if True:  # Just to indent
         snrMap = copy.deepcopy(ms)  # Signal
         snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)  # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
 
-        # Compute statistics, let __writeFits handle clipping
+        # Compute statistics, let auxwriteFits handle clipping
         messages.info('Computing aperture-based noise statistics...')
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
         radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
-        x_indices, y_indices = np.indices(ms.Data.shape)
-        x_center = ms.WCS['CRPIX1']
-        y_center = ms.WCS['CRPIX2']
+        y_indices, x_indices = np.indices(ms.Data.shape)
+        x_center = ms.WCS['CRPIX1'] + (0.5*(biggerX+smallerX) - ms.WCS['CRVAL1']) / ms.WCS['CDELT1']
+        y_center = ms.WCS['CRPIX2'] + (0.5*(biggerY+smallerY) - ms.WCS['CRVAL2']) / ms.WCS['CDELT2']
         aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
@@ -658,7 +769,7 @@ if True:  # Just to indent
         if writefits:
             outname = str(myname)+"-coadded-iter"+str(iter)+".fits"
             outname = "FITSfiles/" + outname                         # goes into FITSfiles dir.
-            __writeFits(ms, outfile=outname, overwrite=1, clip=clip)
+            auxwriteFits(ms, outfile=outname, overwrite=1, clip=clip)
         
         del ms  # free memory
         del rmsMap  # free memory
@@ -672,3 +783,8 @@ if observer==False:
     print("#####################################################################")
     print("                         Reduction finished                          ")
     print("#####################################################################")
+
+# Beam corrections
+if correctbeam:
+    print('\n\n\n')
+    execfile('correctAMKIDbeam.py')
