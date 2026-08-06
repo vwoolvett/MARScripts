@@ -350,17 +350,21 @@ Map center:         %.5f, %.5f deg
 Map size (x,y):     %.3f, %.3f deg
 Padding:            %.3f deg
 Map Boundaries:     X: %.3f, %.3f deg | Y: %.3f, %.3f deg
+Correct beam:       %s
+Smoothing:          %s
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Smoothing:          %s
 Number of scans     %s (valid)'''%(observer, source, fe, system,
                            center[0], center[1], sizex, sizey, padding,
-                           xsize[0], xsize[1], ysize[0], ysize[1], niters,
-                           clip if clip != -1 else 'No clipping', flagJumps,
+                           xsize[0], xsize[1], ysize[0], ysize[1],
+                           correctbeam,
                            '%.1f arcsec (default)'%(smoothby_arcsec) \
                            if smoothing=='default' \
                            else '%.1f arcsec'%(smoothby_arcsec),
+                           niters,
+                           clip if clip != -1 else 'No clipping', flagJumps,
+                           
                            len(scans)))
 if len(badscans) > 0:
     info('Bad scans removed:')
