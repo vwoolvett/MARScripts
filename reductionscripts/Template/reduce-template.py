@@ -240,12 +240,12 @@ if obslogsdir == 'default':
         # At APEX
         obslogsdir = APEX_obslogpath
         if BoaConfig.inDir != '/apexdata/rawdata/' + projcode + '/':
-            indir('/apex-archive/rawdata/' + projcode)
+            indir('/apexdata/rawdata/' + projcode + '/')
     elif os.path.exists(MPIfR_obslogpath):
         # At MPIfR
         obslogsdir = MPIfR_obslogpath
-        if BoaConfig.inDir != '/apex-archive/rawdata/' + projcode:
-            indir('/apex-archive/rawdata/' + projcode)
+        if BoaConfig.inDir != '/apex-archive/rawdata/' + projcode + '/':
+            indir('/apex-archive/rawdata/' + projcode + '/')
         
     else:
         raise ValueError("STOPPING SCRIPT: project obslogs folder could not"\
