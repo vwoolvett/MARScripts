@@ -5,7 +5,7 @@
 
 # ------------------------- OBSERVER or PI mode -------------------------------
 observer    = True          # *NOTE1* True or False
-projcode    = 'auto'        # Project code (automatic at APEX)
+projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 
 # --- Source and map parameters ---
 source      = 'SrcName'     # As in observing logs and source catalog
