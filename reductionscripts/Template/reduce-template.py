@@ -7,6 +7,7 @@
 observer = True             # *NOTE1* True or False 
 
 # --- Source and map parameters ---
+projcode    = 'auto'        # Project code (automatic at APEX)
 source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
@@ -28,7 +29,7 @@ writeSummary    = False     # Write summary of reductions (mostly debugging)
 
 # ------------------------- Scans (automatic at APEX) -------------------------
 scans       = []            # *NOTE4*
-obslogsdir  = '~/obslogs'   # at MPIfR: '/apex-archive/obslogs/PROJECT-IN-CAPS'
+obslogsdir  = 'default'     # If not at MPIfR or APEX, input manually!
 verbose     = False         # print ObsLog scan selection criteria (debugging)
 
 # ------------------------- NOTES ---------------------------------------------
@@ -51,14 +52,13 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 
 # *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of
 #           the source specified above from the specified obslogs directory.
-#           If not reducing at APEX, you must manually input the obslogs
-#           directory and likely set the (raw)data input directory via the
-#           "indir('directory')" function in mars.
+#           If not reducing at APEX or MPIfR, you must manually input the
+#           obslogs directory and likely set the (raw)data input directory via 
+#           the "indir('directory')" function in mars.
 
 # =============================================================================
 # ============================= END OF USER INPUT =============================
 # =============================================================================
-
 
 
 
@@ -259,22 +259,53 @@ xsize = [biggerX, smallerX]
 if system =='HO':
     xsize = [smallerX, biggerX]
 
-# find project home folder based on where MARS loaded and re-define obslogsdir
-if obslogsdir == '~/obslogs':
-    currdir = os.getcwd()
-    splitted = currdir.split('/')
-    projectidx = None
-    for i in range(len(splitted)):
-        # project code is separated once with dot and thrice with dash
-        if len(splitted[i].split('.')) == 2\
-            and len(splitted[i].split('-')) == 4:
-            projectidx = i
-    if projectidx != None:
-        obslogsdir = '/homes/%s/obslogs'%splitted[projectidx]
+# Find project code if at APEX
+if projcode == 'auto':
+    curraccount = os.getenv('USER')
+    # project code is separated once with dot and thrice with dash
+    if len(curraccount.split('.')) == 2 and len(curraccount.split('-')) == 4:
+        projcode = str.upper(curraccount)
+        info('Project code extracted from current account: %s.'\
+             %(projcode))
+        del curraccount
     else:
-        raise ValueError("STOPPING SCRIPT: Project code could not be "\
-                         "extracted from:\n%s"%currdir + \
-                         "\nPlease manually set obslogsdir variable in "+\
+        raise ValueError("STOPPING SCRIPT: project code could not be" +\
+                         " extracted from current account: %s."%(curraccount)+\
+                         "\nIf you are at APEX, log in with a project"+\
+                         " account and re-run script. If you are not at APEX"+\
+                         ", you must manually set the project code variable")
+else:
+    projcode = str.upper(projcode)
+    # remove slash if present for some reason
+    if projcode[-1] == '/':
+        projcode = projcode[:-1]
+    # project code is separated once with dot and thrice with dash
+    if len(projcode.split('.')) != 2 or len(projcode.split('-')) != 4:
+        raise ValueError("STOPPING SCRIPT: project code %s is not correct."\
+                         %(projcode))
+
+# find project obslogs folder and set indir if needed
+if obslogsdir == 'default':
+    obslogsdir = None
+    APEX_obslogpath = '/homes/' + projcode + '/obslogs/'
+    MPIfR_obslogpath = '/apex-archive/obslogs/' + projcode + '/'
+    if os.path.exists(APEX_obslogpath):
+        # At APEX
+        obslogsdir = APEX_obslogpath
+        if BoaConfig.inDir != '/apexdata/rawdata/' + projcode + '/':
+            indir('/apex-archive/rawdata/' + projcode)
+    elif os.path.exists(MPIfR_obslogpath):
+        # At MPIfR
+        obslogsdir = MPIfR_obslogpath
+        if BoaConfig.inDir != '/apex-archive/rawdata/' + projcode:
+            indir('/apex-archive/rawdata/' + projcode)
+        
+    else:
+        raise ValueError("STOPPING SCRIPT: project obslogs folder could not"\
+                         " be extracted from project code: %s"\
+                         %str.upper(projcode) + \
+                         "\nPlease ensure project code is correct, or " +\
+                         "manually set obslogsdir variable in " +\
                          "reduction script to the correct path.")
 
 if len(scans) == 0 and not os.path.exists(obslogsdir):
