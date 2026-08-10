@@ -15,7 +15,7 @@ center      = [0, 0]        # Center of map in DEG for **CHOSEN COORDINATES**
 sizex       = 1.0           # Size of map in DEG for X direction
 sizey       = 1.0           # Size of map in DEG for Y direction
 padding     = 0.3           # Padding around the map in DEG for the grid
-smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps 
+smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 
 # ------------------------- Reduction parameters ------------------------------
 badscans        = []        # Manually exclude bad scans if needed
@@ -205,7 +205,6 @@ if observer == True:
     clip = -1               # full map, no clipping
     flagJumps = True        # be as conservative as possible
     writefits = False       # save time, don't clog directory
-    correctbeam = False     # save time, don't clog directory
 
 # Find project code if at APEX
 if projcode == 'auto':
