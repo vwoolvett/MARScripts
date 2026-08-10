@@ -4,10 +4,10 @@
 # Last edited by: VWO 06.08.2026
 
 # ------------------------- OBSERVER or PI mode -------------------------------
-observer = True             # *NOTE1* True or False 
+observer    = True          # *NOTE1* True or False
+projcode    = 'auto'        # Project code (automatic at APEX)
 
 # --- Source and map parameters ---
-projcode    = 'auto'        # Project code (automatic at APEX)
 source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
@@ -207,58 +207,6 @@ if observer == True:
     writefits = False       # save time, don't clog directory
     correctbeam = False     # save time, don't clog directory
 
-# Create map bounds
-info('Creating map boundaries...')
-biggerX = center[0] + sizex/2 + padding
-smallerX = center[0] - sizex/2 - padding
-biggerY = center[1] + sizey/2 + padding
-smallerY = center[1] - sizey/2 - padding
-
-# These can't happen
-if biggerY > 90:
-    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
-                     'coordinate > +90 degrees! (comment this if intended)')
-if smallerY < -90:
-    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
-                     'coordinate < -90 degrees! (comment this if intended)')
-
-# Check X reframing.
-# Example with an X width of 10 deg:
-# Case 1: left = 150, right = 140 is left untouched
-# Case 2: left = 185, right = 175 
-#           -> frame was 0:360, now left = -175, right = 175
-# Case 3: left = 200, right = 190
-#           -> frame was 0:360, now left = -160, right = -170
-# Case 4 : same as before but one of the boundaries ended up < -180: add 360
-sysreframe = False
-if biggerX > 180 and system != 'EQ':
-    biggerX -= 360
-    sysreframe = True
-if biggerX < -180 and system != 'EQ':
-    biggerX += 360
-    sysreframe = True
-if smallerX > 180 and system != 'EQ':
-    smallerX -=360
-    sysreframe = True
-if smallerX < -180 and system != 'EQ':
-    smallerX +=360
-    sysreframe = True
-
-# information
-if sysreframe:
-    info('Map X boundaries were wrapped into the range [-180, 180] deg')
-
-# Define boundary list for functions
-ysize = [smallerY, biggerY]
-# For EQ or GAL biggerX is to the left because X angle
-# follows right-hand rule with thumb pointing to EQ or GAL north pole
-xsize = [biggerX, smallerX]
-
-# For HO smallerX is to the left because X angle
-# follows left-hand rule with thumb pointing to zenith (eastward in ground)
-if system =='HO':
-    xsize = [smallerX, biggerX]
-
 # Find project code if at APEX
 if projcode == 'auto':
     curraccount = os.getenv('USER')
@@ -334,6 +282,58 @@ for badscan in badscans:
 if len(scans) == 0:
     raise ValueError('There are no good scans after removing bad scans list.')
 
+# Create map bounds
+info('Creating map boundaries...')
+biggerX = center[0] + sizex/2 + padding
+smallerX = center[0] - sizex/2 - padding
+biggerY = center[1] + sizey/2 + padding
+smallerY = center[1] - sizey/2 - padding
+
+# These can't happen
+if biggerY > 90:
+    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
+                     'coordinate > +90 degrees! (comment this if intended)')
+if smallerY < -90:
+    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
+                     'coordinate < -90 degrees! (comment this if intended)')
+
+# Check X reframing.
+# Example with an X width of 10 deg:
+# Case 1: left = 150, right = 140 is left untouched
+# Case 2: left = 185, right = 175 
+#           -> frame was 0:360, now left = -175, right = 175
+# Case 3: left = 200, right = 190
+#           -> frame was 0:360, now left = -160, right = -170
+# Case 4 : same as before but one of the boundaries ended up < -180: add 360
+sysreframe = False
+if biggerX > 180 and system != 'EQ':
+    biggerX -= 360
+    sysreframe = True
+if biggerX < -180 and system != 'EQ':
+    biggerX += 360
+    sysreframe = True
+if smallerX > 180 and system != 'EQ':
+    smallerX -=360
+    sysreframe = True
+if smallerX < -180 and system != 'EQ':
+    smallerX +=360
+    sysreframe = True
+
+# information
+if sysreframe:
+    info('Map X boundaries were wrapped into the range [-180, 180] deg')
+
+# Define boundary list for functions
+ysize = [smallerY, biggerY]
+# For EQ or GAL biggerX is to the left because X angle
+# follows right-hand rule with thumb pointing to EQ or GAL north pole
+xsize = [biggerX, smallerX]
+
+# For HO smallerX is to the left because X angle
+# follows left-hand rule with thumb pointing to zenith (eastward in ground)
+if system =='HO':
+    xsize = [smallerX, biggerX]
+
 # Define standardized "myname" variable for output files
 myname = str(fe) + "-" + str(source) + "-" + str(system)
 if flagJumps:
@@ -374,6 +374,7 @@ print('''\
 Reduction parameters:
 =====================
 Observer:           %s
+Project code:       %s
 Source:             %s
 Frontend:           %s
 Coordinate system:  %s
@@ -386,7 +387,7 @@ Smoothing:          %s
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Number of scans     %s (valid)'''%(observer, source, fe, system,
+Number of scans     %s (valid)'''%(observer, projcode, source, fe, system,
                            center[0], center[1], sizex, sizey, padding,
                            xsize[0], xsize[1], ysize[0], ysize[1],
                            correctbeam,
