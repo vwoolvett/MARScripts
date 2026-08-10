@@ -227,7 +227,7 @@ else:
         projcode = projcode[:-1]
     # project code is separated once with dot and thrice with dash
     if len(projcode.split('.')) != 2 or len(projcode.split('-')) != 4:
-        raise ValueError("STOPPING SCRIPT: project code %s is not correct."\
+        raise ValueError("STOPPING SCRIPT: project code '%s' is not correct."\
                          %(projcode))
 
 # create lowercase and CAPS version
