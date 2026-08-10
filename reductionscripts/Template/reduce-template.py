@@ -212,7 +212,7 @@ if projcode == 'auto':
     # project code is separated once with dot and thrice with dash
     if len(curraccount.split('.')) == 2 and len(curraccount.split('-')) == 4:
         projcode = curraccount
-        info('Project code extracted from current account: %s.'\
+        info('Project code extracted from current account: %s'\
              %(projcode))
         del curraccount
     else:
@@ -253,7 +253,7 @@ if obslogsdir == 'default':
     else:
         raise ValueError("STOPPING SCRIPT: project obslogs folder could not"\
                          " be extracted from project code: %s"\
-                         %str.upper(projcode) + \
+                         %projcode + \
                          "\nPlease ensure project code is correct, or " +\
                          "manually set obslogsdir variable in " +\
                          "reduction script to the correct path.")
@@ -389,7 +389,7 @@ Smoothing:          %s
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Number of scans     %s (valid)'''%(observer, projcode, source, fe, system,
+Number of scans     %s (valid)'''%(observer, projcode_caps, source, fe, system,
                            center[0], center[1], sizex, sizey, padding,
                            xsize[0], xsize[1], ysize[0], ysize[1],
                            correctbeam,
