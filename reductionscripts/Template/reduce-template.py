@@ -211,7 +211,7 @@ if projcode == 'auto':
     curraccount = os.getenv('USER')
     # project code is separated once with dot and thrice with dash
     if len(curraccount.split('.')) == 2 and len(curraccount.split('-')) == 4:
-        projcode = str.upper(curraccount)
+        projcode = curraccount
         info('Project code extracted from current account: %s.'\
              %(projcode))
         del curraccount
@@ -222,7 +222,6 @@ if projcode == 'auto':
                          " account and re-run script. If you are not at APEX"+\
                          ", you must manually set the project code variable")
 else:
-    projcode = str.upper(projcode)
     # remove slash if present for some reason
     if projcode[-1] == '/':
         projcode = projcode[:-1]
@@ -231,21 +230,25 @@ else:
         raise ValueError("STOPPING SCRIPT: project code %s is not correct."\
                          %(projcode))
 
+# create lowercase and CAPS version
+projcode_low = str.lower(projcode)
+projcode_caps = str.upper(projcode)
+
 # find project obslogs folder and set indir if needed
 if obslogsdir == 'default':
     obslogsdir = None
-    APEX_obslogpath = '/homes/' + projcode + '/obslogs/'
-    MPIfR_obslogpath = '/apex-archive/obslogs/' + projcode + '/'
+    APEX_obslogpath = '/homes/' + projcode_low + '/obslogs/'
+    MPIfR_obslogpath = '/apex-archive/obslogs/' + projcode_caps + '/'
     if os.path.exists(APEX_obslogpath):
         # At APEX
         obslogsdir = APEX_obslogpath
-        if BoaConfig.inDir != '/apexdata/rawdata/' + projcode + '/':
-            indir('/apexdata/rawdata/' + projcode + '/')
+        if BoaConfig.inDir != '/apexdata/rawdata/' + projcode_caps + '/':
+            indir('/apexdata/rawdata/' + projcode_caps + '/')
     elif os.path.exists(MPIfR_obslogpath):
         # At MPIfR
         obslogsdir = MPIfR_obslogpath
-        if BoaConfig.inDir != '/apex-archive/rawdata/' + projcode + '/':
-            indir('/apex-archive/rawdata/' + projcode + '/')
+        if BoaConfig.inDir != '/apex-archive/rawdata/' + projcode_caps + '/':
+            indir('/apex-archive/rawdata/' + projcode_caps + '/')
         
     else:
         raise ValueError("STOPPING SCRIPT: project obslogs folder could not"\
