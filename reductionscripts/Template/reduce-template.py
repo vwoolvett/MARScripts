@@ -19,7 +19,7 @@ smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 # ------------------------- Reduction parameters ------------------------------
 badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
-clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5 *sigma)
+clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5)
 flagJumps       = True      # Flag spikes in the data: recomm. True for LFA
 doPlot          = True      # Display coadded map after each scan or final only
 writefits       = True      # Write FITS of final iteration maps.
