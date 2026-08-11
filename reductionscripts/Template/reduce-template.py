@@ -22,6 +22,7 @@ badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
 clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5)
 flagJumps       = True      # Flag spikes in the data: recomm. True for LFA
+showsig         = True      # Show example signals after each calibration step
 doPlot          = True      # Display coadded map after each scan or final only
 writefits       = True      # Write FITS of final iteration maps.
 correctbeam     = True      # Correct AMKID beam to nominal: recomm. True
@@ -475,7 +476,7 @@ if True:  # Just to indent
                 redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel,
                            subtract=subtract, extremeFilter=False,
                            correctbeam=correctbeam, flagJumps=flagJumps,
-                           writeSummary=writeSummary)
+                           writeSummary=writeSummary, showsig=showsig)
 
                 # If we CTRL+C while in reduction, sometimes map is written and it is empty.
                 # this is just a safe check to see if reduction finished, otherwise stop script.
