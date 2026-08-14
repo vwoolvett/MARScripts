@@ -21,7 +21,7 @@ smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
 clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5)
-flagJumps       = True      # Flag spikes in the data: recomm. True for LFA
+flagJumps       = False     # Flag spikes: recomm. True if spikes are present
 showsig         = True      # Show example signals after each calibration step
 doPlot          = True      # Display coadded map after each scan or final only
 writefits       = True      # Write FITS of final iteration maps.
@@ -204,7 +204,6 @@ if observer == True:
     niters = 1              # Source model is the most accurate when Iter1scans
                             # are complete. Also, saves time and disk space.
     clip = -1               # full map, no clipping
-    flagJumps = True        # be as conservative as possible
     writefits = False       # save time, don't clog directory
 
 # Find project code if at APEX
