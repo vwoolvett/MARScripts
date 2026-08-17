@@ -17,7 +17,7 @@ padding     = 2.42*0.25     # Padding around the map in DEG for the grid
 smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps 
 
 # ------------------------- Reduction parameters ------------------------------
-badscans        = [27979, 27991, 28217, 28498, 34234, 34849]        # Manually exclude bad scans if needed
+badscans        = [27979, 27991, 28217, 28498, 33490, 34234, 34849, 34851]        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
 clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5 *sigma)
 flagJumps       = True      # Flag spikes in the data: recomm. True for LFA
