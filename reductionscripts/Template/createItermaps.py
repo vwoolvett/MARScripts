@@ -1,5 +1,5 @@
 mymaps = {}
-for i in range(niters):
+for i in range(1, niters+1):
     myname = 'ReducedFiles/%s-%s-%s'%(fe, source, system)
     if flagJumps:
         myname += '-flagJumps'
