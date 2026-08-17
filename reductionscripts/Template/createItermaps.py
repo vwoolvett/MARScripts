@@ -6,7 +6,7 @@ for i in range(1, niters+1):
     myname+='-coadded-flux-iter%i.data'%i
     mymap = restoreFile(myname)
     mymaprms = copy.deepcopy(mymap)
-    mymaprms.Data = np.where(mymaprms.Weight>0, 1.0/np.sqrt(mymaprms.Weight), 0)
+    mymaprms.Data = np.where(mymaprms.Weight>0, 1.0/np.sqrt(mymaprms.Weight), np.NaN)
     mymapsnr  = copy.deepcopy(mymap)
     mymapsnr.Data = mymap.Data/mymaprms.Data
     mymapcov = copy.deepcopy(mymap)
