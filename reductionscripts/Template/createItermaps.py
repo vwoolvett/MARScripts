@@ -11,4 +11,4 @@ for i in range(1, niters+1):
     mymapcov.Data = mymapcov.Coverage
 
     mymaps['ITER%i'%i] = {'sig':mymap, 'rms':mymaprms, 'cov':mymapcov}
-    del mymap, mymapnoi, mymapcov
+    del mymap, mymaprms, mymapcov
