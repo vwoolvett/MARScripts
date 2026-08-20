@@ -437,14 +437,14 @@ if True:  # Just to indent
             if iter == 2:
                 subtract = False
                 if np.any(scanreduced==False):
-                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=5.0, sm=0., mtype='snr', clip=1.0)
+                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='snr', clip=3.0)
                 else:
                     mymodel = None
             
             if iter == 3:
                 subtract = True
                 if np.any(scanreduced==False):
-                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=5.0, sm=0., mtype='flux', clip=1.0)
+                    mymodel = createSourceModel(coadded, highcut=5.5, lowcut=2.5, sm=0., mtype='flux', clip=3.0)
                 else:
                     mymodel = None
 
