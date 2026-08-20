@@ -1,13 +1,13 @@
 # =============================================================================
 # ========================== BEGINNING OF USER INPUT ==========================
 # =============================================================================
-# Last edited by: VWO 10.08.2026
+# Last edited by: VWO 20.08.2026
 
 # ------------------------- OBSERVER or PI mode -------------------------------
 observer    = True          # *NOTE1* True or False
 projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 
-# --- Source and map parameters ---
+# ------------------------- Source and map parameters -------------------------
 source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
