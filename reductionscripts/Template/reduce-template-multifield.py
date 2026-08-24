@@ -356,10 +356,11 @@ if temp2 == None:
 # read source catalog: sourceCat is a dictionary of field:SkyCoord centers
 sourceCat = {}
 with open(os.path.join(obs_path, temp1), 'r') as f:
-    entry = f.readlines()
-    thissource = entry.split(' ')[0]
-    RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
-    sourceCat[thissource] = SkyCoord(RADEC)
+    entries = f.readlines()
+    for entry in entries:
+        thissource = entry.split(' ')[0]
+        RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
+        sourceCat[thissource] = SkyCoord(RADEC)
 
 # execute obsfkts script to define sourceDict variable
 execfile(os.path.join(obs_path, temp2))
