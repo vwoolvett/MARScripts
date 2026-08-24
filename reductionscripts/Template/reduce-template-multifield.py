@@ -363,27 +363,27 @@ with open(os.path.join(obs_path, temp1), 'r') as f:
         thissource = entry.split(' ')[0]
         RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
         thisskycoord = SkyCoord(RADEC, unit=("hourangle", "deg"))
-        if system=='GAL':
-            sourceCat[thissource] = [thisskycoord.galactic.l.value,
-                                     thisskycoord.galactic.b.value]
-        if system=='EQ':
-            sourceCat[thissource] = [thisskycoord.ra.value,
-                                     thisskycoord.dec.value]
+        sourceCat[thissource] = thisskycoord
 
 # execute obsfkts script to define sourceDict variable
 execfile(os.path.join(obs_path, temp2))
 
-raise ValueError
-
-
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
+    if str.upper(source) == 'ALL':
+        source = 'ALL'
+        for mysource in sourceCat.keys():
+            scans.append(findSciTargetScans(source=mysource,
+                                            obslogsdir=obslogsdir,
+                                            fe=fe, verbose=verbose))
+
+    else:
+        scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
                                verbose=verbose)
-    if len(scans) == 0:
-        raise ValueError("No scans of source %s (%s) "%(source, fe) +\
-                         "found in ObsLogs directory:\n%s"%(obslogsdir))
+        if len(scans) == 0:
+            raise ValueError("No scans of source %s (%s) "%(source, fe) +\
+                             "found in ObsLogs directory:\n%s"%(obslogsdir))
 
 # sort scans
 scans.sort()
@@ -400,16 +400,61 @@ if len(scans) == 0:
 
 # Create map bounds
 info('Creating map boundaries...')
-deltaX = sizex/2 + padding
-deltaY = sizey/2 + padding
-# Fix projected map size in X due to converging Y coord lines into poles
-# for EQ and GAL
-if system in ['EQ', 'GAL']:
-    deltaX = deltaX / np.cos(float(center[1])*np.pi/180.)
-biggerX = center[0] + deltaX
-smallerX = center[0] - deltaX
-biggerY = center[1] + deltaY
-smallerY = center[1] - deltaY
+for mysource in sourceCat.keys():
+    mycoords = sourceCat[mysource]
+    if system=='EQ':
+        mycenter = [mycoords.ra,  # deg
+                    mycoords.dec]  # deg
+        mysizex = sourceDict[mysource]['xlen']/3600. # deg
+        mysizey = sourceDict[mysource]['ylen']/3600. # deg
+        myang = sourceDict[mysource]['myang']*np.pi/180.  # rad in EQ
+        if myang != 0.0:
+            mynewsizex = abs(mysizex*np.cos(myang))+abs(mysizey*np.sin(myang))
+            mynewsizey = abs(mysizex*np.sin(myang))+abs(mysizey*np.cos(myang))
+            mysizex, mysizey = mynewsizex, mynewsizey
+
+        deltaX = (mysizex/2 + padding) / np.cos(float(mycenter[1])*np.pi/180)
+        deltaY = mysizey/2 + padding
+        biggerX = mycenter[0] + deltaX
+        smallerX = mycenter[0] - deltaX
+        biggerY = mycenter[1] + deltaY
+        smallerY = mycenter[1] - deltaY
+
+    else:
+        mycenter = [mycoords.galactic.l.value,  # deg
+                    mycoords.galactic.b.value]  # deg
+        mysizex = sourceDict[mysource]['xlen']/3600. # deg
+        mysizey = sourceDict[mysource]['ylen']/3600. # deg
+        myang = sourceDict[mysource]['myang']*np.pi/180.  # rad in EQ
+        radec = mycoords.to_string('hmsdms', sep=':', precision=2)
+        ra, dec = radec.split(' ')
+        eq2gal_ANG = get_angle(ra, dec)*np.pi/180.  # rad from EQ to GAL
+        if abs(myang - eq2gal_ang) <= 1.*180./np.pi:
+            myang = 0.0
+        else:
+            myang -= eq2gal_ANG  # now in galactic frame
+
+        if myang != 0.0:
+            mynewsizex = abs(mysizex*np.cos(myang))+abs(mysizey*np.sin(myang))
+            mynewsizey = abs(mysizex*np.sin(myang))+abs(mysizey*np.cos(myang))
+            mysizex, mysizey = mynewsizex, mynewsizey
+        
+        deltaX = (mysizex/2 + padding) / np.cos(float(mycenter[1])*np.pi/180)
+        deltaY = mysizey/2 + padding
+        biggerX = mycenter[0] + deltaX
+        smallerX = mycenter[0] - deltaX
+        biggerY = mycenter[1] + deltaY
+        smallerY = mycenter[1] - deltaY
+        
+    # re-degine sourceCat entry:
+    sourceDict[mysource] = {'center':mycenter,
+                            'biggerX':biggerX,
+                            'smallerX':smallerX,
+                            'biggerY':biggerY,
+                            'smallerY':smallerY}
+    
+    
+raise RuntimeError
 
 # These can't happen, no?
 if biggerY > 90:
