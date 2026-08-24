@@ -504,7 +504,7 @@ ysize = [smallerY, biggerY]
 xsize = [biggerX, smallerX]
 
 # define center
-if source != 'all':
+if source != 'ALL':
     center = sourceDict[source]['center']
 else:
     center = [(biggerX+smallerX)/2., (biggerY+smallerY)/2.]
