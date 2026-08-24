@@ -360,6 +360,7 @@ with open(os.path.join(obs_path, temp1), 'r') as f:
     for entry in entries:
         thissource = entry.split(' ')[0]
         RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
+        print(RADEC)
         sourceCat[thissource] = SkyCoord(RADEC)
 
 # execute obsfkts script to define sourceDict variable
