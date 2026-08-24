@@ -291,7 +291,7 @@ deltaY = sizey/2 + padding
 # Fix projected map size in X due to converging Y coord lines into poles
 # for EQ and GAL
 if system in ['EQ', 'GAL']:
-    deltaX = deltaX / np.cos(center[1]*np.pi/180)
+    deltaX = deltaX / np.cos(float(center[1])*np.pi/180.)
 biggerX = center[0] + deltaX
 smallerX = center[0] - deltaX
 biggerY = center[1] + deltaY
