@@ -446,15 +446,22 @@ for mysource in sourceCat.keys():
         biggerY = mycenter[1] + deltaY
         smallerY = mycenter[1] - deltaY
         
-    # re-degine sourceCat entry:
+    # re-define sourceDict entry:
     sourceDict[mysource] = {'center':mycenter,
                             'biggerX':biggerX,
                             'smallerX':smallerX,
                             'biggerY':biggerY,
                             'smallerY':smallerY}
-    
-    
-raise RuntimeError
+
+# Grid must be common to all sub-fields
+biggerX = np.max(np.array([sourceDict[src]['biggerX']\
+                            for src in sourceDict.keys()]))
+smallerX = np.min(np.array([sourceDict[src]['smallerX']\
+                            for src in sourceDict.keys()]))
+biggerY = np.max(np.array([sourceDict[src]['biggerY']\
+                            for src in sourceDict.keys()]))
+smallerY = np.min(np.array([sourceDict[src]['smallerY']\
+                            for src in sourceDict.keys()]))
 
 # These can't happen, no?
 if biggerY > 90:
@@ -495,6 +502,12 @@ ysize = [smallerY, biggerY]
 # For EQ or GAL biggerX is to the left because X angle
 # follows right-hand rule with thumb pointing to EQ or GAL north pole
 xsize = [biggerX, smallerX]
+
+# define center
+if source != 'all':
+    center = sourceDict[source]['center']
+else:
+    center = [(biggerX+smallerX)/2., (biggerY+smallerY)/2.]
 
 # For HO smallerX is to the left because X angle
 # follows left-hand rule with thumb pointing to zenith (eastward in ground)
