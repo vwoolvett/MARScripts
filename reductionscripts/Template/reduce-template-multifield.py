@@ -510,7 +510,7 @@ ysize = [smallerY, biggerY]
 xsize = [biggerX, smallerX]
 
 # define limitsX and limitsY for plots of this reduction
-if subfield!='all':
+if str.upper(subfield) != 'ALL':
     temp = sourceDict[subfield]
     limitsX = [temp['biggerX'], temp['smallerX']]
     limitsY = [temp['smallerY'], temp['biggerY']]
@@ -519,7 +519,7 @@ else:
     limitsY = []
 
 # define center
-if subfield != 'ALL':
+if str.upper(subfield) != 'ALL':
     center = sourceDict[subfield]['center']
 else:
     center = [(biggerX+smallerX)/2., (biggerY+smallerY)/2.]
