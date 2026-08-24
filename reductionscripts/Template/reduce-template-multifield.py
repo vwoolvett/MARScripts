@@ -519,8 +519,8 @@ else:
     limitsY = []
 
 # define center
-if source != 'ALL':
-    center = sourceDict[source]['center']
+if field != 'ALL':
+    center = sourceDict[field]['center']
 else:
     center = [(biggerX+smallerX)/2., (biggerY+smallerY)/2.]
 
