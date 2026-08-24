@@ -14,7 +14,7 @@ obs_path    = 'auto'        # path to "Observation" directory containing macros
 
 # ------------------------- Source and map parameters -------------------------
 source      = 'AMIGOS1'    # Generic name for reduced maps
-subfield    = 'all'         # Subfield name as in obslogs and source catalog or 'all'
+subfield    = 'ALL'         # Subfield name as in obslogs or 'ALL'
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'GAL'         # Coordinate system for map, 'EQ' or 'GAL'
 padding     = 0.3           # Padding around the map in DEG for the grid
@@ -24,7 +24,7 @@ smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
 clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5)
-flagJumps       = False     # Flag spikes: recomm. True if spikes are present
+flagJumps       = True     # Flag spikes: recomm. True if spikes are present
 showsig         = True      # Show example signals after each calibration step
 doPlot          = True      # Display coadded map after each scan or final only
 writefits       = True      # Write FITS of final iteration maps.
