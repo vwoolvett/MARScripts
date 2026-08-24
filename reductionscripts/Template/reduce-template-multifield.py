@@ -512,14 +512,21 @@ xsize = [biggerX, smallerX]
 # define limitsX and limitsY for plots of this reduction
 if str.upper(subfield) != 'ALL':
     temp = sourceDict[subfield]
-    limitsX = [temp['biggerX'], temp['smallerX']]
+    tempbiggerX = temp['biggerX']
+    tempsmallerX = temp['smallerX']
+    if tempbiggerX > 180 and system != 'EQ':
+        tempbiggerX -= 360
+    if tempbiggerX < -180 and system != 'EQ':
+        tempbiggerX += 360
+    if tempsmallerX > 180 and system != 'EQ':
+        tempsmallerX -=360
+    if tempsmallerX < -180 and system != 'EQ':
+        tempsmallerX +=360
+    limitsX = [tempbiggerX, tempsmallerX]
     limitsY = [temp['smallerY'], temp['biggerY']]
 else:
     limitsX = []
     limitsY = []
-
-print(limitsX)
-print(limitsY)
 
 # define center
 if str.upper(subfield) != 'ALL':
