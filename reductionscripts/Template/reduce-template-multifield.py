@@ -2,18 +2,20 @@
 # ========================== BEGINNING OF USER INPUT ==========================
 # =============================================================================
 # Last edited by: VWO 24.08.2026
+# Uses astropy SkyCoord to determine map centers and boundaries
 
 # ------------------------- OBSERVER or PI mode -------------------------------
 observer    = True          # *NOTE1* True or False
 projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 
+# ------------------------- Observation Path ----------------------------------
+obs_path    = 'auto'        # path to "Observation" directory containing macros
+                            # AUTOMATIC AT APEX, OTHERWISE IMPORT & SPECIFY
+
 # ------------------------- Source and map parameters -------------------------
-source      = 'SrcName'     # As in observing logs and source catalog
+source      = 'SrcName'     # As in observing logs and source catalog, or "all"
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
-system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center      = [0, 0]        # Center of map [X, Y] in DEG for **CHOSEN COORDS**
-sizex       = 1.0           # Size of map in DEG for X direction
-sizey       = 1.0           # Size of map in DEG for Y direction
+system      = 'EQ'          # Coordinate system for map, 'EQ' or 'GAL'
 padding     = 0.3           # Padding around the map in DEG for the grid
 smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 
@@ -71,6 +73,9 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 # =============================================================================
 # === REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ====
 # =============================================================================
+from astropy.coordinates import SkyCoord
+import math
+
 def findSciTargetScans(source, obslogsdir, fe, verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
@@ -181,11 +186,68 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
          %(source, fe, len(scanlist)))
     return scanlist
 
+def get_angle(ra_str, dec_str):
+    """
+    Calculates the position angle between Equatorial (J2000) and Galactic 
+    coordinates for a given sky position.
+    
+    Inputs:
+      ra_str  (str): Right Ascension in 'HH:MM:SS.SS' format
+      dec_str (str): Declination in '+DD:MM:SS.S' or '-DD:MM:SS.S' format
+      
+    Returns:
+      float: The position angle in decimal degrees.
+    """
+    # 1. Parse RA string to decimal degrees
+    if ":" in ra_str:
+        ra_parts = [float(x) for x in ra_str.split(':')]
+    else:
+        ra_parts = [float(x) for x in ra_str.split(' ')]
+    # ra_parts[0]=hours, ra_parts[1]=minutes, ra_parts[2]=seconds
+    ra_deg = (ra_parts[0] + ra_parts[1]/60.0 + ra_parts[2]/3600.0) * 15.0
+    
+    # 2. Parse Dec string to decimal degrees
+    # Check sign explicitly to handle negative fields like '-00:12:30' properly
+    is_negative = dec_str.strip().startswith('-')
+    dec_clean = dec_str.replace('-', '').replace('+', '')
+    if ":" in dec_clean:
+        dec_parts = [float(x) for x in dec_clean.split(':')]
+    else:
+        dec_parts = [float(x) for x in dec_clean.split(' ')]
+    
+    dec_deg = dec_parts[0] + dec_parts[1]/60.0 + dec_parts[2]/3600.0
+    if is_negative:
+        dec_deg = -dec_deg
+
+    # 3. Standard J2000 North Galactic Pole constants
+    ra_ngp = 192.85948   # degrees
+    dec_ngp = 27.12833   # degrees
+
+    # 4. Convert inputs to radians for math module
+    alpha = math.radians(ra_deg)
+    delta = math.radians(dec_deg)
+    alpha_ngp = math.radians(ra_ngp)
+    delta_ngp = math.radians(dec_ngp)
+
+    # 5. Calculate spherical triangle components
+    delta_alpha = alpha_ngp - alpha
+    
+    y = math.sin(delta_alpha) * math.cos(delta_ngp)
+    x = (math.sin(delta_ngp) * math.cos(delta) - 
+         math.cos(delta_ngp) * math.sin(delta) * math.cos(delta_alpha))
+
+    # 6. Resolve angle and convert back to degrees
+    angle_rad = math.atan2(y, x)
+    angle_deg = -1*math.degrees(angle_rad) ## -1 
+
+    # Wrap result into [0, 360) range if desired
+    return angle_deg #% 360.0
+
 # variable checks
 if fe not in ['LFA', 'HFA']:
     raise ValueError("fe must be either 'LFA' or 'HFA'.")
-if system not in ['EQ', 'GAL', 'HO']:
-    raise ValueError("system must be either 'EQ', 'GAL', or 'HO'.")
+if system not in ['EQ', 'GAL']:
+    raise ValueError("system must be either 'EQ' or 'GAL'")
 if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 if clip < 1.5 and clip!=-1:
@@ -207,6 +269,7 @@ if observer == True:
     writefits = False       # save time, don't clog directory
 
 # Find project code if at APEX
+atAPEX = False
 if projcode == 'auto':
     curraccount = os.getenv('USER')
     # project code is separated once with dot and thrice with dash
@@ -214,6 +277,7 @@ if projcode == 'auto':
         projcode = curraccount
         info('Project code extracted from current account: %s'\
              %(projcode))
+        atAPEX = True
         del curraccount
     else:
         raise ValueError("STOPPING SCRIPT: project code could not be" +\
@@ -233,6 +297,9 @@ else:
 # create lowercase and CAPS version
 projcode_low = str.lower(projcode)
 projcode_caps = str.upper(projcode)
+projcode_short = projcode_caps.split('-')[0] +\
+                 projcode_low.split('-')[2] + '_' + \
+                 str(int(projcode_low.split('-')[1].split('.')[0]))
 
 # find project obslogs folder and set indir if needed
 if obslogsdir == 'default':
@@ -261,6 +328,44 @@ if obslogsdir == 'default':
 if len(scans) == 0 and not os.path.exists(obslogsdir):
     raise ValueError("STOPPING SCRIPT: Either enter scans or an existing "+\
                      "obslogs directory...")
+
+# Find Observation folder
+if obs_path == 'auto':
+    if atAPEX == True:
+        obs_path = '/homes/' + projcode_low + '/Observation/'
+    else:
+        raise RuntimeError("Path to 'Observation' folder must be specified "+\
+                           "if you are not at APEX!")
+if not os.path.exists(obs_path):
+    raise RuntimeError("The specified path to Observation folder does "+\
+                       " not exist: \n%s"%obs_path)
+
+# Confirm catalog and obsfkts macros exist
+temp1 = None  # source catalog filename
+temp2 = None  # project obsfkts filename
+for fname in os.listdir(obs_path):
+    if '.cat' in fname and '~' not in fname:
+        temp1 = fname
+    elif 'obsfkts.apecs' in fname and '~' not in fname:
+        temp2 = fname
+if temp1 == None:
+    raise RuntimeError('Specified Observation path is missing source catalog!')
+if temp2 == None:
+    raise RuntimeError('Specified Observation path is missing obsfkts macro!')
+
+# read source catalog: sourceCat is a dictionary of field:SkyCoord centers
+sourceCat = {}
+with open(os.path.join(obs_path, temp1), 'r') as f:
+    entry = f.readlines()
+    thissource = entry.split(' ')[0]
+    RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
+    sourceCat[thissource] = SkyCoord(RADEC)
+
+# execute obsfkts script to define sourceDict variable
+execfile(os.path.join(obs_path, temp2))
+
+raise ValueError
+
 
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
