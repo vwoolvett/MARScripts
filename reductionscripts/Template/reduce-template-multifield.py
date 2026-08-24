@@ -518,6 +518,9 @@ else:
     limitsX = []
     limitsY = []
 
+print(limitsX)
+print(limitsY)
+
 # define center
 if str.upper(subfield) != 'ALL':
     center = sourceDict[subfield]['center']
