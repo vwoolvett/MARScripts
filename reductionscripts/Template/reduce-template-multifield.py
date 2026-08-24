@@ -252,8 +252,8 @@ if niters < 1 or niters > 3:
     raise ValueError("niters must be 1, 2, or 3.")
 if clip < 1.5 and clip!=-1:
     raise ValueError("clip must be -1 (no clipping) or >= 1.5.")
-if sizex + 2*padding > 360 or sizey + 2*padding > 180:
-    raise ValueError("Your map is bigger than the sky...")
+#if sizex + 2*padding > 360 or sizey + 2*padding > 180:
+#    raise ValueError("Your map is bigger than the sky...")
 
 # -------------------------
 # --- OBSERVER OVERRIDE ---
