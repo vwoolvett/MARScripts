@@ -11,7 +11,7 @@ projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center      = [0, 0]        # Center of map in DEG for **CHOSEN COORDINATES**
+center      = [0, 0]        # Center of map [X, Y] in DEG for **CHOSEN COORDS**
 sizex       = 1.0           # Size of map in DEG for X direction
 sizey       = 1.0           # Size of map in DEG for Y direction
 padding     = 0.3           # Padding around the map in DEG for the grid
@@ -286,12 +286,18 @@ if len(scans) == 0:
 
 # Create map bounds
 info('Creating map boundaries...')
-biggerX = center[0] + sizex/2 + padding
-smallerX = center[0] - sizex/2 - padding
-biggerY = center[1] + sizey/2 + padding
-smallerY = center[1] - sizey/2 - padding
+deltaX = sizex/2 + padding
+deltaY = sizey/2 + padding
+# Fix projected map size in X due to converging Y coord lines into poles
+# for EQ and GAL
+if system in ['EQ', 'GAL']:
+    deltaX = deltaX / np.cos(center[1]*np.pi/180)
+biggerX = center[0] + deltaX
+smallerX = center[0] - deltaX
+biggerY = center[1] + deltaY
+smallerY = center[1] - deltaY
 
-# These can't happen
+# These can't happen, no?
 if biggerY > 90:
     raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
                      'coordinate > +90 degrees! (comment this if intended)')
