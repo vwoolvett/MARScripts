@@ -463,6 +463,9 @@ biggerY = np.max(np.array([sourceDict[src]['biggerY']\
 smallerY = np.min(np.array([sourceDict[src]['smallerY']\
                             for src in sourceDict.keys()]))
 
+sizex = biggerX-smallerX
+sizey = biggerY-smallerY
+
 # These can't happen, no?
 if biggerY > 90:
     raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
