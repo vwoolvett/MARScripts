@@ -374,9 +374,9 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
     if str.upper(source) == 'ALL':
         source = 'ALL'
         for mysource in sourceCat.keys():
-            scans.append(findSciTargetScans(source=mysource,
+            scans += findSciTargetScans(source=mysource,
                                             obslogsdir=obslogsdir,
-                                            fe=fe, verbose=verbose))
+                                            fe=fe, verbose=verbose)
 
     else:
         scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
