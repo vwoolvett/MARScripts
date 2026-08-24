@@ -354,16 +354,22 @@ if temp1 == None:
 if temp2 == None:
     raise RuntimeError('Specified Observation path is missing obsfkts macro!')
 
-# read source catalog: sourceCat is a dictionary of field:SkyCoord centers
+# read source catalog: sourceCat is a dictionary of field:coords in global
+# system defined for this script
+# This defines map centers for reduction.
 sourceCat = {}
 with open(os.path.join(obs_path, temp1), 'r') as f:
     entries = f.readlines()
     for entry in entries:
         thissource = entry.split(' ')[0]
         RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
-        print(RADEC)
-        sourceCat[thissource] = SkyCoord(RADEC,
-                                         unit=(aunit.hourangle, aunit.deg))
+        thisskycoord = SkyCoord(RADEC, unit=(aunit.hourangle, aunit.deg))
+        if system=='GAL':
+            sourceCat[thissource] = [thisskycoord.galactic.l.value,
+                                     thisskycoord.galactic.b.value]
+        if system=='EQ':
+            sourceCat[thissource] = [thisskycoord.ra.value,
+                                     thisskycoord.dec.value]
 
 # execute obsfkts script to define sourceDict variable
 execfile(os.path.join(obs_path, temp2))
