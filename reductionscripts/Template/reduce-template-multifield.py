@@ -5,7 +5,7 @@
 # Uses astropy SkyCoord to determine map centers and boundaries
 
 # ------------------------- OBSERVER or PI mode -------------------------------
-observer    = True          # *NOTE1* True or False
+observer    = False          # *NOTE1* True or False
 projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 
 # ------------------------- Observation Path ----------------------------------
@@ -527,6 +527,9 @@ if str.upper(subfield) != 'ALL':
 else:
     limitsX = []
     limitsY = []
+
+print(limitsX)
+print(limitsY)
 
 # define center
 if str.upper(subfield) != 'ALL':
