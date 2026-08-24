@@ -13,9 +13,9 @@ obs_path    = 'auto'        # path to "Observation" directory containing macros
                             # AUTOMATIC AT APEX, OTHERWISE IMPORT & SPECIFY
 
 # ------------------------- Source and map parameters -------------------------
-source      = 'SrcName'     # As in observing logs and source catalog, or "all"
+source      = 'all'     # As in observing logs and source catalog, or "all"
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
-system      = 'EQ'          # Coordinate system for map, 'EQ' or 'GAL'
+system      = 'GAL'          # Coordinate system for map, 'EQ' or 'GAL'
 padding     = 0.3           # Padding around the map in DEG for the grid
 smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 
@@ -428,7 +428,7 @@ for mysource in sourceCat.keys():
         myang = sourceDict[mysource]['myang']*np.pi/180.  # rad in EQ
         radec = mycoords.to_string('hmsdms', sep=':', precision=2)
         ra, dec = radec.split(' ')
-        eq2gal_ANG = get_angle(ra, dec)*np.pi/180.  # rad from EQ to GAL
+        eq2gal_ang = get_angle(ra, dec)*np.pi/180.  # rad from EQ to GAL
         if abs(myang - eq2gal_ang) <= 1.*180./np.pi:
             myang = 0.0
         else:
