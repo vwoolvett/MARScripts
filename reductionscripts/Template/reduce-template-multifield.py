@@ -13,7 +13,7 @@ obs_path    = 'auto'        # path to "Observation" directory containing macros
                             # AUTOMATIC AT APEX, OTHERWISE IMPORT & SPECIFY
 
 # ------------------------- Source and map parameters -------------------------
-source      = 'AMIGOS-1'    # Generic name for reduced maps
+source      = 'AMIGOS1'    # Generic name for reduced maps
 subfield    = 'all'         # Subfield name as in obslogs and source catalog or 'all'
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'GAL'         # Coordinate system for map, 'EQ' or 'GAL'
@@ -762,7 +762,7 @@ if True:  # Just to indent
                     mediannoise = np.nanmedian(rmsArray)
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
                     del rmsArray  # free memory
-                    caption = '%s - %s - Iter%i - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, iter, scan)
+                    caption = '%s - %s - Iter%i - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(m.Header['Object'], fe, iter, scan)
                     m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], limitsX=limitsX, limitsY=limitsY, caption=caption)
                     print('')
                     msg  = "-------------------------------------------------------------------------\n"
@@ -827,7 +827,8 @@ if True:  # Just to indent
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, iter, scan)
+                dummy = snrMap.Header['Object'] if str.upper(subfield) != 'ALL' else source
+                caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (no smoothing): -3 to +10'%(dummy, fe, iter, scan)
                 snrMap.display(aspect=1,limitsZ=[-3, +10], limitsX=limitsX, limitsY=limitsY, caption=caption)
                 del snrMap  # free memory
 
@@ -876,7 +877,8 @@ if True:  # Just to indent
         
 
         # plot SnR map
-        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
+        dummy = snrMap.Header['Object'] if str.upper(subfield) != 'ALL' else source
+        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(dummy, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], limitsX=limitsX, limitsY=limitsY, caption=caption)
 
         # plot noisemap contours
