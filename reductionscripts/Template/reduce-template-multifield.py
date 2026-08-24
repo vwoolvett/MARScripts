@@ -74,6 +74,7 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 # === REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ====
 # =============================================================================
 from astropy.coordinates import SkyCoord
+import astropy.units as aunit
 import math
 
 def findSciTargetScans(source, obslogsdir, fe, verbose=False):
@@ -361,7 +362,8 @@ with open(os.path.join(obs_path, temp1), 'r') as f:
         thissource = entry.split(' ')[0]
         RADEC = entry.split(' ')[3] + ' ' + entry.split(' ')[4]
         print(RADEC)
-        sourceCat[thissource] = SkyCoord(RADEC)
+        sourceCat[thissource] = SkyCoord(RADEC,
+                                         unit=(aunit.hourangle, aunit.deg))
 
 # execute obsfkts script to define sourceDict variable
 execfile(os.path.join(obs_path, temp2))
