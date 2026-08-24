@@ -13,9 +13,10 @@ obs_path    = 'auto'        # path to "Observation" directory containing macros
                             # AUTOMATIC AT APEX, OTHERWISE IMPORT & SPECIFY
 
 # ------------------------- Source and map parameters -------------------------
-source      = 'all'     # As in observing logs and source catalog, or "all"
+source      = 'AMIGOS'      # Generic name for reduced maps
+field       = 'all'         # Subfield name as in obslogs and source catalog or 'all'
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
-system      = 'GAL'          # Coordinate system for map, 'EQ' or 'GAL'
+system      = 'GAL'         # Coordinate system for map, 'EQ' or 'GAL'
 padding     = 0.3           # Padding around the map in DEG for the grid
 smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
 
@@ -371,15 +372,17 @@ execfile(os.path.join(obs_path, temp2))
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    if str.upper(source) == 'ALL':
-        source = 'ALL'
+    if str.upper(field) == 'ALL':
         for mysource in sourceCat.keys():
             scans += findSciTargetScans(source=mysource,
                                             obslogsdir=obslogsdir,
                                             fe=fe, verbose=verbose)
+        if len(scans) == 0:
+            raise ValueError("No scans found in ObsLogs directory:\n%s"%\
+                             (obslogsdir))
 
     else:
-        scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
+        scans = findSciTargetScans(source=field, obslogsdir=obslogsdir, fe=fe,
                                verbose=verbose)
         if len(scans) == 0:
             raise ValueError("No scans of source %s (%s) "%(source, fe) +\
@@ -836,8 +839,8 @@ if True:  # Just to indent
         radius_deg = 3.0 / 60.0  # 2 arcmin
         # create a mask for the circular aperture
         x_indices, y_indices = np.indices(ms.Data.shape)
-        x_center = ms.WCS['CRPIX1']
-        y_center = ms.WCS['CRPIX2']
+        x_center = center[0]
+        y_center = center[1]
         aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
