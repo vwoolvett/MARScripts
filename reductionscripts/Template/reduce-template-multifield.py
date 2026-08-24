@@ -13,8 +13,8 @@ obs_path    = 'auto'        # path to "Observation" directory containing macros
                             # AUTOMATIC AT APEX, OTHERWISE IMPORT & SPECIFY
 
 # ------------------------- Source and map parameters -------------------------
-source      = 'AMIGOS'      # Generic name for reduced maps
-field       = 'all'         # Subfield name as in obslogs and source catalog or 'all'
+source      = 'AMIGOS-1'    # Generic name for reduced maps
+subfield    = 'all'         # Subfield name as in obslogs and source catalog or 'all'
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'GAL'         # Coordinate system for map, 'EQ' or 'GAL'
 padding     = 0.3           # Padding around the map in DEG for the grid
@@ -354,7 +354,7 @@ if temp1 == None:
 if temp2 == None:
     raise RuntimeError('Specified Observation path is missing obsfkts macro!')
 
-# read source catalog: sourceCat is a dictionary of field:coords in global
+# read source catalog: sourceCat is a dictionary of subfield:coords in global
 # system defined for this script
 # This defines map centers for reduction.
 sourceCat = {}
@@ -372,7 +372,7 @@ execfile(os.path.join(obs_path, temp2))
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    if str.upper(field) == 'ALL':
+    if str.upper(subfield) == 'ALL':
         for mysource in sourceCat.keys():
             scans += findSciTargetScans(source=mysource,
                                             obslogsdir=obslogsdir,
@@ -382,7 +382,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
                              (obslogsdir))
 
     else:
-        scans = findSciTargetScans(source=field, obslogsdir=obslogsdir, fe=fe,
+        scans = findSciTargetScans(source=subfield, obslogsdir=obslogsdir, fe=fe,
                                verbose=verbose)
         if len(scans) == 0:
             raise ValueError("No scans of source %s (%s) "%(source, fe) +\
@@ -456,7 +456,7 @@ for mysource in sourceCat.keys():
                             'biggerY':biggerY,
                             'smallerY':smallerY}
 
-# Grid must be common to all sub-fields
+# Grid must be common to all subfields
 biggerX = np.max(np.array([sourceDict[src]['biggerX']\
                             for src in sourceDict.keys()]))
 smallerX = np.min(np.array([sourceDict[src]['smallerX']\
@@ -508,6 +508,15 @@ ysize = [smallerY, biggerY]
 # For EQ or GAL biggerX is to the left because X angle
 # follows right-hand rule with thumb pointing to EQ or GAL north pole
 xsize = [biggerX, smallerX]
+
+# define limitsX and limitsY for plots of this reduction
+if subfield!='all':
+    temp = sourceDict[subfield]
+    limitsX = [temp['biggerX'], temp['smallerX']]
+    limitsY = [temp['smallerY'], temp['biggerY']]
+else:
+    limitsX = []
+    limitsY = []
 
 # define center
 if source != 'ALL':
@@ -741,7 +750,7 @@ if True:  # Just to indent
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
                     del rmsArray  # free memory
                     caption = '%s - %s - Iter%i - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, iter, scan)
-                    m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
+                    m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], limitsX=limitsX, limitsY=limitsY, caption=caption)
                     print('')
                     msg  = "-------------------------------------------------------------------------\n"
                     msg += "-> Check map and answer whether it looks fine, regardless of sensitivity.\n"
@@ -806,7 +815,7 @@ if True:  # Just to indent
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
                 caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, iter, scan)
-                snrMap.display(aspect=1,limitsZ=[-3, +10], caption=caption)
+                snrMap.display(aspect=1,limitsZ=[-3, +10], limitsX=limitsX, limitsY=limitsY, caption=caption)
                 del snrMap  # free memory
 
 
@@ -855,17 +864,17 @@ if True:  # Just to indent
 
         # plot SnR map
         caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
-        snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
+        snrMap.display(aspect=1,limitsZ=[-3, 10], limitsX=limitsX, limitsY=limitsY, caption=caption)
 
         # plot noisemap contours
         if clip != -1:
-            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise],doContour=1,levels=[clip*mediannoise],overplot=1)
+            rmsMap.display(aspect=1,limitsZ=[0, clip*mediannoise], limitsX=limitsX, limitsY=limitsY,doContour=1,levels=[clip*mediannoise],overplot=1)
         else:
             # use 2*median noise to show "edges" of map, but not to clip
-            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
+            rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise], limitsX=limitsX, limitsY=limitsY,doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot aperture map
-        apertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
+        apertureMap.display(aspect=1,limitsZ=[0, minap], limitsX=limitsX, limitsY=limitsY,doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
 
         print('')
         print("####################### Iteration %i finished ########################"%(iter))
