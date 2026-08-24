@@ -385,7 +385,7 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
         scans = findSciTargetScans(source=subfield, obslogsdir=obslogsdir, fe=fe,
                                verbose=verbose)
         if len(scans) == 0:
-            raise ValueError("No scans of source %s (%s) "%(source, fe) +\
+            raise ValueError("No scans of %s (%s) "%(subfield, fe) +\
                              "found in ObsLogs directory:\n%s"%(obslogsdir))
 
 # sort scans
