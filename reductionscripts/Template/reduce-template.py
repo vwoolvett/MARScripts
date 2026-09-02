@@ -11,7 +11,7 @@ projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 source      = 'SrcName'     # As in observing logs and source catalog
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center      = [0, 0]        # Center of map [X, Y] in DEG for **CHOSEN COORDS**
+center      = [0, 0]        # System's map center in DEG (not required for HO)
 sizex       = 1.0           # Size of map in DEG for X direction
 sizey       = 1.0           # Size of map in DEG for Y direction
 padding     = 0.3           # Padding around the map in DEG for the grid
@@ -71,7 +71,7 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 # =============================================================================
 # === REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ====
 # =============================================================================
-def findSciTargetScans(source, obslogsdir, fe, verbose=False):
+def __findSciTargetScans(source, obslogsdir, fe, verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
     FeBedict = {'LFA': 'AMKID870-AMKID870BE', 'HFA':'AMKID350-AMKID350BE'}
@@ -181,6 +181,35 @@ def findSciTargetScans(source, obslogsdir, fe, verbose=False):
          %(source, fe, len(scanlist)))
     return scanlist
 
+def __findProjectCode(projectcode):
+    # Find project code if at APEX
+    if projectcode == 'auto':
+        curraccount = os.getenv('USER')
+        # project code is separated once with dot and thrice with dash
+        if len(curraccount.split('.')) == 2 and len(curraccount.split('-')) == 4:
+            myprojectcode = curraccount
+            info('Project code extracted from current account: %s'\
+                  %(curraccount))
+        else:
+            raise ValueError("STOPPING SCRIPT: project code could not be" +\
+                        " extracted from current account: %s."%(curraccount)+\
+                        "\nIf you are at APEX, log in with a project"+\
+                        " account and re-run script. If you are not at APEX"+\
+                        ", you must manually set the project code variable.")
+
+    else:
+        myprojectcode = projectcode
+        # remove slash if present for some reason
+        if myprojectcode[-1] == '/':
+            myprojectcode = myprojectcode[:-1]
+        # project code is separated once with dot and thrice with dash
+        if len(myprojectcode.split('.')) != 2 or \
+           len(myprojectcode.split('-')) != 4:
+            raise ValueError("STOPPING SCRIPT: string '%s'"%(myprojectcode)+\
+                             " is not a project code.")
+
+    return myprojectcode
+
 # variable checks
 if fe not in ['LFA', 'HFA']:
     raise ValueError("fe must be either 'LFA' or 'HFA'.")
@@ -206,29 +235,8 @@ if observer == True:
     clip = -1               # full map, no clipping
     writefits = False       # save time, don't clog directory
 
-# Find project code if at APEX
-if projcode == 'auto':
-    curraccount = os.getenv('USER')
-    # project code is separated once with dot and thrice with dash
-    if len(curraccount.split('.')) == 2 and len(curraccount.split('-')) == 4:
-        projcode = curraccount
-        info('Project code extracted from current account: %s'\
-             %(projcode))
-        del curraccount
-    else:
-        raise ValueError("STOPPING SCRIPT: project code could not be" +\
-                         " extracted from current account: %s."%(curraccount)+\
-                         "\nIf you are at APEX, log in with a project"+\
-                         " account and re-run script. If you are not at APEX"+\
-                         ", you must manually set the project code variable")
-else:
-    # remove slash if present for some reason
-    if projcode[-1] == '/':
-        projcode = projcode[:-1]
-    # project code is separated once with dot and thrice with dash
-    if len(projcode.split('.')) != 2 or len(projcode.split('-')) != 4:
-        raise ValueError("STOPPING SCRIPT: project code '%s' is not correct."\
-                         %(projcode))
+# Define projcode var
+projcode = __findProjectCode()
 
 # create lowercase and CAPS version
 projcode_low = str.lower(projcode)
@@ -265,7 +273,7 @@ if len(scans) == 0 and not os.path.exists(obslogsdir):
 # find scans if not provided
 if len(scans) == 0 and os.path.exists(obslogsdir):
     info('Retrieving source scan numbers from ObsLogs...')
-    scans = findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
+    scans = __findSciTargetScans(source=source, obslogsdir=obslogsdir, fe=fe,
                                verbose=verbose)
     if len(scans) == 0:
         raise ValueError("No scans of source %s (%s) "%(source, fe) +\
@@ -288,59 +296,53 @@ if len(scans) == 0:
 info('Creating map boundaries...')
 deltaX = sizex/2 + padding
 deltaY = sizey/2 + padding
-# Fix projected map size in X due to converging Y coord lines into poles
-# for EQ and GAL
+
+# EQ/GAL: X increases anticlockwise | Right Hand Rule
 if system in ['EQ', 'GAL']:
     deltaX = deltaX / np.cos(float(center[1])*np.pi/180.)
-biggerX = center[0] + deltaX
-smallerX = center[0] - deltaX
-biggerY = center[1] + deltaY
-smallerY = center[1] - deltaY
+    biggerX = center[0] + deltaX
+    smallerX = center[0] - deltaX
+    biggerY = center[1] + deltaY
+    smallerY = center[1] - deltaY
 
-# These can't happen, no?
-if biggerY > 90:
-    raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
-                     'coordinate > +90 degrees! (comment this if intended)')
-if smallerY < -90:
-    raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
+    # These can't happen, no?
+    if biggerY > 90:
+        raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
+                         'coordinate > +90 degrees! (comment this if intended)')
+    if smallerY < -90:
+        raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
                      'coordinate < -90 degrees! (comment this if intended)')
 
-# Check X reframing.
-# Example with an X width of 10 deg:
-# Case 1: left = 150, right = 140 is left untouched
-# Case 2: left = 185, right = 175 
-#           -> frame was 0:360, now left = -175, right = 175
-# Case 3: left = 200, right = 190
-#           -> frame was 0:360, now left = -160, right = -170
-# Case 4 : same as before but one of the boundaries ended up < -180: add 360
-sysreframe = False
-if biggerX > 180 and system != 'EQ':
-    biggerX -= 360
-    sysreframe = True
-if biggerX < -180 and system != 'EQ':
-    biggerX += 360
-    sysreframe = True
-if smallerX > 180 and system != 'EQ':
-    smallerX -=360
-    sysreframe = True
-if smallerX < -180 and system != 'EQ':
-    smallerX +=360
-    sysreframe = True
+    # Check X reframing for GAL [0, 360] -> [-180, 180]
+    if system == 'GAL':
+        sysreframe = False
+        if biggerX > 180:
+            biggerX -= 360
+            sysreframe = True
+        if biggerX < -180:
+            biggerX += 360
+            sysreframe = True
+        if smallerX > 180:
+            smallerX -=360
+            sysreframe = True
+        if smallerX < -180:
+            smallerX +=360
+            sysreframe = True
 
-# information
-if sysreframe:
-    info('Map X boundaries were wrapped into the range [-180, 180] deg')
+        # information
+        if sysreframe:
+            info('Map X boundaries were wrapped into the range [-180, 180] deg')
 
-# Define boundary list for functions
-ysize = [smallerY, biggerY]
-# For EQ or GAL biggerX is to the left because X angle
-# follows right-hand rule with thumb pointing to EQ or GAL north pole
-xsize = [biggerX, smallerX]
+    # Define boundary lists for mapping function
+    ysize = [smallerY, biggerY]
+    xsize = [biggerX, smallerX]
 
-# For HO smallerX is to the left because X angle
-# follows left-hand rule with thumb pointing to zenith (eastward in ground)
+# HO: X increases clockwise (toward east) | Left Hand Rule
 if system =='HO':
-    xsize = [smallerX, biggerX]
+    # Define boundary lists for mapping function
+    # OFFSETS ONLY AND IN ARCSEC, IGNORES MAP CENTER
+    xsize = [-deltaX*3600, deltaX*3600]  # arcsec
+    ysize = [-deltaY*3600, deltaY*3600]  # arcsec
 
 # Define standardized "myname" variable for output files
 myname = str(fe) + "-" + str(source) + "-" + str(system)
@@ -395,17 +397,17 @@ Smoothing:          %s
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Number of scans     %s (valid)'''%(observer, projcode_caps, source, fe, system,
-                           center[0], center[1], sizex, sizey, padding,
-                           xsize[0], xsize[1], ysize[0], ysize[1],
-                           correctbeam,
-                           '%.1f arcsec (default)'%(smoothby_arcsec) \
-                           if smoothing=='default' \
-                           else '%.1f arcsec'%(smoothby_arcsec),
-                           niters,
-                           clip if clip != -1 else 'No clipping', flagJumps,
-                           
-                           len(scans)))
+Number of scans     %s (valid)'''%(observer, str.upper(projcode), source, fe,
+                                   system,
+                                   center[0], center[1], sizex, sizey, padding,
+                                   xsize[0], xsize[1], ysize[0], ysize[1],
+                                   correctbeam,
+                                   '%.1f arcsec (default)'%(smoothby_arcsec) \
+                                   if smoothing=='default' \
+                                   else '%.1f arcsec'%(smoothby_arcsec),
+                                   niters,
+                                   clip if clip != -1 else 'No clipping', flagJumps,
+                                   len(scans)))
 if len(badscans) > 0:
     info('Bad scans removed:')
     print('         %s'%badscans)
@@ -457,7 +459,7 @@ if True:  # Just to indent
             del coadded  # free memory
 
   
-        # Initialize co-added map
+        # Initialize co-added map "mapsum" -> "ms" and integration time vars
         ms = None
         tint = 0
 
@@ -616,8 +618,8 @@ if True:  # Just to indent
             try:
                 tint += m.Tint
                 mymjdrefs.append(m.MJDref)
-                mytints.append(m.Tint)
             except:
+                warn('Failed to add integration time for some reason.')
                 pass
             del m  # free memory
 
@@ -658,16 +660,17 @@ if True:  # Just to indent
         # Compute statistics, let __writeFits handle clipping
         messages.info('Computing aperture-based noise statistics...')
         # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
-        radius_deg = 3.0 / 60.0  # 2 arcmin
+        radius_deg = 3.0 / 60.0  # 3 arcmin
         # create a mask for the circular aperture
         x_indices, y_indices = np.indices(ms.Data.shape)
         x_center = ms.WCS['CRPIX1']
         y_center = ms.WCS['CRPIX2']
-        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius_deg / abs(ms.WCS['CDELT1']))**2
+        radius = radius_deg if str.upper(system) in ["EQ", "GAL"] else radius_deg * 3600
+        aperture_mask = (x_indices - x_center)**2 + (y_indices - y_center)**2 <= (radius / abs(ms.WCS['CDELT1']))**2
         minnoise = np.nanmin(rmsMap.Data[aperture_mask])  # on aperture
         meannoise = np.nanmean(rmsMap.Data[aperture_mask])  # on aperture
         mediannoise = np.nanmedian(rmsMap.Data)  # on full map
-        aperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius_deg/abs(ms.WCS['CDELT1']))**2))
+        aperturegauss = 10*np.exp(-((x_indices - x_center)**2 + (y_indices - y_center)**2)/(2*(radius/abs(ms.WCS['CDELT1']))**2))
         aperturegauss *= np.where(aperture_mask, 1., np.nan)  # cut it
         minap = np.nanmin(aperturegauss)
         # create an image for this aperture to display
