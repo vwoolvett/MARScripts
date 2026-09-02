@@ -480,7 +480,7 @@ if True:  # Just to indent
                 info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
                 # Reduce it
-                redscience(scan, fsweep=None, fe=fe, src=source, model=mymodel,
+                redscience(scan, fsweep=None, fe=fe, model=mymodel,
                            subtract=subtract, extremeFilter=False,
                            correctbeam=correctbeam, flagJumps=flagJumps,
                            writeSummary=writeSummary, showsig=showsig)
