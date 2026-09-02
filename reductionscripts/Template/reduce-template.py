@@ -345,7 +345,7 @@ if system =='HO':
     ysize = [-deltaY*3600, deltaY*3600]  # arcsec
 
 # Define standardized "myname" variable for output files
-myname = str(fe) + "-" + str(source) + "-" + str(system)
+myname = str(source) + "-" + str(fe) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
