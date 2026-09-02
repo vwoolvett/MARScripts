@@ -236,7 +236,7 @@ if observer == True:
     writefits = False       # save time, don't clog directory
 
 # Define projcode var
-projcode = __findProjectCode()
+projcode = __findProjectCode(projectcode=projcode)
 
 # create lowercase and CAPS version
 projcode_low = str.lower(projcode)
