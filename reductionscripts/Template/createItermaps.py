@@ -1,6 +1,6 @@
 mymaps = {}
 for i in range(1, niters+1):
-    myname = 'ReducedFiles/%s-%s-%s'%(fe, source, system)
+    myname = 'ReducedFiles/%s-%s-%s'%(source, fe, system)
     if flagJumps:
         myname += '-flagJumps'
     myname+='-coadded-flux-iter%i.data'%i
