@@ -1,7 +1,7 @@
 # =============================================================================
 # ========================== BEGINNING OF USER INPUT ==========================
 # =============================================================================
-# Last edited by: VWO 02.09.2026
+# Last edited by: VWO 04.09.2026
 
 # ------------------------- OBSERVER or PI mode -------------------------------
 observer    = True          # *NOTE1* True or False
@@ -181,7 +181,7 @@ def __findSciTargetScans(source, obslogsdir, fe, verbose=False):
          %(source, fe, len(scanlist)))
     return scanlist
 
-def __findProjectCode(projectcode):
+def __findProjectCode(projectcode='auto'):
     # Find project code if at APEX
     if projectcode == 'auto':
         curraccount = os.getenv('USER')
@@ -282,11 +282,13 @@ if len(scans) == 0 and os.path.exists(obslogsdir):
 # sort scans
 scans.sort()
 badscans.sort()
+badscansremoved = []
 
 # Remove bad scans from the list of scans to be reduced
 for badscan in badscans:
     if badscan in scans:
         scans.remove(badscan)
+        badscansremoved.append(badscan)
 
 # Check removing bads did not leave scans empty
 if len(scans) == 0:
@@ -408,9 +410,9 @@ Number of scans     %s (valid)'''%(observer, str.upper(projcode), source, fe,
                                    niters,
                                    clip if clip != -1 else 'No clipping', flagJumps,
                                    len(scans)))
-if len(badscans) > 0:
+if len(badscansremoved) > 0:
     info('Bad scans removed:')
-    print('         %s'%badscans)
+    print('         %s'%badscansremoved)
 
 
 # ===========================
@@ -479,7 +481,7 @@ if True:  # Just to indent
                 print('')
                 info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
-                # Reduce it
+                # Reduce it. After this, data should be calibrated into Jy/b and ready for mapping call
                 redscience(scan, fsweep=None, fe=fe, model=mymodel,
                            subtract=subtract, extremeFilter=False,
                            correctbeam=correctbeam, flagJumps=flagJumps,
@@ -503,7 +505,7 @@ if True:  # Just to indent
 
                 # Flagging example to flag a certain time range in a map (seconds from the beining of the scan) 
                 #if scan == 22919: 
-                #    flagMJD(above=1430, below=1600,flag=2)
+                #    flagMJD(above=1430, below=1600, flag=2)
 
                 # Flagging example to flag a certain tone/KID in a scan
                 #if scan == 28517:
@@ -514,11 +516,12 @@ if True:  # Just to indent
                 mapping(oversamp=4, system=system, sizeX=xsize, sizeY=ysize,
                         limitsZ=[-0.8,1.5], noPlot=True)
                 
-                # Add MJD of middle and integration time to dumped map
-                data.Map.MJDref = (data.ScanParam.MJD[-1] + data.ScanParam.MJD[0]) / 2  # MJD
+                # Add MJD and integration time to dumped map
+                data.Map.MJDref = data.ScanParam.MJD[0]  # MJD
                 data.Map.Tint = np.sum(data.ScanParam.get('deltat'))  # seconds
 
                 # Save unsmoothed map, "native" resolution (m.BeamSize = data.BolometerArray.BeamSize)
+                # Which is either 1.22 l/D if correctbeam=False or 16.7" (LFA) and 7.5" (HFA) if correctbeam=True
                 data.Map.dumpMap(scanname)
 
                 # Assign BoA map to variable m
@@ -659,7 +662,7 @@ if True:  # Just to indent
 
         # Compute statistics, let __writeFits handle clipping
         messages.info('Computing aperture-based noise statistics...')
-        # compute noise statistics in a circular aperture of radius 2 arcmin centered on map center
+        # compute noise statistics in a circular aperture of radius 3 arcmin centered on map center
         radius_deg = 3.0 / 60.0  # 3 arcmin
         # create a mask for the circular aperture
         x_indices, y_indices = np.indices(ms.Data.shape)
@@ -690,7 +693,7 @@ if True:  # Just to indent
             rmsMap.display(aspect=1,limitsZ=[0, 2*mediannoise],doContour=1,levels=[2*mediannoise],overplot=1)
 
         # plot aperture map
-        apertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)#,colors=['cyan'])
+        apertureMap.display(aspect=1,limitsZ=[0, minap],doContour=1,levels=[minap],overplot=1)
 
         print('')
         print("####################### Iteration %i finished ########################"%(iter))
