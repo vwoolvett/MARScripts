@@ -1,4 +1,4 @@
-def test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
+def __test_newreduceFsweep(fsweep ,fe='LFA', chain=None, wirescan=None):
     """
     Show diagnostics for individual KIDS for the given fsweep.
     
