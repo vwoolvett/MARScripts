@@ -471,9 +471,6 @@ if True:  # Just to indent
 
             # Initialize map for this scan
             m = None
-            # avoid mapping() call for map N after CTRL+C during reduction->mapping gets previous data.Map (N-1)
-            data.Data = None
-            data.Map = None
 
             # Check if reduction does not exist
             if len(globlist) ==  0:
