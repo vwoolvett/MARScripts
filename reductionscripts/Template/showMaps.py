@@ -9,7 +9,7 @@
 
 # --- Plotting parameters ---
 iter      = 1               # Which iteration of the reduction to show (usual 1)
-show      = 'snr'           # Show Signal-SKY (sig), Noise (rms), SNR (snr),
+show      = 'sig'           # Show Signal-SKY (sig), Noise (rms), SNR (snr),
                             # or coverage (cov) map.
 
 # ==============================
