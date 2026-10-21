@@ -1,7 +1,7 @@
 # =============================================================================
 # ========================== BEGINNING OF USER INPUT ==========================
 # =============================================================================
-# Last edited by: VWO 04.09.2026
+# Last edited by: VWO 21.10.2026
 
 # ------------------------- OBSERVER or PI mode -------------------------------
 observer    = True          # *NOTE1* True or False
@@ -28,15 +28,15 @@ writefits       = True      # Write FITS of final iteration maps.
 correctbeam     = True      # Correct AMKID beam to nominal: recomm. True
 writeSummary    = False     # Write summary of reductions (mostly debugging)
 
-# ------------------------- Scans (automatic at APEX) -------------------------
+# ------------------------- Scans (mostly automatic) --------------------------
 scans       = []            # *NOTE4*
 obslogsdir  = 'default'     # If not at MPIfR or APEX, input manually!
 verbose     = False         # print ObsLog scan selection criteria (debugging)
 
 # ------------------------- NOTES ---------------------------------------------
 # *NOTE1*   If you are an observer, leave as True to assess AMKID performance
-#           and/or calib at scan reduction. Prompts upon running script as 
-#           observer give more information on what to do. PIs should set to 
+#           and/or calibration at scan reduction. Prompts upon running script
+#           as observer give more information on what to do. PIs should set to 
 #           observer = False and re-reduce Iteration 1 with an empty "badscans"
 #           list variable in this reduction script; then assess with the script
 #           "showMaps.py" which scans to actually discard.  For exceptional
@@ -48,11 +48,12 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 #           If a target beam size is requested by the PI, consider:
 #           smoothing^2 = targetbeam^2 - nativebeam^2
 
-# *NOTE3*   The image is masked where noisemap > clip*mediannoise (clip>=1.5), 
-#           or else (clip==-1) no clipping.
+# *NOTE3*   The exported FITS images (not the intermediate BoA images) are
+#           masked where noisemap > clip*median_noise (clip>=1.5), or else
+#           (clip==-1) no clipping.
 
 # *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of
-#           the source specified above from the specified obslogs directory.
+#           the source specified above from the obslogs directory.
 #           If not reducing at APEX or MPIfR, you must manually input the
 #           obslogs directory and likely set the (raw)data input directory via 
 #           the "indir('directory')" function in mars.
@@ -134,7 +135,7 @@ def __findSciTargetScans(source, obslogsdir, fe, verbose=False):
                         command = command[:12] + ' | '              # 5
 
                     if key == 'Scan duration':
-                        duration = (line[4:-6].ljust(8) + ' | ')   # 6
+                        duration = (line[4:-6].ljust(8) + ' | ')    # 6
 
                     if key == 'Scan status':
                         status = (line[4:-6].ljust(12) + ' | ')     # 7
