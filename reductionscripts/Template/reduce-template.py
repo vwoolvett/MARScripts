@@ -148,14 +148,10 @@ def __findSciTargetScans(source, obslogsdir, fe, verbose=False):
 
                 if source in src:
                     if  '-999' not in duration:
-                        #if 'MAP' in scantype and 'OTF' in mode\
-                        #    and fe in thisfe and 'OK' in status:
-                        #    message += 'SCAN CONSIDERED'.ljust(15) + ' | '
-                        #    message += comment
-                        #    scanlist.append(scan_int)
                         if 'calibrate(' not in command\
                             and 'beamscan(' not in command\
                             and 'go(' not in command\
+                            and 'load(' not in command\
                             and fe in thisfe\
                             and 'OK' in status:
                             message += 'SCAN CONSIDERED'.ljust(15) + ' | '
