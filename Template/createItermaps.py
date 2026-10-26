@@ -1,3 +1,29 @@
+# =================================
+# ==== BEGINNING OF USER INFO =====
+# =================================
+# NOTE: script intended to be used after reducing all scans and can be used
+# for any iteration of the reduction.
+# It creates the "mymaps" variable in the MARS session, which is a dictionary
+# containing all maps for all iterations. Purpose is whatever user intends.
+
+# ---------------
+# Usage examples:
+# ---------------
+# >>> mymaps['ITER1']['sig'] contains a BoA object: signal map of iteration 1
+
+# display the signal map of iteration 1:
+# >>> mymaps['ITER1']['sig'].display(aspect=1)
+
+# display the noise map of iteration 2:
+# >>> mymaps['ITER2']['rms'].display(aspect=1)
+
+# display the SNR map of iteration 3:
+# >>> mymaps['ITER3']['snr'].display(aspect=1)
+
+# ==============================
+# ===== END OF USER INFO =======
+# ==============================
+
 mymaps = {}
 for i in range(1, niters+1):
     myname = 'ReducedFiles/%s-%s-%s'%(source, fe, system)
