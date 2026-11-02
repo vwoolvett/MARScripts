@@ -475,8 +475,25 @@ if True:  # Just to indent
                 print('')
                 info('Reducing scan %i (Iter%i | scan %i/%i)...'%(scan, iter, i+1, len(scans)))
 
+                # VWO: Fix if calibrations are corrupted:
+                fsweep = None  # leave uncommented
+                wscan = None  # leave uncommented
+                
+                # change WireScanners example
+                #if scan in [20000, 20001, 20002, 20003, 20004, 20005]:
+                #    wscan = 19990
+                #else:
+                #    wscan = None
+
+                # change Fsweeps example
+                #if scan in [20000, 20001, 20002, 20003, 20004, 20005]:
+                #    fsweep = 19990  # change Fsweep
+                #else:
+                #    fsweep = None
+                
+
                 # Reduce it. After this, data should be calibrated into Jy/b and ready for mapping call
-                redscience(scan, fsweep=None, fe=fe, model=mymodel,
+                redscience(scan, fsweep=fsweep, wscan=wscan, fe=fe, model=mymodel,
                            subtract=subtract, extremeFilter=False,
                            correctbeam=correctbeam, flagJumps=flagJumps,
                            writeSummary=writeSummary, showsig=showsig)
