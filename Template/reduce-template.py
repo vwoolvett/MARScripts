@@ -374,11 +374,21 @@ if len(scans) == 0:
 
 # Create map bounds
 info('Creating map boundaries...')
-if padding == 'default':
-    padX, padY = calculate_padding(sizex, sizey, dC=15./60., max_angle=15.0)
+if isinstance(padding, (list, tuple)):
+    if len(padding) != 2:
+        raise ValueError("padding must be a float or a list/tuple of two floats.")
+    else:
+        padX = padding[0]
+        padY = padding[1]
 else:
-    padX = padding[0] if isinstance(padding, (list, tuple)) else padding
-    padY = padding[1] if isinstance(padding, (list, tuple)) else padding
+    if padding == 'default':
+        padX, padY = calculate_padding(sizex, sizey, dC=15./60., max_angle=15.0)
+    elif isinstance(padding, (int, float)):
+        padX = float(padding)
+        padY = float(padding)
+    else:
+        raise ValueError("padding must be a float or a list/tuple of two floats.")
+    
 deltaX = sizex/2 + padX
 deltaY = sizey/2 + padY
 
@@ -475,7 +485,7 @@ Frontend:           %s
 Coordinate system:  %s
 Map center:         %.5f, %.5f deg
 Map size (x,y):     %.3f, %.3f deg
-Padding:            %.3f deg
+Padding (x,y):      %.3f, %.3f deg
 Map Boundaries:     X: %.3f, %.3f deg | Y: %.3f, %.3f deg
 Correct beam:       %s
 Smoothing:          %s
@@ -484,7 +494,7 @@ Sigmaclip level:    %s
 Flag jumps:         %s
 Number of scans     %s (valid)'''%(observer, str.upper(projcode), source, fe,
                                    system,
-                                   center[0], center[1], sizex, sizey, padding,
+                                   center[0], center[1], sizex, sizey, padX, padY,
                                    xsize[0], xsize[1], ysize[0], ysize[1],
                                    correctbeam,
                                    '%.1f arcsec (default)'%(smoothby_arcsec) \
