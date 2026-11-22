@@ -1,7 +1,7 @@
 # =============================================================================
 # ========================== BEGINNING OF USER INPUT ==========================
 # =============================================================================
-# Last edited by: VWO 21.10.2026
+# Last edited by: VWO 21.11.2026
 
 # ------------------------- OBSERVER or PI mode -------------------------------
 observer    = True          # *NOTE1* True or False
@@ -14,13 +14,13 @@ system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
 center      = [0, 0]        # System's map center in DEG (not required for HO)
 sizex       = 1.0           # Size of map in DEG for X direction
 sizey       = 1.0           # Size of map in DEG for Y direction
-padding     = 0.3           # Padding around the map in DEG for the grid
-smoothing   = 'default'     # *NOTE2* By how much to smooth final iter. maps
+padding     = 'default'     # *NOTE2* Map padding (DEG): float or [float,float]
+smoothing   = 'default'     # *NOTE3* By how much to smooth final iter. maps
 
 # ------------------------- Reduction parameters ------------------------------
 badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
-clip            = -1        # *NOTE3* Sigma clipping level (-1 or >=1.5)
+clip            = -1        # *NOTE4* Sigma clipping level (-1 or >=1.5)
 flagJumps       = False     # Flag spikes: recomm. True if spikes are present
 showsig         = True      # Show example signals after each calibration step
 doPlot          = True      # Display coadded map after each scan or final only
@@ -29,7 +29,7 @@ correctbeam     = True      # Correct AMKID beam to nominal: recomm. True
 writeSummary    = False     # Write summary of reductions (mostly debugging)
 
 # ------------------------- Scans (mostly automatic) --------------------------
-scans       = []            # *NOTE4*
+scans       = []            # *NOTE5*
 obslogsdir  = 'default'     # If not at MPIfR or APEX, input manually!
 verbose     = False         # print ObsLog scan selection criteria (debugging)
 
@@ -43,16 +43,26 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 #           cases, additional flagging is needed. Consult with Axel or Vicente
 #           if this applies to you.
 
-# *NOTE2*   The arrays have beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
+# *NOTE2*   Padding around the map in DEG for the grid, can be different per 
+#           axis. If the observations are not OTF, the padding can be set to 0
+#           and the full size of the grid will be determined only by
+#           sizex and sizey.  The 'default' option works well for OTF maps:
+#           it accounts for the extra map length along the scanning direction
+#           (one AMKID FOV = 15') and a maximum inclination angle for the OTF
+#           of 15 degrees. The inclination angle per OTF is random within the
+#           [-15, 15] deg range in order to minimize scanning direction
+#           artifacts after averaging. 
+
+# *NOTE3*   The arrays have beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
 #           The default smoothings are 8.0 arcsec (LFA) and 3.6 arcsec (HFA).
 #           If a target beam size is requested by the PI, consider:
 #           smoothing^2 = targetbeam^2 - nativebeam^2
 
-# *NOTE3*   The exported FITS images (not the intermediate BoA images) are
+# *NOTE4*   The exported FITS images (not the intermediate BoA images) are
 #           masked where noisemap > clip*median_noise (clip>=1.5), or else
 #           (clip==-1) no clipping.
 
-# *NOTE4*   If scans is empty, attempts to automatically retrieve all scans of
+# *NOTE5*   If scans is empty, attempts to automatically retrieve all scans of
 #           the source specified above from the obslogs directory.
 #           If not reducing at APEX or MPIfR, you must manually input the
 #           obslogs directory and likely set the (raw)data input directory via 
@@ -72,6 +82,8 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 # =============================================================================
 # === REDUCTION CODE, DO NOT EDIT BELOW UNLESS YOU KNOW WHAT YOU ARE DOING ====
 # =============================================================================
+
+# ---- Functions ----
 def __findSciTargetScans(source, obslogsdir, fe, verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
@@ -207,6 +219,75 @@ def __findProjectCode(projectcode='auto'):
 
     return myprojectcode
 
+def max_projection(A, B, max_angle=15.0):
+    """
+    Maximum projected dimension of an A x B rectangle,
+    rotated between -max_angle and +max_angle degrees.
+    """
+    theta = np.deg2rad(max_angle)
+
+    # Evaluate both interval boundaries and the unconstrained maximum.
+    theta_opt = np.arctan2(B, A)
+
+    angles = [0.0, theta, min(theta, theta_opt)]
+
+    projections = [
+        A * np.cos(t) + B * np.sin(t)
+        for t in angles
+    ]
+
+    return max(projections)
+
+
+def calculate_padding(dX, dY, dC=15./60., max_angle=15.0):
+    """
+    Calculate symmetric padding for an OTF map.
+
+    dX, dY : nominal map dimensions [degrees]
+    dC     : square camera FOV side [degrees]
+    max_angle : maximum OTF inclination [degrees]
+
+    Returns
+    -------
+    padX, padY : padding on each side [degrees]
+    """
+
+    # Camera-center trajectory dimensions
+    AX, BX = dX + dC, dY
+    AY, BY = dX, dY + dC
+
+    # Maximum OTF trajectory envelope
+    W = max(
+        max_projection(AX, BX, max_angle),
+        max_projection(AY, BY, max_angle)
+    )
+
+    H = max(
+        max_projection(BX, AX, max_angle),
+        max_projection(BY, AY, max_angle)
+    )
+
+    # Maximum camera footprint (full projected width)
+    camera_extent = np.sqrt(2.0) * dC
+
+    # Total sky coverage
+    totalX = W + camera_extent
+    totalY = H + camera_extent
+
+    # Symmetric padding
+    padX = (totalX - dX) / 2.0
+    padY = (totalY - dY) / 2.0
+
+    # Add a small margin to account for numerical errors
+    padX += 0.05
+    padY += 0.05
+
+    return padX, padY
+
+# -----------------------------
+# ---- Beginning of script ----
+# -----------------------------
+
 # variable checks
 if fe not in ['LFA', 'HFA']:
     raise ValueError("fe must be either 'LFA' or 'HFA'.")
@@ -293,8 +374,13 @@ if len(scans) == 0:
 
 # Create map bounds
 info('Creating map boundaries...')
-deltaX = sizex/2 + padding
-deltaY = sizey/2 + padding
+if padding == 'default':
+    padX, padY = calculate_padding(sizex, sizey, dC=15./60., max_angle=15.0)
+else:
+    padX = padding[0] if isinstance(padding, (list, tuple)) else padding
+    padY = padding[1] if isinstance(padding, (list, tuple)) else padding
+deltaX = sizex/2 + padX
+deltaY = sizey/2 + padY
 
 # EQ/GAL: X increases anticlockwise | Right Hand Rule
 if system in ['EQ', 'GAL']:
