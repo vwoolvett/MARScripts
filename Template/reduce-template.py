@@ -382,7 +382,7 @@ if len(badscans) > 0:
     with open('DO_NOT_DELETE_badscans.txt', 'a') as f:
         for badscan in badscans:
             if badscan not in existing_badscans:
-                f.write(f"{badscan}\n")
+                f.write("%i\n"%badscan)
 
 # Then read the full list from file
 with open('DO_NOT_DELETE_badscans.txt', 'r') as f:
