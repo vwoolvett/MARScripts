@@ -195,7 +195,7 @@ def __findProjectCode(projectcode='auto'):
     if projectcode == 'auto':
         curraccount = os.getenv('USER')
         # project code is separated once with dot and thrice with dash
-        if len(curraccount.split('.')) == 2 and len(curraccount.split('-')) == 4:
+        if len(curraccount.split('.'))==2 and len(curraccount.split('-'))==4:
             myprojectcode = curraccount
             info('Project code extracted from current account: %s'\
                   %(curraccount))
@@ -376,18 +376,20 @@ if len(scans) == 0:
 info('Creating map boundaries...')
 if isinstance(padding, (list, tuple)):
     if len(padding) != 2:
-        raise ValueError("padding must be a float or a list/tuple of two floats.")
+        raise ValueError("padding must be 'default' or a float or a "+\
+                         "list/tuple of two floats.")
     else:
         padX = padding[0]
         padY = padding[1]
 else:
     if padding == 'default':
-        padX, padY = calculate_padding(sizex, sizey, dC=15./60., max_angle=15.0)
+        padX, padY = calculate_padding(sizex, sizey, dC=15./60., max_angle=15.)
     elif isinstance(padding, (int, float)):
         padX = float(padding)
         padY = float(padding)
     else:
-        raise ValueError("padding must be a float or a list/tuple of two floats.")
+        raise ValueError("padding must be 'default' or a float or a "+\
+                         "list/tuple of two floats.")
     
 deltaX = sizex/2 + padX
 deltaY = sizey/2 + padY
@@ -402,11 +404,11 @@ if system in ['EQ', 'GAL']:
 
     # These can't happen, no?
     if biggerY > 90:
-        raise ValueError('STOPPING SCRIPT: The upper border of the map has Y '+\
-                         'coordinate > +90 degrees! (comment this if intended)')
+        raise ValueError('STOPPING SCRIPT: The upper border of the map has Y'+\
+                         ' coordinate > +90 degrees!')
     if smallerY < -90:
-        raise ValueError('STOPPING SCRIPT: The lower border of the map has Y '+\
-                     'coordinate < -90 degrees! (comment this if intended)')
+        raise ValueError('STOPPING SCRIPT: The lower border of the map has Y'+\
+                         ' coordinate < -90 degrees!')
 
     # Check X reframing for GAL [0, 360] -> [-180, 180]
     if system == 'GAL':
@@ -426,7 +428,7 @@ if system in ['EQ', 'GAL']:
 
         # information
         if sysreframe:
-            info('Map X boundaries were wrapped into the range [-180, 180] deg')
+            info('Map X boundaries were wrapped into [-180, 180] deg')
 
     # Define boundary lists for mapping function
     ysize = [smallerY, biggerY]
@@ -473,6 +475,11 @@ mymjdrefs = []
 
 
 # SUMMARY PRINT
+text_smoothing = '%.1f arcsec (default)'%(smoothby_arcsec) \
+                 if smoothing=='default' \
+                 else '%.1f arcsec'%(smoothby_arcsec)
+text_clip = 'No clipping' if clip==-1 else '%.1f sigma'%(clip)
+nscans = len(scans)
 print('')
 print('''\
 =====================
@@ -492,17 +499,23 @@ Smoothing:          %s
 Iterations:         %i
 Sigmaclip level:    %s
 Flag jumps:         %s
-Number of scans     %s (valid)'''%(observer, str.upper(projcode), source, fe,
+Number of scans     %s (valid)'''%(observer,
+                                   projcode_caps,
+                                   source,
+                                   fe,
                                    system,
-                                   center[0], center[1], sizex, sizey, padX, padY,
+                                   center[0], center[1],
+                                   sizex, sizey,
+                                   padX, padY,
                                    xsize[0], xsize[1], ysize[0], ysize[1],
                                    correctbeam,
-                                   '%.1f arcsec (default)'%(smoothby_arcsec) \
-                                   if smoothing=='default' \
-                                   else '%.1f arcsec'%(smoothby_arcsec),
+                                   text_smoothing,
                                    niters,
-                                   clip if clip != -1 else 'No clipping', flagJumps,
-                                   len(scans)))
+                                   text_clip,
+                                   flagJumps,
+                                   nscans)
+)
+
 if len(badscansremoved) > 0:
     info('Bad scans removed:')
     print('         %s'%badscansremoved)
