@@ -362,11 +362,42 @@ scans.sort()
 badscans.sort()
 badscansremoved = []
 
-# Remove bad scans from the list of scans to be reduced
-for badscan in badscans:
+# Create bad scans file if it does not exist
+if not os.path.exists('DO_NOT_DELETE_badscans.txt'):
+    with open('DO_NOT_DELETE_badscans.txt', 'w') as f:
+        f.write('# List of bad scans to be removed from ANY reduction\n')
+        f.write('# Scan numbers are added below, one per line.\n')
+        f.write('# Example:\n')
+        f.write('# 12345\n')
+        f.write('# 12346\n')
+        f.write('# 12347\n')
+
+# Open bad scans file and write bad scans from badscans list variable but
+# only if they are not already in the file
+if len(badscans) > 0:
+    with open('DO_NOT_DELETE_badscans.txt', 'r') as f:
+        lines = f.readlines()
+        existing_badscans = [int(line.strip()) for line in lines if line.strip().isdigit()]
+
+    with open('DO_NOT_DELETE_badscans.txt', 'a') as f:
+        for badscan in badscans:
+            if badscan not in existing_badscans:
+                f.write(f"{badscan}\n")
+
+# Then read the full list from file
+with open('DO_NOT_DELETE_badscans.txt', 'r') as f:
+    lines = f.readlines()
+    badscans_file = [int(line.strip()) for line in lines if line.strip().isdigit()]
+
+# Remove badscans (from badscans_file which includes badscans) from the list of
+# scans to be reduced, if present
+for badscan in badscans_file:
     if badscan in scans:
         scans.remove(badscan)
         badscansremoved.append(badscan)
+
+# Unfortunately there is no way to unwrite a scan that is removed from badscans
+# variable
 
 # Check removing bads did not leave scans empty
 if len(scans) == 0:
