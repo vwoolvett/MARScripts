@@ -388,6 +388,8 @@ if len(badscans) > 0:
 with open('DO_NOT_DELETE_badscans.txt', 'r') as f:
     lines = f.readlines()
     badscans_file = [int(line.strip()) for line in lines if line.strip().isdigit()]
+    # and sort it
+    badscans_file.sort()
 
 # Remove badscans (from badscans_file which includes badscans) from the list of
 # scans to be reduced, if present
