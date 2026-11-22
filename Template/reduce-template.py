@@ -8,7 +8,8 @@ observer    = True          # *NOTE1* True or False
 projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 
 # ------------------------- Source and map parameters -------------------------
-source      = 'SrcName'     # As in observing logs and source catalog
+source      = 'SrcName'     # As in observing logs, or contained in source name
+nickname    = source        # Source nickname for output files, source / string
 fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
 system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
 center      = [0, 0]        # System's map center in DEG (not required for HO)
@@ -475,7 +476,7 @@ if system =='HO':
     ysize = [-deltaY*3600, deltaY*3600]  # arcsec
 
 # Define standardized "myname" variable for output files
-myname = str(source) + "-" + str(fe) + "-" + str(system)
+myname = str(nickname) + "-" + str(fe) + "-" + str(system)
 if flagJumps:
     myname += "-flagJumps"
 
@@ -521,6 +522,7 @@ Reduction parameters:
 Observer:           %s
 Project code:       %s
 Source:             %s
+Nickname:           %s
 Frontend:           %s
 Coordinate system:  %s
 Map center:         %.5f, %.5f deg
@@ -535,6 +537,7 @@ Flag jumps:         %s
 Number of scans     %s (valid)'''%(observer,
                                    projcode_caps,
                                    source,
+                                   nickname,
                                    fe,
                                    system,
                                    center[0], center[1],
@@ -720,7 +723,7 @@ if True:  # Just to indent
                     mediannoise = np.nanmedian(rmsArray)
                     meannoise = np.nanmean(rmsArray[rmsArray<2*mediannoise])  # no borders
                     del rmsArray  # free memory
-                    caption = '%s - %s - Iter%i - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(source, fe, iter, scan)
+                    caption = '%s - %s - Iter%i - Scan %i | Intensity (no smoothing): -3 to +10 sigma'%(nickname, fe, iter, scan)
                     m.display(aspect=1, limitsZ=[-3*meannoise, +10*meannoise], caption=caption)
                     print('')
                     msg  = "-------------------------------------------------------------------------\n"
@@ -785,7 +788,7 @@ if True:  # Just to indent
                 # SNR = signal * sqrt(weight) = signal / sqrt(noise^2)
                 snrMap.Data = np.where(snrMap.Weight > 0.0, snrMap.Data * np.sqrt(snrMap.Weight), np.NaN)
                 # plotting
-                caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (no smoothing): -3 to +10'%(source, fe, iter, scan)
+                caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (no smoothing): -3 to +10'%(nickname, fe, iter, scan)
                 snrMap.display(aspect=1,limitsZ=[-3, +10], caption=caption)
                 del snrMap  # free memory
 
@@ -835,7 +838,7 @@ if True:  # Just to indent
         
 
         # plot SnR map
-        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(source, fe, iter, scan, smoothby_arcsec)
+        caption = '%s - %s - Iter%i - Coadded up to scan %i | SNR (smoothed by %.1f"): -3 to +10 '%(nickname, fe, iter, scan, smoothby_arcsec)
         snrMap.display(aspect=1,limitsZ=[-3, 10], caption=caption)
 
         # plot noisemap contours
