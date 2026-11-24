@@ -8,20 +8,22 @@ observer    = True          # *NOTE1* True or False
 projcode    = 'auto'        # Project code (automatic ONLY AT APEX)
 
 # ------------------------- Source and map parameters -------------------------
-source      = 'SrcName'     # As in observing logs, or contained in source name
-nickname    = source        # Source nickname for output files, source / string
-fe          = 'LFA'         # Frontend, either 'LFA' or 'HFA'
-system      = 'EQ'          # Coordinate system for map, 'EQ', 'GAL' or 'HO'
-center      = [0, 0]        # System's map center in DEG (not required for HO)
-sizex       = 1.0           # Size of map in DEG for X direction
-sizey       = 1.0           # Size of map in DEG for Y direction
-padding     = 'default'     # *NOTE2* Map padding (DEG): float or [float,float]
-smoothing   = 'default'     # *NOTE3* By how much to smooth final iter. maps
+source        = 'SrcName'   # As in observing logs, or contained in source name
+nickname      = source      # Source nickname for output files, source / string
+fe            = 'LFA'       # Frontend, either 'LFA' or 'HFA'
+system        = 'EQ'        # Coordinate system for map, 'EQ', 'GAL' or 'HO'
+center        = [0, 0]      # System's map center in DEG (not required for HO)
+sizex         = 1.0         # Size of map in DEG for X direction
+sizey         = 1.0         # Size of map in DEG for Y direction
+padding       = 'default'   # *NOTE2* Map padding (DEG): float or [float,float]
+smoothing     = 'default'   # *NOTE3* By how much to smooth final maps (arcsec)
+largest_scale = 'default'   # *NOTE4* Largest recoverable scale (arcmin)       # YET TO IMPLEMENT
+highpass_filt = 'flatten'   # *NOTE4* High-pass filter, 'flatten' or 'delete'  # YET TO IMPLEMENT
 
 # ------------------------- Reduction parameters ------------------------------
 badscans        = []        # Manually exclude bad scans if needed
 niters          = 1         # Number of iters., 1 to 3 (recomm.: 3 + PLANCK)
-clip            = -1        # *NOTE4* Sigma clipping level (-1 or >=1.5)
+clip            = -1        # *NOTE5* Sigma clipping level (-1 or >=1.5)
 flagJumps       = False     # Flag spikes: recomm. True if spikes are present
 showsig         = True      # Show example signals after each calibration step
 doPlot          = True      # Display coadded map after each scan or final only
@@ -30,7 +32,7 @@ correctbeam     = True      # Correct AMKID beam to nominal: recomm. True
 writeSummary    = False     # Write summary of reductions (mostly debugging)
 
 # ------------------------- Scans (mostly automatic) --------------------------
-scans       = []            # *NOTE5*
+scans       = []            # *NOTE6*
 obslogsdir  = 'default'     # If not at MPIfR or APEX, input manually!
 verbose     = False         # print ObsLog scan selection criteria (debugging)
 
@@ -47,23 +49,36 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 # *NOTE2*   Padding around the map in DEG for the grid, can be different per 
 #           axis. If the observations are not OTF, the padding can be set to 0
 #           and the full size of the grid will be determined only by
-#           sizex and sizey.  The 'default' option works well for OTF maps:
-#           it accounts for the extra map length along the scanning direction
-#           (one AMKID FOV = 15') and a maximum inclination angle for the OTF
-#           of 15 degrees. The inclination angle per OTF is random within the
-#           [-15, 15] deg range in order to minimize scanning direction
-#           artifacts after averaging. 
+#           sizex and sizey.  The 'default' option works well for a tile of
+#           stacked OTF maps: it accounts for the extra map length along the
+#           scanning direction (one AMKID FOV = 15') and a maximum inclination
+#           angle for the OTF of 15 degrees. The inclination angle per OTF is 
+#           random within the [-15, 15] deg range in order to minimize scanning
+#           direction artifacts after averaging. 
 
 # *NOTE3*   The arrays have beam sizes of 16.7 (LFA) and 7.5 arcsec (HFA).
 #           The default smoothings are 8.0 arcsec (LFA) and 3.6 arcsec (HFA).
 #           If a target beam size is requested by the PI, consider:
 #           smoothing^2 = targetbeam^2 - nativebeam^2
 
-# *NOTE4*   The exported FITS images (not the intermediate BoA images) are
+# *NOTE4*   The largest recoverable scale (LRS) is the maximum angular scale
+#           that can be recovered in the final map. It affects the FFT filter 
+#           applied to the timelines, since at a scanning speed of v (arcsec/s)
+#           the LRS is largest_scale = v / f_highpass. Decreasing the LRS and
+#           thus increasing the high-pass filter frequency reduces the leftover
+#           large-scale oscillations in the final map, but at the cost of
+#           losing extended emission. All frequencies below f_highpass are
+#           either flattened (FFT_mode='flatten'), which is better for extended
+#           sources, or else removed (FFT_mode='delete'), which is is better
+#           for point source detection. However, the FFT_mode='delete' option
+#           can produce negative bowls around bright sources in the scanning
+#           direction.
+
+# *NOTE5*   The exported FITS images (not the intermediate BoA images) are
 #           masked where noisemap > clip*median_noise (clip>=1.5), or else
 #           (clip==-1) no clipping.
 
-# *NOTE5*   If scans is empty, attempts to automatically retrieve all scans of
+# *NOTE6*   If scans is empty, attempts to automatically retrieve all scans of
 #           the source specified above from the obslogs directory.
 #           If not reducing at APEX or MPIfR, you must manually input the
 #           obslogs directory and likely set the (raw)data input directory via 
@@ -72,6 +87,8 @@ verbose     = False         # print ObsLog scan selection criteria (debugging)
 # =============================================================================
 # ============================= END OF USER INPUT =============================
 # =============================================================================
+
+
 
 
 
