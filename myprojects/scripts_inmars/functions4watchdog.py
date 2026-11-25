@@ -62,10 +62,10 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
 
 
 
-def __watchdog_flash_figure(fig, textstr='', fontsize=15, flashcolor='red', flashtime=0.5):
+def __watchdog_flash_figure(fig, textstr='', fontsize=15, flashcolor='red', flashtime=0.3):
     assert type(textstr)==str
     fig.clf()
-    fig.text(0, 0, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+    fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
     fig.canvas.draw()
     fig.canvas.flush_events()
     plt.pause(flashtime)
@@ -278,7 +278,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
     fe = str.upper(fe)
 
     # info print
-    info('Processing Fsweeps (%s)'%fe)
+    info('Processing WireScans (%s)'%fe)
 
     # track reductions
     total = len(wscan_list)
