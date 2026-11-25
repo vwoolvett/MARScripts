@@ -101,8 +101,9 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                     keys_toshow = keys
                     c+=1
                 messages.append(message)
-    
-    order = calscanlist.argsort()
+
+    calscanarr = np.array(calscanlist)
+    order = calscanarr.argsort()
     messages_sorted = messages[order]
     if verbose:
         for message in messages_sorted:
@@ -112,5 +113,5 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
         print('============')
         print(keys_toshow)
 
-    calscanlist.sort()
+    calscanlist = calscanlist[order]
     return calscanlist
