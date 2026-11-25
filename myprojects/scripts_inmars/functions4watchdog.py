@@ -283,7 +283,7 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
         info('Processing WireScans...')
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
-        print()
+        print('')
         while True:
             time_current = time.time()
             if time_current - time_0 > 10:  # at least 10 seconds
