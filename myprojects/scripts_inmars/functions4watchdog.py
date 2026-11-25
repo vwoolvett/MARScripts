@@ -6,7 +6,7 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 
     calscanlist = []
     messages = []
-    files = os.listdir('../Obslogs')
+    files = os.listdir('../obslogs')
     c=0
     for file in files:
         fullfilename = '../Obslogs/' + file
