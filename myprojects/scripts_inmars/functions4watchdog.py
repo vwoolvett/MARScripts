@@ -294,14 +294,20 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doP
                 if scanIsFsweep(fsweep, fe=fe)==False:
                     raise AssertionError
                 reduceFsweep(fsweep, fe=fe, doReturn=True)
+                if doPlot and fig is not None:
+                    mytext = 'Reduction of Fsweep %s (%s) successful!'%(fsweep, fe)
+                    __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
             #if len(globlist)==1 and overwrite==True:
             elif reductionexists==True and overwrite==True:
                 if doPlot and fig is not None:
-                    mytext = 'Now processing WireScan %s (%s)!'%(fsweep, fe)
+                    mytext = 'Now processing Fsweep %s (%s)!'%(fsweep, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
                 if scanIsFsweep(fsweep, fe=fe)==False:
                     raise AssertionError
                 reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
+                if doPlot and fig is not None:
+                    mytext = 'Reduction of Fsweep %s (%s) successful!'%(fsweep, fe)
+                    __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
 
             else:
                 already_reduced += 1
@@ -310,19 +316,19 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doP
             temp.alarm(0)
             __watchdog_write_to_blacklist(fsweep,fe,'Fsweep','NotFsweep',0)
             if doPlot and fig is not None:
-                textstr = 'Reduction for Fsweep %i failed! (NotFsweep)'%fsweep
+                textstr = 'Reduction of Fsweep %i (%s) failed:\nNotFsweep'%(fsweep, fe)
                 __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         except TimeoutError as e:
             temp.alarm(0)
             __watchdog_write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
             if doPlot and fig is not None:
-                textstr = 'Reduction for Fsweep %i failed! (%s)'%(fsweep, type(e).__name__)
+                textstr = 'Reduction of Fsweep %i (%s) failed:\n%s'%(fsweep, fe, type(e).__name__)
                 __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         except Exception as e:
             temp.alarm(0)
             __watchdog_write_to_blacklist(fsweep,fe,'Fsweep',e,0)
             if doPlot and fig is not None:
-                textstr = 'Reduction for Fsweep %i failed! (%s)'%(fsweep, type(e).__name__)
+                textstr = 'Reduction of Fsweep %i (%s) failed:\n%s'%(fsweep, fe, type(e).__name__)
                 __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         finally:
             temp.alarm(0)
@@ -358,6 +364,10 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', timeout=60, overwrite=False, do
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
                 if scanIsBeamscan(wscan, fe=fe)==False:
                     raise AssertionError
+                reduceWireScan(wscan, fe=fe, doPlot=False, fig=fig)
+                if doPlot and fig is not None:
+                    mytext = 'Reduction of WireScan %s (%s) successful!'%(wscan, fe)
+                    __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
                 reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
@@ -368,7 +378,11 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', timeout=60, overwrite=False, do
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
                 if scanIsBeamscan(wscan, fe=fe)==False:
                     raise AssertionError
-                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig)
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=False, fig=fig)
+                if doPlot and fig is not None:
+                    mytext = 'Reduction of WireScan %s (%s) successful!'%(wscan, fe)
+                    __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
+                reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
                 
@@ -379,19 +393,19 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', timeout=60, overwrite=False, do
             temp.alarm(0)
             __watchdog_write_to_blacklist(wscan,fe,'WireScanner','NotWireScan',0)
             if doPlot and fig is not None:
-                textstr = 'Reduction for WireScanner %i failed! (NotWireScan)'%wscan
+                textstr = 'Reduction of WireScanner %i (%s) failed:\nNotWireScan'%(wscan, fe)
                 __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         except TimeoutError as e:
             temp.alarm(0)
             __watchdog_write_to_blacklist(wscan,fe,'WireScanner',e,timeout)
             if doPlot and fig is not None:
-                textstr = 'Reduction for WireScanner %i failed! (%s)'%(wscan, type(e).__name__)
+                textstr = 'Reduction of WireScanner %i (%s) failed:\n%s'%(wscan, fe, type(e).__name__)
                 __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         except Exception as e:
             temp.alarm(0)
             __watchdog_write_to_blacklist(wscan,fe,'WireScanner',e,0)
             if doPlot and fig is not None:
-                textstr = 'Reduction for WireScanner %i failed! (%s)'%(wscan, type(e).__name__)
+                textstr = 'Reduction of WireScanner %i (%s) failed:\n%s'%(wscan, fe, type(e).__name__)
                 __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         finally:
             temp.alarm(0)
