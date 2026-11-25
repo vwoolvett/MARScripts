@@ -61,7 +61,7 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
         blacklistdict = {}
         lines = f.readlines()
         for line in lines:
-            if line[0] != '#' and str.upper(line.split(',')[1])==fe:
+            if line[0] != '#' and str.upper(line.split(',')[1].split()[0])==fe:
                 calscan = int(line.split(',')[0])
                 calscanfe = line.split(',')[1]
                 calscantype = line.split(',')[2]
