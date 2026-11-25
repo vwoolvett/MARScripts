@@ -1,6 +1,11 @@
 # Module to find and reduce calibrations upon new scan arrival for watchdog
 # at APEX
 
+def __watchdog__timeout_handler(signum, frame):
+    raise TimeoutError("Reduction timed out!")
+
+
+
 def __watchdog__checkblacklist():
     if not os.path.exists('.watchdog_blacklist.txt'):
         with open('.watchdog_blacklist.txt', 'w') as f:
@@ -8,16 +13,86 @@ def __watchdog__checkblacklist():
             f.write('# in their reduction to avoid reducing them again\n')
             f.write('# Scan, Array, CalType, Error, Timeout\n')
 
+
+
+def __watchdog_readblacklist(fe='LFA', returnDict=False):
+    fe = str.upper(fe)
+    # Read blacklist
+    with open('.watchdog_blacklist.txt', 'r') as f:
+        blacklistdict = {}
+        lines = f.readlines()
+        for line in lines:
+            if line.split(',')[0].isdigit() and str.upper(line.split(',')[1])==fe:
+                calscan = line.split(',')[0]
+                calscanfe = line.split(',')[1]
+                calscantype = line.split(',')[2]
+                calscanerror = line.split(',')[3]
+                timeout = line.split('')[4]
+
+                blacklistdict[calscan] = {'scan':calscan,
+                                          'fe':calscanfe,
+                                          'type':calscantype,
+                                          'error':calscanerror,
+                                          'timeout':timeout}
+
+        if returnDict:
+            return blacklistdict
+
+        else:
+            blacklist = [blacklisted for blacklisted in blacklistdict.keys()]
+            blacklist.sort()
+            return blacklist
+
+
+
+def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
+    fe = str.upper(fe)
+    timeout = int(timeout)
+    # Create Blacklist if non-existent
+    __watchdog__checkblacklist()
+
+    with open('.watchdog_blacklist.txt', 'r') as f:
+        lines = f.readlines()
+        blacklist = [int(line.split(',')[0]) for line in lines if line.split(',')[0].isdigit() and line.split(',')[1]==fe]
+    
+    with open('.watchdog_blacklist.txt', 'a') as f:
+        if scan not in blacklist:
+            errorstr = error if type(error)==str else type(error).__name__
+            f.write("%i,%s,%s,%s,%i\n"%(scan, fe, caltype, errorstr, timeout))
+
+
+
+def __watchdog_flash_figure(fig, textstr='', fontsize=15, flashcolor='red', flashtime=0.5):
+    assert type(textstr)==str
+    fig.clf()
+    fig.text(0, 0, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.pause(flashtime)
+    frames = np.arange(10)
+    for frame in frames:
+        if frame % 2 == 0:
+            color = flashcolor
+        else:
+            color = 'black'
+        fig.clf()
+        fig.set_facecolor(color)
+        fig.text(0, 0, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        plt.pause(flashtime)
+
+
+
 def __watchdog__findCalScans(fe='LFA', verbose=False):
+    fe = str.upper(fe)
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
 
     # Create Blacklist if non-existent
     __watchdog__checkblacklist()
 
     # Read blacklist
-    with open('.watchdog_blacklist.txt', 'r') as f:
-        lines = f.readlines()
-        blacklist = [int(line.split(',')[0]) for line in lines if line.split(',')[0].isdigit() and line.split(',')[1]==fe]
+    blacklist = __watchdog_readblacklist(fe=fe)
 
     # no HFA-only mode, so:
     FeBedict = {'LFA': 'AMKID870-AMKID870BE', 'HFA':'AMKID350-AMKID350BE'}
@@ -152,29 +227,10 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 
 
 
-def __watchdog__timeout_handler(signum, frame):
-    raise TimeoutError("Reduction timed out!")
-
-
-
-def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
-    timeout = int(timeout)
-    # Create Blacklist if non-existent
-    __watchdog__checkblacklist()
-
-    with open('.watchdog_blacklist.txt', 'r') as f:
-        lines = f.readlines()
-        blacklist = [int(line.split(',')[0]) for line in lines if line.split(',')[0].isdigit() and line.split(',')[1]==fe]
-    
-    with open('.watchdog_blacklist.txt', 'a') as f:
-        if scan not in blacklist:
-            errorstr = error if type(error)==str else type(error).__name__
-            f.write("%i,%s,%s,%s,%i\n"%(scan, fe, caltype, errorstr, timeout))
-
-
-
 def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
     import signal as temp
+    fe = str.upper(fe)
+
     # track reductions
     total = len(fsweep_list)
     already_reduced = 0
@@ -183,24 +239,25 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
     for fsweep in fsweep_list:
         temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
         try:
-            if scanIsFsweep(fsweep, fe=fe)==False:
-                raise AssertionError
-            
             temp.alarm(timeout)
             # check if there is a reduction
             globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
 
             if len(globlist)==0:
-                reduceFsweep(fsweep, fe=fe)
+                fD = reduceFsweep(fsweep, fe=fe, doReturn=True)
+                if fD == None:  # when not Fsweep
+                    raise AssertionError
                 
             if len(globlist)==1 and overwrite==True:
-                reduceFsweep(fsweep, fe=fe, overwrite=True)
+                fD = reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
+                if fD == None:  # when not Fsweep
+                    raise AssertionError
 
             else:
                 already_reduced += 1
 
         except AssertionError:
-                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep','NotFsweep',0)
+            __watchdog__write_to_blacklist(fsweep,fe,'Fsweep','NotFsweep',0)
         except TimeoutError as e:
             __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
         except Exception as e:
@@ -215,6 +272,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
 
 def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrite=False, timeout=60):
     import signal as temp
+    fe = str.upper(fe)
 
     # track reductions
     total = len(wscan_list)
@@ -224,22 +282,29 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
     for wscan in wscan_list:
         temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
         try:
-            if scanIsBeamscan(wscan, fe=fe)==False:
-                raise AssertionError
-            
             temp.alarm(timeout)
             # check if there is a reduction
             globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
             
             if len(globlist)==0:
-                reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
+                if doPlot and fig is not None:
+                    mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
+                    __watchdog_flash_figure(fig=fig, textstr=mytext)
+                wD = reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig, doReturn=True)
+                if wD == {}:  # when not WireScan
+                    raise AssertionError
                 if doPlot and fig is not None:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
                     plt.pause(0.1)
 
             if len(globlist)==1 and overwrite==True:
-                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig)
+                if doPlot and fig is not None:
+                    mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
+                    __watchdog_flash_figure(fig=fig, textstr=mytext)
+                wD = reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig, doReturn=True)
+                if wD == {}:  # when not WireScan
+                    raise AssertionError
                 if doPlot and fig is not None:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
@@ -249,7 +314,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
                 already_reduced += 1
             
         except AssertionError:
-            __watchdog__write_to_blacklist(wscan,fe,'WireScanner','NotBeamscan',0)
+            __watchdog__write_to_blacklist(wscan,fe,'WireScanner','NotWireScan',0)
         except TimeoutError as e:
             __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,timeout)
         except Exception as e:
