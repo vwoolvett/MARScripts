@@ -11,37 +11,7 @@ def __watchdog__checkblacklist():
         with open('.watchdog_blacklist.txt', 'w') as f:
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# Scan, Array, CalType, Error, Timeout\n')
-
-
-
-def __watchdog_readblacklist(fe='LFA', returnDict=False):
-    fe = str.upper(fe)
-    # Read blacklist
-    with open('.watchdog_blacklist.txt', 'r') as f:
-        blacklistdict = {}
-        lines = f.readlines()
-        for line in lines:
-            if line.split(',')[0].isdigit() and str.upper(line.split(',')[1])==fe:
-                calscan = int(line.split(',')[0])
-                calscanfe = line.split(',')[1]
-                calscantype = line.split(',')[2]
-                calscanerror = line.split(',')[3]
-                timeout = line.split(',')[4]
-
-                blacklistdict[calscan] = {'scan':calscan,
-                                          'fe':calscanfe,
-                                          'type':calscantype,
-                                          'error':calscanerror,
-                                          'timeout':timeout}
-
-        if returnDict:
-            return blacklistdict
-
-        else:
-            blacklist = [blacklisted for blacklisted in blacklistdict.keys()]
-            blacklist.sort()
-            return blacklist
+            f.write('# Scan, Array, CalType, Error, Errordescription, Timeout\n')
 
 
 
@@ -53,12 +23,52 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
 
     with open('.watchdog_blacklist.txt', 'r') as f:
         lines = f.readlines()
-        blacklist = [int(line.split(',')[0]) for line in lines if line.split(',')[0].isdigit() and line.split(',')[1]==fe]
+        blacklist = __watchdog_readblacklist(fe=fe)
     
     with open('.watchdog_blacklist.txt', 'a') as f:
         if scan not in blacklist:
-            errorstr = error if type(error)==str else type(error).__name__
-            f.write("%i,%s,%s,%s,%i\n"%(scan, fe, caltype, errorstr, timeout))
+            if type(error)==str:
+                errorstr = error
+                errordesc = 'void'
+            else:
+                errorstr = type(error).__name__
+                errordesc = str(error)
+            f.write("%i,%s,%s,%s,%s,%i\n"%(scan, fe, caltype, errorstr, errordesc, timeout))
+
+
+
+def __watchdog_readblacklist(fe='LFA', returnDict=False):
+    fe = str.upper(fe)
+    # Create Blacklist if non-existent
+    __watchdog__checkblacklist()
+
+    # Read blacklist
+    with open('.watchdog_blacklist.txt', 'r') as f:
+        blacklistdict = {}
+        lines = f.readlines()
+        for line in lines:
+            if line.split(',')[0].isdigit() and str.upper(line.split(',')[1])==fe:
+                calscan = int(line.split(',')[0])
+                calscanfe = line.split(',')[1]
+                calscantype = line.split(',')[2]
+                calscanerror = line.split(',')[3]
+                calscanerrordesc = line.split(',')[4]
+                timeout = line.split(',')[5]
+
+                blacklistdict[calscan] = {'scan':calscan,
+                                          'fe':calscanfe,
+                                          'type':calscantype,
+                                          'error':calscanerror,
+                                          'errordesc':calscanerrordesc,
+                                          'timeout':timeout}
+
+        if returnDict:
+            return blacklistdict
+
+        else:
+            blacklist = [blacklisted for blacklisted in blacklistdict.keys()]
+            blacklist.sort()
+            return blacklist
 
 
 
