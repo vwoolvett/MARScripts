@@ -39,11 +39,9 @@ def __watchdog_write_to_blacklist(scan, fe, caltype, error, timeout=0):
                 errordesc = 'No description, Exception is not raised but was catched'
             else:
                 errorstr = type(error).__name__
-                errordesc = str(error)
-                if error[0]=="'":
-                    error = error[1:]
-                if error[-1]=="'":
-                    error = error[:-1]
+                errordesc = error.message
+                if errordesc == '':
+                    errordesc = str(error)
             
             caltype = caltype.ljust(15)
             timeout = str(int(timeout)).ljust(7)
