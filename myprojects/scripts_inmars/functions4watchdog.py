@@ -77,7 +77,7 @@ def __watchdog_flash_figure(fig, textstr='', fontsize=15, flashcolor='red', flas
             color = 'black'
         fig.clf()
         fig.set_facecolor(color)
-        fig.text(0, 0, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+        fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
         fig.canvas.draw()
         fig.canvas.flush_events()
         plt.pause(flashtime)
