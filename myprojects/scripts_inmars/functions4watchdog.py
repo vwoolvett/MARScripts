@@ -261,14 +261,14 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
         info('No new WireScans to reduce.')
 
 
-def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default', fig=None):
+def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
     assert str.upper(fe) in ['LFA', 'HFA'], 'fe must be LFA or HFA'
     fe = str.upper(fe)
     global __watchdog_figure
     timeout = 60 if fe=='LFA' else 180  # 3x KIDs in HFA
 
     if doPlot:
-        if fig is None:
+        if __watchdog_figure==None:
             __watchdog_figure = plt.figure(figsize=(10,10))
             __watchdog_figure.show()
 
