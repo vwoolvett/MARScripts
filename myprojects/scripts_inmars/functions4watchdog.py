@@ -102,7 +102,7 @@ def __watchdog_figure_update(fig=__watchdog_figure, pausetime=0.1):
 
 
 
-def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='red', flashtime=0.3):
+def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='green', flashtime=0.3):
     assert type(textstr)==str
     fig.clf()
     fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
@@ -287,14 +287,20 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
             globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
 
             if len(globlist)==0:
-                fD = reduceFsweep(fsweep, fe=fe, doReturn=True)
-                if fD == None:  # when not Fsweep
+                if scanIsFsweep(fsweep, fe=fe)==False:
                     raise AssertionError
+                reduceFsweep(fsweep, fe=fe, doReturn=True)
+                #fD = reduceFsweep(fsweep, fe=fe, doReturn=True)
+                #if fD == None:  # when not Fsweep
+                #    raise AssertionError
                 
             if len(globlist)==1 and overwrite==True:
-                fD = reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
-                if fD == None:  # when not Fsweep
+                if scanIsFsweep(fsweep, fe=fe)==False:
                     raise AssertionError
+                reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
+                #fD = reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
+                #if fD == None:  # when not Fsweep
+                #    raise AssertionError
 
             else:
                 already_reduced += 1
@@ -336,9 +342,12 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
-                wD = reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig, doReturn=True)
-                if wD == {}:  # when not WireScan
+                if scanIsBeamscan(wscan, fe=fe)==False:
                     raise AssertionError
+                reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
+                #wD = reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig, doReturn=True)
+                #if wD == {}:  # when not WireScan
+                #    raise AssertionError
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
 
@@ -346,9 +355,12 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
-                wD = reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig, doReturn=True)
-                if wD == {}:  # when not WireScan
+                if scanIsBeamscan(wscan, fe=fe)==False:
                     raise AssertionError
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig)
+                #wD = reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig, doReturn=True)
+                #if wD == {}:  # when not WireScan
+                #    raise AssertionError
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
                 
@@ -357,10 +369,16 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
             
         except AssertionError:
             __watchdog_write_to_blacklist(wscan,fe,'WireScanner','NotWireScan',0)
+            textstr = 'Reduction for WireScanner %i failed! (NotWireScan)'%wscan
+            __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         except TimeoutError as e:
             __watchdog_write_to_blacklist(wscan,fe,'WireScanner',e,timeout)
+            textstr = 'Reduction for WireScanner %i failed! (%s)'%(wscan, type(e).__name__)
+            __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         except Exception as e:
             __watchdog_write_to_blacklist(wscan,fe,'WireScanner',e,0)
+            textstr = 'Reduction for WireScanner %i failed! (%s)'%(wscan, type(e).__name__)
+            __watchdog_figure_flash(fig=fig, textstr=textstr, flashcolor='red')
         finally:
             temp.alarm(0)
 
