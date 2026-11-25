@@ -233,9 +233,17 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
             
             if len(globlist)==0:
                 reduceWireScan(wscan, fe=fe, doPlot=True, fig=fig)
+                if doPlot and fig is not None:
+                    fig.canvas.draw()
+                    fig.canvas.flush_events()
+                    plt.pause(0.1)
 
             if len(globlist)==1 and overwrite==True:
                 reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=fig)
+                if doPlot and fig is not None:
+                    fig.canvas.draw()
+                    fig.canvas.flush_events()
+                    plt.pause(0.1)
                 
             else:
                 already_reduced += 1
