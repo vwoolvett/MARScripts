@@ -6,7 +6,6 @@ def __watchdog__checkblacklist():
         with open('.watchdog_blacklist.txt', 'w') as f:
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# in their reduction to avoid reducing them again\n')
             f.write('# Scan, Array, CalType, Error, Timeout\n')
 
 def __watchdog__findCalScans(fe='LFA', verbose=False):
@@ -171,7 +170,7 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0):
 
 
 
-def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180):
+def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
     import signal as temp
     # track reductions
     total = len(fsweep_list)
@@ -214,7 +213,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180):
 
 
 
-def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=180):
+def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=60):
     import signal as temp
     if doPlot==True:
         figure_initiated = False
@@ -265,7 +264,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
         info('No new WireScans to reduce...')
 
 
-def __watchdog_run(fe='LFA', mode='loop', timeout=180):
+def __watchdog_run(fe='LFA', mode='loop', timeout=60):
 
     timeout = int(timeout)
 
