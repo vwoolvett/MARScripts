@@ -177,7 +177,7 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0.0):
 
 
 
-def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180.):
+def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180):
     import signal as temp
     # track reductions
     total = len(fsweep_list)
@@ -220,7 +220,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180.):
 
 
 
-def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=180.):
+def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=180):
     import signal as temp
     if doPlot==True:
         figure_initiated = False
@@ -271,7 +271,9 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
         info('No new WireScans to reduce...')
 
 
-def __watchdog_run(fe='LFA', mode='loop', timeout=180.):
+def __watchdog_run(fe='LFA', mode='loop', timeout=180):
+
+    timeout = int(timeout)
 
     if mode=='single':
         info('Watchdog in single-run mode.')
