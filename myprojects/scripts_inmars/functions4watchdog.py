@@ -294,4 +294,4 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
         while True:
             time_current = time.time()
             if time_current - time_0 > 15:  # at least 15 seconds
-                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout, fig=__watchdog_figure)
+                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout)
