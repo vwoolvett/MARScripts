@@ -23,7 +23,7 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
         lines = f.readlines()
         for line in lines:
             if line.split(',')[0].isdigit() and str.upper(line.split(',')[1])==fe:
-                calscan = line.split(',')[0]
+                calscan = int(line.split(',')[0])
                 calscanfe = line.split(',')[1]
                 calscantype = line.split(',')[2]
                 calscanerror = line.split(',')[3]
@@ -76,7 +76,7 @@ def __watchdog_flash_figure(fig, textstr='', fontsize=15, flashcolor='red', flas
         else:
             color = 'black'
         fig.clf()
-        #fig.set_facecolor(color)
+        fig.set_facecolor(color)
         fig.text(0, 0, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
         fig.canvas.draw()
         fig.canvas.flush_events()
@@ -243,15 +243,14 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
             # check if there is a reduction
             globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
 
+            if scanIsFsweep(fsweep, fe=fe)==False:
+                raise AssertionError
+
             if len(globlist)==0:
-                fD = reduceFsweep(fsweep, fe=fe, doReturn=True)
-                if fD == None:  # when not Fsweep
-                    raise AssertionError
+                reduceFsweep(fsweep, fe=fe)
                 
             if len(globlist)==1 and overwrite==True:
-                fD = reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
-                if fD == None:  # when not Fsweep
-                    raise AssertionError
+                reduceFsweep(fsweep, fe=fe, overwrite=True)
 
             else:
                 already_reduced += 1
@@ -285,14 +284,15 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
             temp.alarm(timeout)
             # check if there is a reduction
             globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
+
+            if scanIsBeamscan(wscan, fe=fe)==False:
+                raise AssertionError
             
             if len(globlist)==0:
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
                     __watchdog_flash_figure(fig=fig, textstr=mytext)
-                wD = reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig, doReturn=True)
-                if wD == {}:  # when not WireScan
-                    raise AssertionError
+                reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
@@ -302,9 +302,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
                     __watchdog_flash_figure(fig=fig, textstr=mytext)
-                wD = reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig, doReturn=True)
-                if wD == {}:  # when not WireScan
-                    raise AssertionError
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
