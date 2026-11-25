@@ -113,5 +113,5 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
         print('============')
         print(keys_toshow)
 
-    calscanlist = calscanlist.sort()
+    calscanlist.sort()
     return calscanlist
