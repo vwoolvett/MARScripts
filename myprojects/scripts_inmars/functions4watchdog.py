@@ -386,9 +386,21 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
 
     # Initialize figure and assign to global variable
     if doPlot:
+        # if unassigned
         if __watchdog_figure==None:
             __watchdog_figure = plt.figure(figsize=(10,10))
             __watchdog_figure.show()
+
+        else:
+            # if Window closed, reopen
+            if __watchdog_figure.canvas.manager.window==None:
+                __watchdog_figure = None
+                __watchdog_figure = plt.figure(figsize=(10,10))
+                __watchdog_figure.show()
+            else:
+                # keep using same figure with opened window
+                pass
+
 
     if mode=='single':
         info('Watchdog in single-run mode for %s.'%fe)
