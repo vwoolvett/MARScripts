@@ -5,6 +5,8 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
     febe = FeBedict[fe]
 
     calscanlist = []
+    fsweep_list = []
+    wscan_list = []
     messages = []
     files = os.listdir('../obslogs')
     c=0
@@ -74,8 +76,8 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                 start = False
 
                 # If it is a calibration
-                if ('calibrate(' in command)\
-                    or ('beamscan(' in command)\
+                if (('calibrate(' in command)\
+                    or ('beamscan(' in command))\
                     and 'go(' not in command\
                     and 'load(' not in command\
                     and fe in thisfe\
@@ -86,6 +88,10 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                         message += 'SCAN CONSIDERED'.ljust(15) + ' | '
                         message += comment
                         calscanlist.append(scan_int)
+                        if 'calibrate(' in command:
+                            fsweep_list.append(scan_int)
+                        if 'beamscan(' in command:
+                            wscan_list.append(scan_int)
 
                     # if ongoing, don't add
                     else:
@@ -114,4 +120,6 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
         print(keys_toshow)
 
     calscanlist.sort()
-    return calscanlist
+    fsweep_list.sort()
+    wscan_list.sort()
+    return calscanlist, fsweep_list, wscan_list
