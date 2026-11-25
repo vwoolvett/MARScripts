@@ -9,7 +9,7 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
     files = os.listdir('../obslogs')
     c=0
     for file in files:
-        fullfilename = '../Obslogs/' + file
+        fullfilename = '../obslogs/' + file
         f = open(fullfilename,'r')
         lines = f.readlines()
         index = 0
