@@ -172,7 +172,8 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0.0):
     
     with open('.watchdog_blacklist.txt', 'a') as f:
         if scan not in blacklist:
-            f.write("%i,%s,%s,%s,%.3f\n"%(scan, fe, caltype, type(exception).__name__, timeout))
+            # type(exception).__name__
+            f.write("%i,%s,%s,%s,%.3f\n"%(scan, fe, caltype, str(exception), timeout))
 
 
 
