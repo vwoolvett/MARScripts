@@ -1,18 +1,19 @@
 # Module to find and reduce calibrations upon new scan arrival for watchdog
 # at APEX
 
+def __watchdog__checkblacklist():
+    if not os.path.exists('.watchdog_blacklist.txt'):
+        with open('.watchdog_blacklist.txt', 'w') as f:
+            f.write('# List of calibration scans that have failed\n')
+            f.write('# in their reduction to avoid reducing them again\n')
+            f.write('# in their reduction to avoid reducing them again\n')
+            f.write('# Scan, Array, CalType, Error, Timeout\n')
+
 def __watchdog__findCalScans(fe='LFA', verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
 
     # Create Blacklist if non-existent
-    if not os.path.exists('.watchdog_blacklist.txt'):
-        with open('.watchdog_blacklist.txt', 'w') as f:
-            f.write('# List of calibration scans that have timed out\n')
-            f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# Example:\n')
-            f.write('# 12345,LFA\n')
-            f.write('# 12346,LFA\n')
-            f.write('# 12347,HFA\n')
+    __watchdog__checkblacklist()
 
     # Read blacklist
     with open('.watchdog_blacklist.txt', 'r') as f:
@@ -155,16 +156,9 @@ def __watchdog__timeout_handler(signum, frame):
 
 
 
-def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0.0):
+def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0):
     # Create Blacklist if non-existent
-    if not os.path.exists('.watchdog_blacklist.txt'):
-        with open('.watchdog_blacklist.txt', 'w') as f:
-            f.write('# List of calibration scans that have timed out\n')
-            f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# Example:\n')
-            f.write('# 12345,LFA,Fsweep,TimeoutError,180\n')
-            f.write('# 12346,LFA,WireScanner,TimeoutError,180\n')
-            f.write('# 12347,HFA,Fsweep,OtherError,0\n')
+    __watchdog__checkblacklist()
 
     with open('.watchdog_blacklist.txt', 'r') as f:
         lines = f.readlines()
@@ -172,8 +166,8 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0.0):
     
     with open('.watchdog_blacklist.txt', 'a') as f:
         if scan not in blacklist:
-            # type(exception).__name__
-            f.write("%i,%s,%s,%s,%.3f\n"%(scan, fe, caltype, str(exception), timeout))
+            # str(exception)
+            f.write("%i,%s,%s,%s,%i\n"%(scan, fe, caltype, type(exception).__name__, timeout))
 
 
 
