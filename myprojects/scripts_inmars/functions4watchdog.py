@@ -141,10 +141,16 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
         globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
         if len(globlist)==0:
             if scanIsFsweep(fsweep, fe=fe):
-                reduceFsweep(fsweep, fe=fe)
+                try:
+                    reduceFsweep(fsweep, fe=fe)
+                except:
+                    pass
         if len(globlist)==1 and overwrite==True:
             if scanIsFsweep(fsweep, fe=fe):
-                reduceFsweep(fsweep, fe=fe, overwrite=True)
+                try:
+                    reduceFsweep(fsweep, fe=fe, overwrite=True)
+                except:
+                    pass
         else:
             already_reduced += 1
 
@@ -170,14 +176,20 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
-                reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
+                try:
+                    reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
+                except:
+                    pass
 
         if len(globlist)==1 and overwrite==True:
             if scanIsBeamscan(wscan, fe=fe):
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
-                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
+                try:
+                    reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
+                except:
+                    pass
         else:
             already_reduced += 1
 
