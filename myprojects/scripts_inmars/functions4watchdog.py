@@ -20,7 +20,7 @@ def __watchdog_checkblacklist():
         with open('./.watchdog/watchdog_blacklist.csv', 'w') as f:
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# scan , fe , type           , timeout, error              , errordescription\n')
+            f.write('# scan , fe , type           , timeout, error                    , errordescription\n')
 
 
 
