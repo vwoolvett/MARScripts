@@ -131,6 +131,10 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 
 def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
 
+    # track reductions
+    total = len(wscan_list)
+    already_reduced = 0
+
     # Iterate over fsweep list
     for fsweep in fsweep_list:
         # check if there is a reduction
@@ -142,14 +146,20 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
             if scanIsFsweep(fsweep, fe=fe):
                 reduceFsweep(fsweep, fe=fe, overwrite=True)
         else:
-            info('No new Fsweeps to reduce...')
-            pass
+            already_reduced += 1
+
+    if len(already_reduced)==total:
+            info('No new WireScans to reduce...')
 
 
 
 def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
     if doPlot==True:
         figure_initiated = False
+
+    # track reductions
+    total = len(wscan_list)
+    already_reduced = 0
 
     # Iterate over wscan list
     for wscan in wscan_list:
@@ -169,12 +179,15 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
                     figure_initiated=True
                 reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
         else:
-            info('No new Fsweeps to reduce...')
-            pass
+            already_reduced += 1
+
+    if len(already_reduced)==total:
+        info('No new WireScans to reduce...')
 
 
 def __watchdog_run(fe='LFA', mode='loop'):
     if mode=='single':
+        info('Watchdog in single-run mode.')
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe)
         __reduce_WireScan_list(wscan_list, fe=fe)
