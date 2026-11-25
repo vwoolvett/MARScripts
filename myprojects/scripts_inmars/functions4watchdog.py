@@ -42,6 +42,11 @@ def __watchdog_write_to_blacklist(scan, fe, caltype, error, timeout=0):
                 errordesc = error.message
                 if errordesc == '':
                     errordesc = str(error)
+                    if len(errordesc)!=0:
+                        if errordesc[0]=="'":
+                            errordesc = errordesc[1:]
+                        if errordesc[-1]=="'":
+                            errordesc = errordesc[:-1]
             
             caltype = caltype.ljust(15)
             timeout = str(int(timeout)).ljust(7)
