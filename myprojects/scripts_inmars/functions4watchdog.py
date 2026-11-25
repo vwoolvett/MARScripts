@@ -264,7 +264,8 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
 def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
 
     if doPlot==True and fig==None:
-        figure = plt.figure(figsize=(10,10))
+        global __watchdog_figure
+        __watchdog_figure = plt.figure(figsize=(8,8))
 
     timeout = int(timeout)
 
