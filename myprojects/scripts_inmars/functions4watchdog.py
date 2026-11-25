@@ -372,6 +372,9 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
 def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
     assert str.upper(fe) in ['LFA', 'HFA'], 'fe must be LFA or HFA'
 
+    # check
+    __watchdog_checkblacklist()
+
     global __watchdog_figure
     fe = str.upper(fe)
 
