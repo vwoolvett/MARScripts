@@ -33,7 +33,7 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
             else:
                 errorstr = type(error).__name__
                 errordesc = str(error)
-            f.write("%i,%s,%s,%s,%s,%i\n"%(scan, fe, caltype, timeout, errorstr, errordesc))
+            f.write("%i,%s,%s,%i,%s,%s\n"%(scan, fe, caltype, timeout, errorstr, errordesc))
 
 
 
