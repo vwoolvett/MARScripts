@@ -401,7 +401,7 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
         calscan_list, fsweep_list, wscan_list = __watchdog_findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
-        info('Checking back in 15 seconds...')
+        info('Checking back in 5 seconds...')
         time_0 = time.time()
         print('')
         while True:
