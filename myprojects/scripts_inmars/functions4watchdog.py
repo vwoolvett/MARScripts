@@ -6,7 +6,7 @@ __watchdog_figure = None
 
 
 def __watchdog_timeout_handler(signum, frame):
-    raise TimeoutError('Reduction timed out!')
+    raise TimeoutError('Reduction timed out')
 
 
 
@@ -39,7 +39,7 @@ def __watchdog_write_to_blacklist(scan, fe, caltype, error, timeout=0):
                 errordesc = 'No description, Exception is not raised but was catched'
             else:
                 errorstr = type(error).__name__
-                errordesc = str(error)
+                errordesc = error.message
 
             
             caltype = caltype.ljust(15)
