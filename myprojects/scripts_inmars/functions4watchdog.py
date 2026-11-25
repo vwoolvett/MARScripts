@@ -1,6 +1,9 @@
 # Module to find and reduce calibrations upon new scan arrival for watchdog
 # at APEX
 
+# Initialize figure variable
+__watchdog_figure = None
+
 def __watchdog__timeout_handler(signum, frame):
     raise TimeoutError("Reduction timed out!")
 
@@ -76,7 +79,14 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
 
 
 
-def __watchdog_flash_figure(fig, textstr='', fontsize=20, flashcolor='red', flashtime=0.3):
+def __watchdog_figure_update(fig=__watchdog_figure, pausetime=0.1):
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.pause(pausetime)
+
+
+
+def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='red', flashtime=0.3):
     assert type(textstr)==str
     fig.clf()
     fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
@@ -309,26 +319,22 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
             if len(globlist)==0:
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
-                    __watchdog_flash_figure(fig=fig, textstr=mytext)
+                    __watchdog_figure_flash(fig=fig, textstr=mytext)
                 wD = reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig, doReturn=True)
                 if wD == {}:  # when not WireScan
                     raise AssertionError
                 if doPlot and fig is not None:
-                    fig.canvas.draw()
-                    fig.canvas.flush_events()
-                    plt.pause(0.1)
+                    __watchdog_figure_update(fig=fig)
 
             if len(globlist)==1 and overwrite==True:
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
-                    __watchdog_flash_figure(fig=fig, textstr=mytext)
+                    __watchdog_figure_flash(fig=fig, textstr=mytext)
                 wD = reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig, doReturn=True)
                 if wD == {}:  # when not WireScan
                     raise AssertionError
                 if doPlot and fig is not None:
-                    fig.canvas.draw()
-                    fig.canvas.flush_events()
-                    plt.pause(0.1)
+                    __watchdog_figure_update(fig=fig)
                 
             else:
                 already_reduced += 1
@@ -346,19 +352,29 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
         info('No new WireScans to reduce.')
 
 
-__watchdog_figure = None
+
 def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
     assert str.upper(fe) in ['LFA', 'HFA'], 'fe must be LFA or HFA'
-    fe = str.upper(fe)
-    global __watchdog_figure
-    timeout = 60 if fe=='LFA' else 180  # 3x KIDs in HFA
 
+    global __watchdog_figure
+    fe = str.upper(fe)
+
+    if timeout=='default':
+        timeout = 60 if fe=='LFA' else 180  # 3x KIDs in HFA
+    else:
+        timeout = int(timeout)
+        assert timeout < 600, 'Timeout is larger than 10 minutes!'
+
+    # Create watchdog folder with blacklist and other stuff
+    if os.path.exists('./.watchdog')==False:
+        os.makedirs('./.watchdog')
+
+    # Initialize figure and assign to global variable
     if doPlot:
         if __watchdog_figure==None:
             __watchdog_figure = plt.figure(figsize=(10,10))
             __watchdog_figure.show()
-
-    timeout = int(timeout)
+            
 
     if mode=='single':
         info('Watchdog in single-run mode for %s.'%fe)
