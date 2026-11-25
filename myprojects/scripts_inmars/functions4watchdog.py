@@ -231,6 +231,9 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
     import signal as temp
     fe = str.upper(fe)
 
+    # info print
+    info('Processing Fsweeps (%s)'%fe)
+
     # track reductions
     total = len(fsweep_list)
     already_reduced = 0
@@ -273,6 +276,9 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
 def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrite=False, timeout=60):
     import signal as temp
     fe = str.upper(fe)
+
+    # info print
+    info('Processing Fsweeps (%s)'%fe)
 
     # track reductions
     total = len(wscan_list)
