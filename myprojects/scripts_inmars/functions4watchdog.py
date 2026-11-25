@@ -232,14 +232,14 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
             globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
             
             if len(globlist)==0:
-                reduceWireScan(wscan, fe=fe, doPlot=True, fig=fig)
+                reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
                     plt.pause(0.1)
 
             if len(globlist)==1 and overwrite==True:
-                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=fig)
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     fig.canvas.draw()
                     fig.canvas.flush_events()
@@ -261,10 +261,10 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
         info('No new WireScans to reduce.')
 
 
-def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60):
-    if doPlot:
+def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
+
+    if doPlot==True and fig==None:
         figure = plt.figure(figsize=(10,10))
-        figure.show()
 
     timeout = int(timeout)
 
@@ -286,4 +286,4 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60):
         while True:
             time_current = time.time()
             if time_current - time_0 > 10:  # at least 10 seconds
-                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout)
+                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout, fig=figure)
