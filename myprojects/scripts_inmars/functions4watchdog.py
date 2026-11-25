@@ -280,6 +280,7 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60):
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
+        print()
         while True:
             time_current = time.time()
             if time_current - time_0 > 10:  # at least 10 seconds
