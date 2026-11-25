@@ -3,6 +3,22 @@
 
 def __watchdog__findCalScans(fe='LFA', verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
+
+    # Create Blacklist if non-existent
+    if not os.path.exists('.watchdog_blacklist.txt'):
+            with open('.watchdog_blacklist.txt', 'w') as f:
+                    f.write('# List of calibration scans that have timed out\n')
+                    f.write('# in their reduction to avoid reducing them again\n')
+                    f.write('# Example:\n')
+                    f.write('# 12345,LFA\n')
+                    f.write('# 12346,LFA\n')
+                    f.write('# 12347,HFA\n')
+
+    # Read blacklist
+    with open('.watchdog_blacklist.txt', 'r') as f:
+        lines = f.readlines()
+        blacklist = [int(line.split(',')[0]) for line in lines if line.split(',')[0].isdigit() and line.split(',')[1]==fe]
+
     # no HFA-only mode, so:
     FeBedict = {'LFA': 'AMKID870-AMKID870BE', 'HFA':'AMKID350-AMKID350BE'}
     febe = FeBedict[fe]
@@ -86,8 +102,8 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                     and fe in thisfe\
                     and 'OK' in status:
 
-                    # and is finished, consider it
-                    if '-999' not in duration:
+                    # and is finished and not in blacklist, consider it
+                    if '-999' not in duration and scan_int not in blacklist:
                         message += 'SCAN CONSIDERED'.ljust(15) + ' | '
                         message += comment
                         calscanlist.append(scan_int)
@@ -95,6 +111,11 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                             fsweep_list.append(scan_int)
                         if 'beamscan(' in command:
                             wscan_list.append(scan_int)
+
+                    # if is finished but blacklisted for timeout, mention
+                    elif '-999' not in duration and scan_int not in blacklist:
+                        message += 'REDUCTION TIMEOUT'.ljust(15) + ' | '
+                        message += comment
 
                     # if ongoing, don't add
                     else:
@@ -129,8 +150,13 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 
 
 
-def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
+def timeout_handler(signum, frame):
+    raise TimeoutError("Reduction timed out!")
 
+
+
+def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
+    import signal as temp
     # track reductions
     total = len(fsweep_list)
     already_reduced = 0
@@ -141,14 +167,20 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
         globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
         if len(globlist)==0:
             if scanIsFsweep(fsweep, fe=fe):
+                temp.signal(temp.SIGALRM, timeout_handler)
                 try:
+                    temp.alarm(180.)  # 3-minute timeout
                     reduceFsweep(fsweep, fe=fe)
+                    temp.alarm(0.)   # Cancel the alarm if successful
                 except:
                     pass
         if len(globlist)==1 and overwrite==True:
             if scanIsFsweep(fsweep, fe=fe):
+                temp.signal(temp.SIGALRM, timeout_handler)
                 try:
+                    temp.alarm(180.)  # 3-minute timeout
                     reduceFsweep(fsweep, fe=fe, overwrite=True)
+                    temp.alarm(0.)   # Cancel the alarm if successful
                 except:
                     pass
         else:
@@ -160,6 +192,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
 
 
 def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
+    import signal as temp
     if doPlot==True:
         figure_initiated = False
 
@@ -176,8 +209,11 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
+                temp.signal(temp.SIGALRM, timeout_handler)
                 try:
+                    temp.alarm(180.)  # 3-minute timeout
                     reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
+                    temp.alarm(0.)   # Cancel the alarm if successful
                 except:
                     pass
 
@@ -186,8 +222,11 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
+                temp.signal(temp.SIGALRM, timeout_handler)
                 try:
+                    temp.alarm(180.)  # 3-minute timeout
                     reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
+                    temp.alarm(0.)   # Cancel the alarm if successful
                 except:
                     pass
         else:
@@ -198,6 +237,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
 
 
 def __watchdog_run(fe='LFA', mode='loop'):
+
     if mode=='single':
         info('Watchdog in single-run mode.')
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
