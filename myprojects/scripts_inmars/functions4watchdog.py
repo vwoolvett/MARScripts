@@ -115,7 +115,7 @@ def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', f
         linewidth=1,
         boxstyle='square,pad=0.3'
     )
-    frames = np.arange(8)
+    frames = np.arange(5)
     for frame in frames:
         if frame % 2 == 0:
             color = flashcolor
