@@ -31,9 +31,9 @@ def __watchdog_write_to_blacklist(scan, fe, caltype, error, timeout=0):
 
     # Array-specific blacklist
     blacklist = __watchdog_readblacklist(fe=fe)
-    
-    with open('./.watchdog/watchdog_blacklist.csv', 'a') as f:
-        if scan not in blacklist:
+
+    if scan not in blacklist:
+        with open('./.watchdog/watchdog_blacklist.csv', 'a') as f:
             if type(error)==str:
                 errorstr = error
                 errordesc = 'No description, Exception is not raised but was catched'
@@ -61,7 +61,7 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
         blacklistdict = {}
         lines = f.readlines()
         for line in lines:
-            if line.split(',')[0].isdigit() and str.upper(line.split(',')[1])==fe:
+            if str.upper(line.split(',')[1])==fe:
                 calscan = int(line.split(',')[0])
                 calscanfe = line.split(',')[1]
                 calscantype = line.split(',')[2]
