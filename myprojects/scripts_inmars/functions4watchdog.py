@@ -378,7 +378,6 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
         if __watchdog_figure==None:
             __watchdog_figure = plt.figure(figsize=(10,10))
             __watchdog_figure.show()
-            
 
     if mode=='single':
         info('Watchdog in single-run mode for %s.'%fe)
@@ -389,14 +388,12 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
     if mode=='loop':
         info('Watchdog in loop mode for %s, CTRL+C to exit!'%fe)
         calscan_list, fsweep_list, wscan_list = __watchdog_findCalScans(fe=fe)
-        info('Processing Fsweeps...')
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
-        info('Processing WireScans...')
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
         info('Checking back in 15 seconds...')
         time_0 = time.time()
         print('')
         while True:
             time_current = time.time()
-            if time_current - time_0 > 15:  # at least 15 seconds
+            if time_current - time_0 > 5:  # at least 5 seconds
                 __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout)
