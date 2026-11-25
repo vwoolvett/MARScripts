@@ -213,10 +213,8 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
 
 
 
-def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=60):
+def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrite=False, timeout=60):
     import signal as temp
-    if doPlot==True:
-        figure = plt.figure(figsize=(10,10))
 
     # track reductions
     total = len(wscan_list)
@@ -234,10 +232,10 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
             globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
             
             if len(globlist)==0:
-                reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
+                reduceWireScan(wscan, fe=fe, doPlot=True, fig=fig)
 
             if len(globlist)==1 and overwrite==True:
-                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=fig)
                 
             else:
                 already_reduced += 1
@@ -255,7 +253,10 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
         info('No new WireScans to reduce...')
 
 
-def __watchdog_run(fe='LFA', mode='loop', timeout=60):
+def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60):
+    if doPlot:
+        figure = plt.figure(figsize=(10,10))
+        figure.show()
 
     timeout = int(timeout)
 
@@ -263,15 +264,15 @@ def __watchdog_run(fe='LFA', mode='loop', timeout=60):
         info('Watchdog in single-run mode.')
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
-        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
 
     if mode=='loop':
         info('Watchdog in loop mode, CTRL+F to exit!')
         time_0 = time.time()
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
-        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
         while True:
             time_current = time.time()
             if time_current - time_0 > 10:  # at least 10 seconds
-                __watchdog_run(fe=fe, mode='loop')
+                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout)
