@@ -267,7 +267,7 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
 
     if doPlot:
         if fig is None:
-            __watchdog_figure = plt.figure(figsize=(8,8))
+            __watchdog_figure = plt.figure(figsize=(10,10))
             __watchdog_figure.show()
 
     timeout = int(timeout)
@@ -279,15 +279,16 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
 
     if mode=='loop':
-        info('Watchdog in loop mode, CTRL+F to exit!')
+        info('Watchdog in loop mode, CTRL+C to exit!')
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         info('Processing Fsweeps...')
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
         info('Processing WireScans...')
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
+        info('Checking back in 15 seconds...')
         time_0 = time.time()
         print('')
         while True:
             time_current = time.time()
-            if time_current - time_0 > 10:  # at least 10 seconds
+            if time_current - time_0 > 15:  # at least 15 seconds
                 __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout, fig=__watchdog_figure)
