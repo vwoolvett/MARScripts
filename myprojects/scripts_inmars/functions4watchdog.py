@@ -27,7 +27,7 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
                 calscanfe = line.split(',')[1]
                 calscantype = line.split(',')[2]
                 calscanerror = line.split(',')[3]
-                timeout = line.split('')[4]
+                timeout = line.split(',')[4]
 
                 blacklistdict[calscan] = {'scan':calscan,
                                           'fe':calscanfe,
