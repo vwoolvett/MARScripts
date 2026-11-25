@@ -157,7 +157,8 @@ def __watchdog__timeout_handler(signum, frame):
 
 
 
-def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0):
+def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
+    timeout = int(timeout)
     # Create Blacklist if non-existent
     __watchdog__checkblacklist()
 
@@ -167,8 +168,8 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0):
     
     with open('.watchdog_blacklist.txt', 'a') as f:
         if scan not in blacklist:
-            # str(exception)
-            f.write("%i,%s,%s,%s,%i\n"%(scan, fe, caltype, type(exception).__name__, timeout))
+            errorstr = error if type(error)==str else type(error).__name__
+            f.write("%i,%s,%s,%s,%i\n"%(scan, fe, caltype, errorstr, timeout))
 
 
 
@@ -180,35 +181,32 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
 
     # Iterate over fsweep list
     for fsweep in fsweep_list:
-        # check if there is a reduction
-        globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
-        if len(globlist)==0:
-            if scanIsFsweep(fsweep, fe=fe):
-                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
-                try:
-                    temp.alarm(timeout)
-                    reduceFsweep(fsweep, fe=fe)
-                except TimeoutError as e:
-                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
-                except Exception as e:
-                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,0.)
-                finally:
-                    temp.alarm(0)
+        temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
+        try:
+            if scanIsFsweep(fsweep, fe=fe)==False:
+                raise AssertionError
+            
+            temp.alarm(timeout)
+            # check if there is a reduction
+            globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
+
+            if len(globlist)==0:
+                reduceFsweep(fsweep, fe=fe)
                 
-        if len(globlist)==1 and overwrite==True:
-            if scanIsFsweep(fsweep, fe=fe):
-                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
-                try:
-                    temp.alarm(timeout)
-                    reduceFsweep(fsweep, fe=fe, overwrite=True)
-                except TimeoutError as e:
-                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
-                except Exception as e:
-                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,0.)
-                finally:
-                    temp.alarm(0)
-        else:
-            already_reduced += 1
+            if len(globlist)==1 and overwrite==True:
+                reduceFsweep(fsweep, fe=fe, overwrite=True)
+
+            else:
+                already_reduced += 1
+
+        except AssertionError:
+                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep','NotFsweep',0)
+        except TimeoutError as e:
+            __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
+        except Exception as e:
+            __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,0)
+        finally:
+            temp.alarm(0)
 
     print('Total # of scans: %s, already reduced: %s'%(total, already_reduced))
     if already_reduced==total:
@@ -227,41 +225,38 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
 
     # Iterate over wscan list
     for wscan in wscan_list:
-        # check if there is a reduction
-        globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
-        if len(globlist)==0:
-            if scanIsBeamscan(wscan, fe=fe):
+        temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
+        try:
+            if scanIsBeamscan(wscan, fe=fe)==False:
+                raise AssertionError
+            
+            temp.alarm(timeout)
+            # check if there is a reduction
+            globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
+            
+            if len(globlist)==0:
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
-                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
-                try:
-                    temp.alarm(timeout)
-                    reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
-                except TimeoutError as e:
-                    __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,timeout)
-                except Exception as e:
-                    __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,0.)
-                finally:
-                    temp.alarm(0)
+                reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
 
-        if len(globlist)==1 and overwrite==True:
-            if scanIsBeamscan(wscan, fe=fe):
+            if len(globlist)==1 and overwrite==True:
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
-                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
-                try:
-                    temp.alarm(timeout)
-                    reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
-                except TimeoutError as e:
-                    __watchdog__write_to_blacklist(wscan,fe,e,timeout)
-                except Exception as e:
-                    __watchdog__write_to_blacklist(wscan,fe,e,0.)
-                finally:
-                    temp.alarm(0)
-        else:
-            already_reduced += 1
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
+                
+            else:
+                already_reduced += 1
+            
+        except AssertionError:
+            __watchdog__write_to_blacklist(wscan,fe,'WireScanner','NotBeamscan',0)
+        except TimeoutError as e:
+            __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,timeout)
+        except Exception as e:
+            __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,0)
+        finally:
+            temp.alarm(0)
 
     print('Total # of scans: %s, already reduced: %s'%(total, already_reduced))
     if already_reduced==total:
