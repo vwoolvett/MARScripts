@@ -270,20 +270,20 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
         info('No new WireScans to reduce...')
 
 
-def __watchdog_run(fe='LFA', mode='loop'):
+def __watchdog_run(fe='LFA', mode='loop', timeout=180.):
 
     if mode=='single':
         info('Watchdog in single-run mode.')
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
-        __reduce_Fsweep_list(fsweep_list, fe=fe)
-        __reduce_WireScan_list(wscan_list, fe=fe)
+        __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout)
 
     if mode=='loop':
         info('Watchdog in loop mode, CTRL+F to exit!')
         time_0 = time.time()
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
-        __reduce_Fsweep_list(fsweep_list, fe=fe)
-        __reduce_WireScan_list(wscan_list, fe=fe)
+        __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout)
         while True:
             time_current = time.time()
             if time_current - time_0 > 10:  # at least 10 seconds
