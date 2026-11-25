@@ -209,7 +209,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
             temp.alarm(0)
 
     if already_reduced==total:
-        info('No new Fsweeps to reduce...')
+        info('No new Fsweeps to reduce.')
 
 
 
@@ -258,7 +258,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
             temp.alarm(0)
 
     if already_reduced==total:
-        info('No new WireScans to reduce...')
+        info('No new WireScans to reduce.')
 
 
 def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60):
@@ -278,7 +278,9 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60):
         info('Watchdog in loop mode, CTRL+F to exit!')
         time_0 = time.time()
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
+        info('Processing Fsweeps...')
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
+        info('Processing WireScans...')
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
         print()
         while True:
