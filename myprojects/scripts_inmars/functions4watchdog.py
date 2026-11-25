@@ -102,20 +102,15 @@ def __watchdog_figure_update(fig=__watchdog_figure, pausetime=0.1):
 
 
 
-def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', flashtime=0.5):
+def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', flashtime=0.5, backtoblack=True):
     assert type(textstr)==str
-    #fig.clf()
-    #fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
-    #fig.canvas.draw()
-    #fig.canvas.flush_events()
-    #plt.pause(flashtime)
     bbox=dict(
         facecolor='black',
         edgecolor='black',
         linewidth=1,
         boxstyle='square,pad=0.3'
     )
-    frames = np.arange(6)
+    frames = np.arange(5)
     for frame in frames:
         if frame % 2 == 0:
             color = flashcolor
@@ -127,6 +122,28 @@ def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', f
         fig.canvas.draw()
         fig.canvas.flush_events()
         plt.pause(flashtime)
+
+    if backtoblack:
+        fig.set_facecolor('black')
+
+
+
+def __watchdog_figure_text(fig, textstr='', fontsize=20, facecolor='green', backtoblack=True, duration=10):
+    assert type(textstr)==str
+    bbox=dict(
+        facecolor='black',
+        edgecolor='black',
+        linewidth=1,
+        boxstyle='square,pad=0.3'
+    )
+    fig.clf()
+    fig.set_facecolor(facecolor)
+    fig.text(0.5, 0.5, textstr, bbox=bbox, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.pause(duration)
+    if backtoblack:
+        fig.set_facecolor('black')
 
 
 
@@ -301,8 +318,10 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doP
                     raise AssertionError
                 reduceFsweep(fsweep, fe=fe, doReturn=True)
                 if doPlot and fig is not None:
-                    mytext = 'Reduction of Fsweep %s (%s) successful!'%(fsweep, fe)
+                    mytext  = 'Reduction of Fsweep %s (%s) successful!\n'%(fsweep, fe)
+                    mytext += 'Statistics (to be implemented):\n'
                     __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
+                    __watchdog_figure_text(fig=fig, textstr=mytext, facecolor='green')
             #if len(globlist)==1 and overwrite==True:
             elif reductionexists==True and overwrite==True:
                 if doPlot and fig is not None:
@@ -312,8 +331,11 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doP
                     raise AssertionError
                 reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
                 if doPlot and fig is not None:
-                    mytext = 'Reduction of Fsweep %s (%s) successful!'%(fsweep, fe)
+                    mytext  = 'Reduction of Fsweep %s (%s) successful!\n'%(fsweep, fe)
+                    mytext += 'Statistics (to be implemented):\n'
                     __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
+                    __watchdog_figure_text(fig=fig, textstr=mytext, facecolor='green')
+
 
             else:
                 already_reduced += 1
@@ -374,6 +396,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', timeout=60, overwrite=False, do
                 if doPlot and fig is not None:
                     mytext = 'Reduction of WireScan %s (%s) successful!'%(wscan, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
+                fig.set_facecolor('black')
                 reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
@@ -388,6 +411,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', timeout=60, overwrite=False, do
                 if doPlot and fig is not None:
                     mytext = 'Reduction of WireScan %s (%s) successful!'%(wscan, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
+                fig.set_facecolor('black')
                 reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
