@@ -208,9 +208,8 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
         finally:
             temp.alarm(0)
 
-    print('Total # of scans: %s, already reduced: %s'%(total, already_reduced))
     if already_reduced==total:
-        info('No new WireScans to reduce...')
+        info('No new Fsweeps to reduce...')
 
 
 
@@ -257,8 +256,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
             __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,0)
         finally:
             temp.alarm(0)
-
-    print('Total # of scans: %s, already reduced: %s'%(total, already_reduced))
+            
     if already_reduced==total:
         info('No new WireScans to reduce...')
 
