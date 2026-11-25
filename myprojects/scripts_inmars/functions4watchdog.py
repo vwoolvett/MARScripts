@@ -21,6 +21,7 @@ def __watchdog_checkblacklist():
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
             f.write('# scan , fe , type           , timeout, error                    , errordescription\n')
+            f.close()
 
 
 
@@ -53,6 +54,7 @@ def __watchdog_write_to_blacklist(scan, fe, caltype, error, timeout=0):
             errorstr = errorstr.ljust(25)
 
             f.write("  %s, %s, %s, %s, %s, %s\n"%(scan, fe, caltype, timeout, errorstr, errordesc))
+            f.close()
 
 
 
