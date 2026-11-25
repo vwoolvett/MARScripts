@@ -262,7 +262,8 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
 
 
 def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
-
+    assert str.upper(fe) in ['LFA', 'HFA'], 'fe must be LFA or HFA'
+    fe = str.upper(fe)
     global __watchdog_figure
 
     if doPlot:
@@ -273,13 +274,13 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
     timeout = int(timeout)
 
     if mode=='single':
-        info('Watchdog in single-run mode.')
+        info('Watchdog in single-run mode for %s.'%fe)
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
         __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
 
     if mode=='loop':
-        info('Watchdog in loop mode, CTRL+C to exit!')
+        info('Watchdog in loop mode for %s, CTRL+C to exit!'%fe)
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         info('Processing Fsweeps...')
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
