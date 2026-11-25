@@ -263,9 +263,13 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
 
 def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
 
-    if doPlot==True and fig==None:
-        global __watchdog_figure
-        __watchdog_figure = plt.figure(figsize=(8,8))
+    global __watchdog_figure
+
+    if doPlot:
+        if fig is None:
+            if '__watchdog_figure' not in globals():
+                __watchdog_figure = plt.figure(figsize=(8,8))
+            fig = __watchdog_figure
 
     timeout = int(timeout)
 
@@ -273,18 +277,18 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout=60, fig=None):
         info('Watchdog in single-run mode.')
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
-        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=fig)
 
     if mode=='loop':
         info('Watchdog in loop mode, CTRL+F to exit!')
-        time_0 = time.time()
         calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
         info('Processing Fsweeps...')
         __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
         info('Processing WireScans...')
-        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=figure)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=fig)
+        time_0 = time.time()
         print('')
         while True:
             time_current = time.time()
             if time_current - time_0 > 10:  # at least 10 seconds
-                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout, fig=figure)
+                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout, fig=__watchdog_figure)
