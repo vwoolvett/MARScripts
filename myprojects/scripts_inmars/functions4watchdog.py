@@ -1,3 +1,6 @@
+# Module to find and reduce calibrations upon new scan arrival for watchdog
+# at APEX
+
 def __watchdog__findCalScans(fe='LFA', verbose=False):
     assert fe=='LFA' or fe=='HFA', 'fe must be LFA or HFA'
     # no HFA-only mode, so:
@@ -123,3 +126,46 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
     fsweep_list.sort()
     wscan_list.sort()
     return calscanlist, fsweep_list, wscan_list
+
+
+
+def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
+
+    # Iterate over fsweep list
+    for fsweep in fsweep_list:
+        # check if there is a reduction
+        globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
+        if len(globlist)==0:
+            if scanIsFsweep(fsweep, fe=fe):
+                reduceFsweep(fsweep, fe=fe)
+        if len(globlist)==1 and overwrite==True:
+            if scanIsFsweep(fsweep, fe=fe):
+                reduceFsweep(fsweep, fe=fe, overwrite=True)
+        else:
+            pass
+
+
+
+def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
+    if doPlot==True:
+        figure_initiated = False
+
+    # Iterate over wscan list
+    for wscan in wscan_list:
+        # check if there is a reduction
+        globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
+        if len(globlist)==0:
+            if scanIsBeamscan(wscan, fe=fe):
+                if doPlot==True and figure_initiated==False:
+                    figure = plt.figure(figsize=(10,10))
+                    figure_initiated=True
+                reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
+
+        if len(globlist)==1 and overwrite==True:
+            if scanIsBeamscan(wscan, fe=fe):
+                if doPlot==True and figure_initiated==False:
+                    figure = plt.figure(figsize=(10,10))
+                    figure_initiated=True
+                reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
+        else:
+            pass
