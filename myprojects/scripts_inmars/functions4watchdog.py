@@ -114,7 +114,7 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                             wscan_list.append(scan_int)
 
                     # if is finished but blacklisted for timeout, mention
-                    elif '-999' not in duration and scan_int not in blacklist:
+                    elif '-999' not in duration and scan_int in blacklist:
                         message += 'REDUCTION TIMEOUT'.ljust(15) + ' | '
                         message += comment
 
