@@ -142,6 +142,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
             if scanIsFsweep(fsweep, fe=fe):
                 reduceFsweep(fsweep, fe=fe, overwrite=True)
         else:
+            info('No new Fsweeps to reduce...')
             pass
 
 
@@ -168,4 +169,23 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
                     figure_initiated=True
                 reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
         else:
+            info('No new Fsweeps to reduce...')
             pass
+
+
+def __watchdog_run(fe='LFA', mode='loop'):
+    if mode=='single':
+        calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
+        __reduce_Fsweep_list(fsweep_list, fe=fe)
+        __reduce_WireScan_list(wscan_list, fe=fe)
+
+    if mode=='loop':
+        info('Watchdog in loop mode, CTRL+F to exit!')
+        time_0 = time.time()
+        calscan_list, fsweep_list, wscan_list = __watchdog__findCalScans(fe=fe)
+        __reduce_Fsweep_list(fsweep_list, fe=fe)
+        __reduce_WireScan_list(wscan_list, fe=fe)
+        while True:
+            time_current = time.time()
+            if time_current - time_0 > 10:  # at least 10 seconds
+                __watchdog_run(fe=fe, mode='loop')
