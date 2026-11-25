@@ -6,7 +6,7 @@ __watchdog_figure = None
 
 
 def __watchdog_timeout_handler(signum, frame):
-    raise TimeoutError("Reduction timed out!")
+    raise TimeoutError('Reduction timed out!')
 
 
 
