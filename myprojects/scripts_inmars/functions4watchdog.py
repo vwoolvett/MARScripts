@@ -7,8 +7,8 @@ def __watchdog__timeout_handler(signum, frame):
 
 
 def __watchdog__checkblacklist():
-    if not os.path.exists('.watchdog_blacklist.txt'):
-        with open('.watchdog_blacklist.txt', 'w') as f:
+    if not os.path.exists('.watchdog_blacklist.csv'):
+        with open('.watchdog_blacklist.csv', 'w') as f:
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
             f.write('# Scan, Array, CalType, Timeout, Error, Errordescription\n')
@@ -17,15 +17,15 @@ def __watchdog__checkblacklist():
 
 def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
     fe = str.upper(fe)
+    caltype = caltype.ljust(11)
     timeout = int(timeout)
     # Create Blacklist if non-existent
     __watchdog__checkblacklist()
 
-    with open('.watchdog_blacklist.txt', 'r') as f:
-        lines = f.readlines()
-        blacklist = __watchdog_readblacklist(fe=fe)
+    # Array-specific blacklist
+    blacklist = __watchdog_readblacklist(fe=fe)
     
-    with open('.watchdog_blacklist.txt', 'a') as f:
+    with open('.watchdog_blacklist.csv', 'a') as f:
         if scan not in blacklist:
             if type(error)==str:
                 errorstr = error
@@ -43,7 +43,7 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
     __watchdog__checkblacklist()
 
     # Read blacklist
-    with open('.watchdog_blacklist.txt', 'r') as f:
+    with open('.watchdog_blacklist.csv', 'r') as f:
         blacklistdict = {}
         lines = f.readlines()
         for line in lines:
