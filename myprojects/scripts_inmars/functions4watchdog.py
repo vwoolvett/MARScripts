@@ -11,14 +11,11 @@ def __watchdog__checkblacklist():
         with open('.watchdog_blacklist.csv', 'w') as f:
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# Scan, Array, CalType, Timeout, Error, Errordescription\n')
-
+            f.write('# scan, fe, type, timeout, error, errordescription\n')
 
 
 def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
     fe = str.upper(fe)
-    caltype = caltype.ljust(11)
-    timeout = int(timeout)
     # Create Blacklist if non-existent
     __watchdog__checkblacklist()
 
@@ -29,11 +26,17 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
         if scan not in blacklist:
             if type(error)==str:
                 errorstr = error
-                errordesc = 'void'
+                errordesc = 'No description, Exception is not raised but was catched'
             else:
                 errorstr = type(error).__name__
                 errordesc = str(error)
-            f.write("%i,%s,%s,%i,%s,%s\n"%(scan, fe, caltype, timeout, errorstr, errordesc))
+
+            
+            caltype = caltype.ljust(15)
+            timeout = str(int(timeout)).ljust(3)
+            errorstr = errorstr.ljust(25)
+
+            f.write("%s, %s, %s, %s, %s, %s\n"%(scan, fe, caltype, timeout, errorstr, errordesc))
 
 
 
@@ -52,15 +55,15 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
                 calscanfe = line.split(',')[1]
                 calscantype = line.split(',')[2]
                 timeout = line.split(',')[3]
-                calscanerror = line.split(',')[4]
-                calscanerrordesc = line.split(',')[5]
+                error = line.split(',')[4]
+                errordesc = line.split(',')[5]  # might have commas but is last CSV value
 
                 blacklistdict[calscan] = {'scan':calscan,
                                           'fe':calscanfe,
                                           'type':calscantype,
                                           'timeout':timeout,
-                                          'error':calscanerror,
-                                          'errordesc':calscanerrordesc
+                                          'error':error,
+                                          'errordescription':errordesc
                                           }
 
         if returnDict:
@@ -73,7 +76,7 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
 
 
 
-def __watchdog_flash_figure(fig, textstr='', fontsize=15, flashcolor='red', flashtime=0.3):
+def __watchdog_flash_figure(fig, textstr='', fontsize=20, flashcolor='red', flashtime=0.3):
     assert type(textstr)==str
     fig.clf()
     fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
