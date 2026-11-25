@@ -206,9 +206,9 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180.):
                     temp.alarm(timeout)
                     reduceFsweep(fsweep, fe=fe, overwrite=True)
                 except TimeoutError as e:
-                    __watchdog__write_to_blacklist(fsweep,fe,'WireScanner',e,timeout)
+                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
                 except Exception as e:
-                    __watchdog__write_to_blacklist(fsweep,fe,'WireScanner',e,0.)
+                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,0.)
                 finally:
                     temp.alarm(0)
         else:
@@ -242,9 +242,9 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
                     temp.alarm(timeout)
                     reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
                 except TimeoutError as e:
-                    __watchdog__write_to_blacklist(wscan,fe,e,timeout)
+                    __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,timeout)
                 except Exception as e:
-                    __watchdog__write_to_blacklist(wscan,fe,e,0.)
+                    __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,0.)
                 finally:
                     temp.alarm(0)
 
