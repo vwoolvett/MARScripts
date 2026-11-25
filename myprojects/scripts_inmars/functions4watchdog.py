@@ -150,12 +150,33 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 
 
 
-def timeout_handler(signum, frame):
+def __watchdog__timeout_handler(signum, frame):
     raise TimeoutError("Reduction timed out!")
 
 
 
-def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
+def __watchdog__write_to_blacklist(scan, fe, caltype, exception, timeout=0.0):
+    # Create Blacklist if non-existent
+    if not os.path.exists('.watchdog_blacklist.txt'):
+        with open('.watchdog_blacklist.txt', 'w') as f:
+            f.write('# List of calibration scans that have timed out\n')
+            f.write('# in their reduction to avoid reducing them again\n')
+            f.write('# Example:\n')
+            f.write('# 12345,LFA,Fsweep,TimeoutError,180\n')
+            f.write('# 12346,LFA,WireScanner,TimeoutError,180\n')
+            f.write('# 12347,HFA,Fsweep,OtherError,0\n')
+
+    with open('.watchdog_blacklist.txt', 'r') as f:
+        lines = f.readlines()
+        blacklist = [int(line.split(',')[0]) for line in lines if line.split(',')[0].isdigit() and line.split(',')[1]==fe]
+    
+    with open('.watchdog_blacklist.txt', 'a') as f:
+        if scan not in blacklist:
+            f.write("%i,%s,%s,%s,%.3f\n"%(scan, fe, caltype, type(exception).__name__, timeout))
+
+
+
+def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=180.):
     import signal as temp
     # track reductions
     total = len(fsweep_list)
@@ -167,31 +188,38 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
         globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
         if len(globlist)==0:
             if scanIsFsweep(fsweep, fe=fe):
-                temp.signal(temp.SIGALRM, timeout_handler)
+                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
                 try:
-                    temp.alarm(180.)  # 3-minute timeout
+                    temp.alarm(timeout)
                     reduceFsweep(fsweep, fe=fe)
-                    temp.alarm(0.)   # Cancel the alarm if successful
-                except:
-                    pass
+                except TimeoutError as e:
+                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,timeout)
+                except Exception as e:
+                    __watchdog__write_to_blacklist(fsweep,fe,'Fsweep',e,0.)
+                finally:
+                    temp.alarm(0)
+                
         if len(globlist)==1 and overwrite==True:
             if scanIsFsweep(fsweep, fe=fe):
-                temp.signal(temp.SIGALRM, timeout_handler)
+                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
                 try:
-                    temp.alarm(180.)  # 3-minute timeout
+                    temp.alarm(timeout)
                     reduceFsweep(fsweep, fe=fe, overwrite=True)
-                    temp.alarm(0.)   # Cancel the alarm if successful
-                except:
-                    pass
+                except TimeoutError as e:
+                    __watchdog__write_to_blacklist(fsweep,fe,'WireScanner',e,timeout)
+                except Exception as e:
+                    __watchdog__write_to_blacklist(fsweep,fe,'WireScanner',e,0.)
+                finally:
+                    temp.alarm(0)
         else:
             already_reduced += 1
 
     if already_reduced==total:
-            info('No new WireScans to reduce...')
+        info('No new WireScans to reduce...')
 
 
 
-def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
+def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=180.):
     import signal as temp
     if doPlot==True:
         figure_initiated = False
@@ -209,26 +237,32 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
-                temp.signal(temp.SIGALRM, timeout_handler)
+                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
                 try:
-                    temp.alarm(180.)  # 3-minute timeout
+                    temp.alarm(timeout)
                     reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
-                    temp.alarm(0.)   # Cancel the alarm if successful
-                except:
-                    pass
+                except TimeoutError as e:
+                    __watchdog__write_to_blacklist(wscan,fe,e,timeout)
+                except Exception as e:
+                    __watchdog__write_to_blacklist(wscan,fe,e,0.)
+                finally:
+                    temp.alarm(0)
 
         if len(globlist)==1 and overwrite==True:
             if scanIsBeamscan(wscan, fe=fe):
                 if doPlot==True and figure_initiated==False:
                     figure = plt.figure(figsize=(10,10))
                     figure_initiated=True
-                temp.signal(temp.SIGALRM, timeout_handler)
+                temp.signal(temp.SIGALRM, __watchdog__timeout_handler)
                 try:
-                    temp.alarm(180.)  # 3-minute timeout
+                    temp.alarm(timeout)
                     reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
-                    temp.alarm(0.)   # Cancel the alarm if successful
-                except:
-                    pass
+                except TimeoutError as e:
+                    __watchdog__write_to_blacklist(wscan,fe,e,timeout)
+                except Exception as e:
+                    __watchdog__write_to_blacklist(wscan,fe,e,0.)
+                finally:
+                    temp.alarm(0)
         else:
             already_reduced += 1
 
