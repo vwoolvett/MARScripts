@@ -23,6 +23,7 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
     FeBedict = {'LFA': 'AMKID870-AMKID870BE', 'HFA':'AMKID350-AMKID350BE'}
     febe = FeBedict[fe]
 
+    scanlist = []
     calscanlist = []
     fsweep_list = []
     wscan_list = []
@@ -130,10 +131,11 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
                 if len(keys) != 0:
                     keys_toshow = keys
                     c+=1
+                scanlist.append(scan_int)
                 messages.append(message)
 
-    calscanarr = np.array(calscanlist)
-    order = calscanarr.argsort()
+    scanarr = np.array(scanlist)
+    order = scanarr.argsort()
     messages_sorted = [messages[i] for i in order]
     if verbose:
         for message in messages_sorted:
@@ -208,6 +210,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
         else:
             already_reduced += 1
 
+    print('Total # of scans: %s, already reduced: %s'%(total, already_reduced))
     if already_reduced==total:
         info('No new WireScans to reduce...')
 
@@ -260,6 +263,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
         else:
             already_reduced += 1
 
+    print('Total # of scans: %s, already reduced: %s'%(total, already_reduced))
     if already_reduced==total:
         info('No new WireScans to reduce...')
 
