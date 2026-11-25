@@ -6,13 +6,13 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 
     # Create Blacklist if non-existent
     if not os.path.exists('.watchdog_blacklist.txt'):
-            with open('.watchdog_blacklist.txt', 'w') as f:
-                    f.write('# List of calibration scans that have timed out\n')
-                    f.write('# in their reduction to avoid reducing them again\n')
-                    f.write('# Example:\n')
-                    f.write('# 12345,LFA\n')
-                    f.write('# 12346,LFA\n')
-                    f.write('# 12347,HFA\n')
+        with open('.watchdog_blacklist.txt', 'w') as f:
+            f.write('# List of calibration scans that have timed out\n')
+            f.write('# in their reduction to avoid reducing them again\n')
+            f.write('# Example:\n')
+            f.write('# 12345,LFA\n')
+            f.write('# 12346,LFA\n')
+            f.write('# 12347,HFA\n')
 
     # Read blacklist
     with open('.watchdog_blacklist.txt', 'r') as f:
