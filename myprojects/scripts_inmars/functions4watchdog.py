@@ -377,10 +377,35 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
 
 
 
-def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
+def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default', firstloop=True):
     assert str.upper(fe) in ['LFA', 'HFA'], 'fe must be LFA or HFA'
 
-    # check
+    # Check current directory is a "Reduction" directory, otherwise ask if continue
+    if firstloop==True:
+        cwd = os.getcwd()
+        if str.upper(cwd.split('/')[-1])!='REDUCTION':
+            message  = '-----------------------------------------------------\n'
+            message += '-----------            Warning!           -----------\n'
+            message += '-----------------------------------------------------\n'
+            message += 'Current directory:\n'
+            message += '%s\n'%cwd
+            message += 'is not a Reduction folder. You may miss the required\n'
+            message += 'blacklist file for Watchdog. It is recommended to run\n'
+            message += 'Watchdog in the Reduction folder of the project.\n'
+            message += '\nContinue anyways? (y/N)'
+
+            user_input = raw_input(message)
+            user_input = str(user_input)
+
+            if str.upper(user_input) in ['', 'N', 'NO']:
+                info('Quitting Watchdog')
+                return
+            else:
+                firstloop=False
+                pass
+
+
+    # check blacklist
     __watchdog_checkblacklist()
 
     global __watchdog_figure
@@ -427,4 +452,4 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default'):
         while True:
             time_current = time.time()
             if time_current - time_0 > 5:  # at least 5 seconds
-                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout)
+                __watchdog_run(fe=fe, mode='loop', doPlot=doPlot, timeout=timeout, firstloop=firstloop)
