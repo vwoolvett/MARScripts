@@ -216,7 +216,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
 def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, timeout=60):
     import signal as temp
     if doPlot==True:
-        figure_initiated = False
+        figure = plt.figure(figsize=(10,10))
 
     # track reductions
     total = len(wscan_list)
@@ -234,15 +234,9 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
             globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
             
             if len(globlist)==0:
-                if doPlot==True and figure_initiated==False:
-                    figure = plt.figure(figsize=(10,10))
-                    figure_initiated=True
                 reduceWireScan(wscan, fe=fe, doPlot=True, fig=figure)
 
             if len(globlist)==1 and overwrite==True:
-                if doPlot==True and figure_initiated==False:
-                    figure = plt.figure(figsize=(10,10))
-                    figure_initiated=True
                 reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=True, fig=figure)
                 
             else:
@@ -256,7 +250,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False, t
             __watchdog__write_to_blacklist(wscan,fe,'WireScanner',e,0)
         finally:
             temp.alarm(0)
-            
+
     if already_reduced==total:
         info('No new WireScans to reduce...')
 
