@@ -284,23 +284,18 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False, timeout=60):
         try:
             temp.alarm(timeout)
             # check if there is a reduction
-            globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
-
-            if len(globlist)==0:
+            #globlist = glob('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
+            #if len(globlist)==0:
+            reductionexists = os.path.exists('CalFiles/fsweep_%s_%s.csv'%(fsweep, fe))
+            if reductionexists==False:
                 if scanIsFsweep(fsweep, fe=fe)==False:
                     raise AssertionError
                 reduceFsweep(fsweep, fe=fe, doReturn=True)
-                #fD = reduceFsweep(fsweep, fe=fe, doReturn=True)
-                #if fD == None:  # when not Fsweep
-                #    raise AssertionError
-                
-            if len(globlist)==1 and overwrite==True:
+            #if len(globlist)==1 and overwrite==True:
+            elif reductionexists==True and overwrite==True:
                 if scanIsFsweep(fsweep, fe=fe)==False:
                     raise AssertionError
                 reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
-                #fD = reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
-                #if fD == None:  # when not Fsweep
-                #    raise AssertionError
 
             else:
                 already_reduced += 1
@@ -336,31 +331,26 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrit
         try:
             temp.alarm(timeout)
             # check if there is a reduction
-            globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
-            
-            if len(globlist)==0:
+            #globlist = glob('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
+            #if len(globlist)==0:
+            reductionexists = os.path.exists('CalFiles/beam_scanner_%s_%s.csv'%(wscan, fe))
+            if reductionexists==False:
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
                 if scanIsBeamscan(wscan, fe=fe)==False:
                     raise AssertionError
                 reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig)
-                #wD = reduceWireScan(wscan, fe=fe, doPlot=doPlot, fig=fig, doReturn=True)
-                #if wD == {}:  # when not WireScan
-                #    raise AssertionError
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
-
-            if len(globlist)==1 and overwrite==True:
+            #if len(globlist)==1 and overwrite==True:
+            if reductionexists==True and overwrite==True:
                 if doPlot and fig is not None:
                     mytext = 'Now processing WireScan %s (%s)!'%(wscan, fe)
                     __watchdog_figure_flash(fig=fig, textstr=mytext)
                 if scanIsBeamscan(wscan, fe=fe)==False:
                     raise AssertionError
                 reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig)
-                #wD = reduceWireScan(wscan, fe=fe, overwrite=True, doPlot=doPlot, fig=fig, doReturn=True)
-                #if wD == {}:  # when not WireScan
-                #    raise AssertionError
                 if doPlot and fig is not None:
                     __watchdog_figure_update(fig=fig)
                 
