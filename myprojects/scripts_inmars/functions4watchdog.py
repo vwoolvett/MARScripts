@@ -154,7 +154,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
         else:
             already_reduced += 1
 
-    if len(already_reduced)==total:
+    if already_reduced==total:
             info('No new WireScans to reduce...')
 
 
@@ -193,7 +193,7 @@ def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, overwrite=False):
         else:
             already_reduced += 1
 
-    if len(already_reduced)==total:
+    if already_reduced==total:
         info('No new WireScans to reduce...')
 
 
