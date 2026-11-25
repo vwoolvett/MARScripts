@@ -267,7 +267,7 @@ def __watchdog_findCalScans(fe='LFA', verbose=False):
 
 
 
-def __reduce_Fsweep_list(fsweep_list, fe='LFA', doPlot=True, fig=None, overwrite=False, timeout=60):
+def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doPlot=True, fig=None):
     import signal as temp
     fe = str.upper(fe)
 
@@ -332,7 +332,7 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', doPlot=True, fig=None, overwrite
 
 
 
-def __reduce_WireScan_list(wscan_list, fe='LFA', doPlot=True, fig=None, overwrite=False, timeout=60):
+def __reduce_WireScan_list(wscan_list, fe='LFA', timeout=60, overwrite=False, doPlot=True, fig=None):
     import signal as temp
     fe = str.upper(fe)
 
@@ -462,14 +462,14 @@ def __watchdog_run(fe='LFA', mode='loop', doPlot=True, timeout='default', firstl
     if mode=='single':
         info('Watchdog in single-run mode for %s.'%fe)
         calscan_list, fsweep_list, wscan_list = __watchdog_findCalScans(fe=fe)
-        __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
-        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
+        __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout, doPlot=doPlot, fig=__watchdog_figure)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, doPlot=doPlot, fig=__watchdog_figure)
 
     if mode=='loop':
         info('Watchdog in loop mode for %s, CTRL+C to exit!'%fe)
         calscan_list, fsweep_list, wscan_list = __watchdog_findCalScans(fe=fe)
-        __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout)
-        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, fig=__watchdog_figure)
+        __reduce_Fsweep_list(fsweep_list, fe=fe, timeout=timeout, doPlot=doPlot, fig=__watchdog_figure)
+        __reduce_WireScan_list(wscan_list, fe=fe, timeout=timeout, doPlot=doPlot, fig=__watchdog_figure)
         info('Checking back in 5 seconds...')
         time_0 = time.time()
         print('')
