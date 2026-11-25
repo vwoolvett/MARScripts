@@ -319,7 +319,8 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doP
                 reduceFsweep(fsweep, fe=fe, doReturn=True)
                 if doPlot and fig is not None:
                     mytext  = 'Reduction of Fsweep %s (%s) successful!\n'%(fsweep, fe)
-                    mytext += 'Statistics (to be implemented):\n'
+                    mytext += '\n'
+                    mytext += 'Statistics (to be implemented):'
                     __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
                     __watchdog_figure_text(fig=fig, textstr=mytext, facecolor='green')
             #if len(globlist)==1 and overwrite==True:
@@ -332,7 +333,8 @@ def __reduce_Fsweep_list(fsweep_list, fe='LFA', timeout=60, overwrite=False, doP
                 reduceFsweep(fsweep, fe=fe, doReturn=True, overwrite=True)
                 if doPlot and fig is not None:
                     mytext  = 'Reduction of Fsweep %s (%s) successful!\n'%(fsweep, fe)
-                    mytext += 'Statistics (to be implemented):\n'
+                    mytext += '\n'
+                    mytext += 'Statistics (to be implemented):'
                     __watchdog_figure_flash(fig=fig, textstr=mytext, flashcolor='green')
                     __watchdog_figure_text(fig=fig, textstr=mytext, facecolor='green')
 
