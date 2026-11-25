@@ -102,14 +102,20 @@ def __watchdog_figure_update(fig=__watchdog_figure, pausetime=0.1):
 
 
 
-def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', flashtime=0.3):
+def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', flashtime=0.5):
     assert type(textstr)==str
-    fig.clf()
-    fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
-    fig.canvas.draw()
-    fig.canvas.flush_events()
-    plt.pause(flashtime)
-    frames = np.arange(10)
+    #fig.clf()
+    #fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+    #fig.canvas.draw()
+    #fig.canvas.flush_events()
+    #plt.pause(flashtime)
+    bbox=dict(
+        facecolor='black',
+        edgecolor='black',
+        linewidth=1,
+        boxstyle='square,pad=0.3'
+    )
+    frames = np.arange(8)
     for frame in frames:
         if frame % 2 == 0:
             color = flashcolor
@@ -117,7 +123,7 @@ def __watchdog_figure_flash(fig, textstr='', fontsize=20, flashcolor='yellow', f
             color = 'black'
         fig.clf()
         fig.set_facecolor(color)
-        fig.text(0.5, 0.5, textstr, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
+        fig.text(0.5, 0.5, textstr, bbox=bbox, fontdict={'fontsize':fontsize}, horizontalalignment='center', color='white')
         fig.canvas.draw()
         fig.canvas.flush_events()
         plt.pause(flashtime)
