@@ -132,7 +132,7 @@ def __watchdog__findCalScans(fe='LFA', verbose=False):
 def __reduce_Fsweep_list(fsweep_list, fe='LFA', overwrite=False):
 
     # track reductions
-    total = len(wscan_list)
+    total = len(fsweep_list)
     already_reduced = 0
 
     # Iterate over fsweep list
