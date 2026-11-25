@@ -11,7 +11,7 @@ def __watchdog__checkblacklist():
         with open('.watchdog_blacklist.txt', 'w') as f:
             f.write('# List of calibration scans that have failed\n')
             f.write('# in their reduction to avoid reducing them again\n')
-            f.write('# Scan, Array, CalType, Error, Errordescription, Timeout\n')
+            f.write('# Scan, Array, CalType, Timeout, Error, Errordescription\n')
 
 
 
@@ -33,7 +33,7 @@ def __watchdog__write_to_blacklist(scan, fe, caltype, error, timeout=0):
             else:
                 errorstr = type(error).__name__
                 errordesc = str(error)
-            f.write("%i,%s,%s,%s,%s,%i\n"%(scan, fe, caltype, errorstr, errordesc, timeout))
+            f.write("%i,%s,%s,%s,%s,%i\n"%(scan, fe, caltype, timeout, errorstr, errordesc))
 
 
 
@@ -51,16 +51,17 @@ def __watchdog_readblacklist(fe='LFA', returnDict=False):
                 calscan = int(line.split(',')[0])
                 calscanfe = line.split(',')[1]
                 calscantype = line.split(',')[2]
-                calscanerror = line.split(',')[3]
-                calscanerrordesc = line.split(',')[4]
-                timeout = line.split(',')[5]
+                timeout = line.split(',')[3]
+                calscanerror = line.split(',')[4]
+                calscanerrordesc = line.split(',')[5]
 
                 blacklistdict[calscan] = {'scan':calscan,
                                           'fe':calscanfe,
                                           'type':calscantype,
+                                          'timeout':timeout,
                                           'error':calscanerror,
-                                          'errordesc':calscanerrordesc,
-                                          'timeout':timeout}
+                                          'errordesc':calscanerrordesc
+                                          }
 
         if returnDict:
             return blacklistdict
